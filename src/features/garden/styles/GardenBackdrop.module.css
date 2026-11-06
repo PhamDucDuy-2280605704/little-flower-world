@@ -1,0 +1,196 @@
+/* ==========================================
+   NỀN KHU VƯỜN: bầu trời, mặt trời/trăng, sao, mây, đồi
+   .day và .night đổi bộ màu cho cả cảnh.
+========================================== */
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* Bộ màu ban ngày */
+.day {
+  --hill-back: #b5e3b0;
+  --hill-mid: #8fd18b;
+  --ground: #6fbf73;
+}
+
+/* Bộ màu ban đêm */
+.night {
+  --hill-back: #3e5a6b;
+  --hill-mid: #2f5a55;
+  --ground: #25493f;
+}
+
+/* ---------- Bầu trời ---------- */
+
+.skyDay,
+.skyNight {
+  position: absolute;
+  inset: 0;
+  transition: opacity 0.9s ease;
+}
+
+.skyDay {
+  background: linear-gradient(180deg, #bfe6ff 0%, #e8f6ff 45%, #fff3e6 75%);
+}
+
+.skyNight {
+  background: linear-gradient(180deg, #171c48 0%, #2f2f6b 50%, #5a4a86 80%);
+  opacity: 0;
+}
+
+.night .skyNight {
+  opacity: 1;
+}
+
+.night .skyDay {
+  opacity: 0;
+}
+
+/* ---------- Sao ---------- */
+
+.stars {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.9s ease;
+}
+
+.night .stars {
+  opacity: 1;
+}
+
+.star {
+  position: absolute;
+  border-radius: 50%;
+  background: #fffbe0;
+  animation: twinkle 3s ease-in-out infinite alternate;
+}
+
+@keyframes twinkle {
+  from {
+    opacity: 0.35;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* ---------- Mặt trời và mặt trăng ---------- */
+
+.sun,
+.moon {
+  position: absolute;
+  top: 9%;
+  right: 12%;
+  border-radius: 50%;
+  transition:
+    opacity 0.9s ease,
+    transform 0.9s ease;
+}
+
+.sun {
+  width: 64px;
+  height: 64px;
+  background: radial-gradient(circle at 40% 35%, #fff7b0, #ffd84d);
+  box-shadow: 0 0 40px 16px rgba(255, 220, 100, 0.55);
+}
+
+.moon {
+  width: 56px;
+  height: 56px;
+  background:
+    radial-gradient(circle at 30% 35%, #e6e2c8 0 9%, transparent 10%),
+    radial-gradient(circle at 62% 62%, #e6e2c8 0 12%, transparent 13%),
+    radial-gradient(circle at 40% 35%, #fffbe6, #efe9c7);
+  box-shadow: 0 0 30px 10px rgba(255, 252, 220, 0.3);
+  opacity: 0;
+  transform: translateY(70px);
+}
+
+.night .sun {
+  opacity: 0;
+  transform: translateY(70px);
+}
+
+.night .moon {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ---------- Mây trôi ngang cảnh ---------- */
+
+.cloud {
+  position: absolute;
+  left: -220px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  /* Hai bóng phụ tạo hình đám mây nhiều cục */
+  box-shadow:
+    28px 8px 0 -4px rgba(255, 255, 255, 0.9),
+    -22px 10px 0 -8px rgba(255, 255, 255, 0.85);
+  filter: blur(0.5px);
+
+  /* Tốc độ trôi phụ thuộc gió: --speed do khu vườn đặt */
+  animation: cloud-drift calc(var(--d) * 1s * var(--speed, 1)) linear infinite;
+  transition: opacity 0.9s ease;
+}
+
+.night .cloud {
+  opacity: 0.22;
+}
+
+@keyframes cloud-drift {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(calc(var(--scene-w, 860px) + 460px));
+  }
+}
+
+/* ---------- Ba lớp đồi (sau → trước) ---------- */
+
+.hillBack,
+.hillMid,
+.ground {
+  position: absolute;
+  border-radius: 50%;
+  transition: background-color 0.9s ease;
+}
+
+.hillBack {
+  left: -25%;
+  width: 150%;
+  height: 90%;
+  bottom: -35%;
+  background-color: var(--hill-back);
+}
+
+.hillMid {
+  left: -45%;
+  width: 130%;
+  height: 80%;
+  bottom: -38%;
+  background-color: var(--hill-mid);
+}
+
+.ground {
+  left: -8%;
+  width: 116%;
+  height: 46%;
+  bottom: -12%;
+  background-color: var(--ground);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cloud,
+  .star {
+    animation: none;
+  }
+}

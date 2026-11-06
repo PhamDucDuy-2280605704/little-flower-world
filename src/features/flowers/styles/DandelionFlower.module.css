@@ -1,0 +1,82 @@
+/* ==========================================
+   BỒ CÔNG ANH – phần đầu hoa
+   Màu "bông" đọc từ --flower-color (mặc định: trắng kem #f6f2ea)
+========================================== */
+
+.puff {
+  position: absolute;
+  inset: 0;
+}
+
+/* Mỗi hạt = một sợi cuống mảnh hướng ra ngoài + một cụm bông ở đầu */
+.seed {
+  position: absolute;
+  left: calc(50% - 1px);
+  top: calc(50% - 42px);
+  width: 2px;
+  height: 42px;
+  transform-origin: 50% 100%;
+
+  /* Hạt thứ i xoay i x (360/28 = 12.857) độ */
+  --a: calc(var(--i) * 12.857deg);
+  transform: rotate(var(--a));
+
+  background: linear-gradient(0deg, #b8b3a6, #dcd8cc);
+
+  /* Khi hạt mọc lại: chỉ hiện dần (opacity), vị trí quay về ngay */
+  opacity: 1;
+  transition: opacity 1.4s ease-in;
+}
+
+/* Cứ 3 hạt thì có một hạt ngắn hơn cho tự nhiên */
+.seed:nth-child(3n) {
+  top: calc(50% - 35px);
+  height: 35px;
+}
+
+/* Cụm bông ở đầu mỗi hạt */
+.seed::after {
+  content: "";
+  position: absolute;
+  top: -9px;
+  left: -8px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    #ffffff 18%,
+    color-mix(in srgb, var(--flower-color, #f6f2ea) 85%, transparent) 55%,
+    transparent 72%
+  );
+}
+
+/* Khi bị thổi: mỗi hạt bay chéo lên phải (gió thổi sang phải) và mờ dần.
+   transition-delay tăng theo i nên các hạt bay đi lần lượt chứ không cùng lúc */
+.blown .seed {
+  transform: translate(calc(130px + var(--i) * 5px), calc(-70px - var(--i) * 3px))
+    rotate(calc(var(--a) + 90deg));
+  opacity: 0;
+  transition:
+    transform 2.2s ease-out calc(var(--i) * 25ms),
+    opacity 2.2s ease-in calc(var(--i) * 25ms);
+}
+
+/* Đế hoa */
+.core {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  left: calc(50% - 8px);
+  top: calc(50% - 8px);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #b2b878, #7a8050);
+  z-index: 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seed,
+  .blown .seed {
+    transition: none;
+  }
+}

@@ -27,6 +27,30 @@ export const flowerCatalog: FlowerInfo[] = [
     description: "Nhiều lớp cánh chồng lên nhau, xoay nhẹ vào trong.",
     defaultColor: "#e0436a",
   },
+  {
+    kind: "lavender",
+    name: "Oải hương",
+    description: "Ba cụm nụ tím nhỏ xếp dọc theo cành, thơm dịu và yên bình.",
+    defaultColor: "#9b7fd4",
+  },
+  {
+    kind: "cherry",
+    name: "Hoa anh đào",
+    description: "Năm cánh hồng nhạt khuyết ở đầu, nhụy vàng li ti ở giữa.",
+    defaultColor: "#ffc6dc",
+  },
+  {
+    kind: "lotus",
+    name: "Hoa sen",
+    description: "Ba tầng cánh nhọn xòe ra, nằm trên chiếc lá sen xanh.",
+    defaultColor: "#ff9ec7",
+  },
+  {
+    kind: "dandelion",
+    name: "Bồ công anh",
+    description: "Quả cầu bông trắng, gió thổi qua là hạt bay đi khắp nơi.",
+    defaultColor: "#f6f2ea",
+  },
 ];
 
 // Bảng màu để thử đổi màu hoa.

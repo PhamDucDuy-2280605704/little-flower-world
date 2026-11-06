@@ -4,6 +4,10 @@ import DaisyFlower from "./DaisyFlower";
 import TulipFlower from "./TulipFlower";
 import SunflowerFlower from "./SunflowerFlower";
 import RoseFlower from "./RoseFlower";
+import LavenderFlower from "./LavenderFlower";
+import CherryFlower from "./CherryFlower";
+import LotusFlower from "./LotusFlower";
+import DandelionFlower from "./DandelionFlower";
 
 // Bảng tra: tên loài hoa → component tương ứng.
 // Record<FlowerKind, ...> bắt TypeScript kiểm tra: thiếu loài nào là báo lỗi ngay.
@@ -12,6 +16,10 @@ const flowerComponents: Record<FlowerKind, ComponentType<FlowerProps>> = {
   tulip: TulipFlower,
   sunflower: SunflowerFlower,
   rose: RoseFlower,
+  lavender: LavenderFlower,
+  cherry: CherryFlower,
+  lotus: LotusFlower,
+  dandelion: DandelionFlower,
 };
 
 type Props = FlowerProps & { kind: FlowerKind };

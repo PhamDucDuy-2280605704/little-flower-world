@@ -1,0 +1,53 @@
+/* ==========================================
+   OẢI HƯƠNG – phần đầu hoa
+   Màu chính đọc từ --flower-color (mặc định: tím #9b7fd4)
+========================================== */
+
+/* Một cụm nụ: đáy nằm sát thân hoa, nghiêng quanh điểm đáy */
+.spike {
+  position: absolute;
+  left: calc(50% - 20px);
+  bottom: 30px;
+  width: 40px;
+  /* Cao = số hàng x 15px + một chút ở ngọn */
+  height: calc(var(--rows) * 15px + 14px);
+
+  transform-origin: 50% 100%;
+  transform: rotate(var(--tilt));
+}
+
+/* Một hàng nụ: hàng i cách ngọn i x 15px */
+.row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--i) * 15px);
+  height: 14px;
+}
+
+/* Hai nụ nghiêng ra hai bên; càng xuống gốc nụ càng to */
+.budLeft,
+.budRight {
+  position: absolute;
+  top: 0;
+  width: calc(9px + var(--i) * 0.9px);
+  height: 14px;
+  border-radius: 50%;
+
+  background: radial-gradient(
+    circle at 35% 30%,
+    color-mix(in srgb, var(--flower-color, #9b7fd4) 55%, white),
+    var(--flower-color, #9b7fd4) 70%
+  );
+  box-shadow: 0 1px 2px rgba(60, 30, 110, 0.25);
+}
+
+.budLeft {
+  right: calc(50% - 3px);
+  transform: rotate(-30deg);
+}
+
+.budRight {
+  left: calc(50% - 3px);
+  transform: rotate(30deg);
+}

@@ -24,7 +24,9 @@
   width: 240px;
   height: 340px;
 
-  animation: sway 4s ease-in-out infinite;
+  /* Tốc độ và biên độ đung đưa đọc từ biến CSS của "khu vườn" (gió).
+     Không có khu vườn thì dùng mặc định: 4 giây, nghiêng 3 độ. */
+  animation: sway var(--sway-duration, 4s) ease-in-out infinite;
   /* Điểm xoay nằm gần cuối thân hoa */
   transform-origin: 50% 95%;
 }
@@ -79,11 +81,11 @@
 @keyframes sway {
   0%,
   100% {
-    transform: rotate(-3deg) translateY(0);
+    transform: rotate(calc(var(--sway-angle, 3deg) * -1)) translateY(0);
   }
 
   50% {
-    transform: rotate(3deg) translateY(-4px);
+    transform: rotate(var(--sway-angle, 3deg)) translateY(-4px);
   }
 }
 

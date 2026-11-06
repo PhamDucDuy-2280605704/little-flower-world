@@ -1,0 +1,82 @@
+/* Bảng điều khiển khu vườn – dùng lại bảng màu pastel của website */
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px 28px;
+  margin-top: 16px;
+}
+
+.group {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.legend {
+  float: left;
+  padding: 0;
+  margin-right: 10px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #a86d87;
+}
+
+.buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.button {
+  padding: 8px 14px;
+
+  background: #fff;
+  border: 2px solid #f0cfdc;
+  border-radius: 999px;
+
+  color: #866b7b;
+  font: inherit;
+  font-size: 14px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.button:hover {
+  border-color: #e0a3bb;
+}
+
+.active {
+  background: #fff1f6;
+  border-color: #d88eac;
+  color: #674459;
+  font-weight: bold;
+}
+
+.button:focus-visible {
+  outline: 3px solid #a86d87;
+  outline-offset: 2px;
+}
+
+/* Điện thoại: mỗi nhóm một hàng, tên nhóm nằm phía trên các nút */
+@media (max-width: 520px) {
+  .group {
+    display: block;
+    width: 100%;
+  }
+
+  .legend {
+    float: none;
+    display: block;
+    margin: 0 0 6px;
+    text-align: center;
+  }
+
+  .buttons {
+    justify-content: center;
+  }
+}

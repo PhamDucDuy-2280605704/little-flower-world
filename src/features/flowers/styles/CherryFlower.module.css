@@ -1,0 +1,50 @@
+/* ==========================================
+   HOA ANH ĐÀO – phần đầu hoa
+   Màu chính đọc từ --flower-color (mặc định: hồng nhạt #ffc6dc)
+========================================== */
+
+.petal {
+  position: absolute;
+  width: 54px;
+  height: 64px;
+
+  /* Gốc cánh nằm tại tâm đầu hoa */
+  left: calc(50% - 27px);
+  top: calc(50% - 64px);
+  transform-origin: 50% 100%;
+
+  /* Cánh thứ i xoay i x 72 độ */
+  transform: rotate(calc(var(--i) * 72deg));
+
+  /* clip-path: cắt khối chữ nhật thành hình trái tim,
+     phần khuyết ở đầu cánh là nét đặc trưng của hoa anh đào */
+  clip-path: path(
+    "M27 64 C6 52 0 28 8 10 C12 2 22 2 27 12 C32 2 42 2 46 10 C54 28 48 52 27 64 Z"
+  );
+
+  /* Gốc cánh đậm, đầu cánh gần như trắng */
+  background: linear-gradient(
+    0deg,
+    color-mix(in srgb, var(--flower-color, #ffc6dc) 70%, #e0567f),
+    var(--flower-color, #ffc6dc) 45%,
+    color-mix(in srgb, var(--flower-color, #ffc6dc) 35%, white)
+  );
+}
+
+/* Nhụy: hạt tròn hồng đậm + 5 chấm vàng nhỏ (nhị) bằng box-shadow */
+.center {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  left: calc(50% - 8px);
+  top: calc(50% - 8px);
+  border-radius: 50%;
+  background: radial-gradient(circle, #e0567f, #c63b66);
+  box-shadow:
+    0 -15px 0 -5px #f6b94c,
+    14px -5px 0 -5px #f6b94c,
+    9px 13px 0 -5px #f6b94c,
+    -9px 13px 0 -5px #f6b94c,
+    -14px -5px 0 -5px #f6b94c;
+  z-index: 2;
+}

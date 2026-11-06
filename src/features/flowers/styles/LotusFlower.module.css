@@ -1,0 +1,41 @@
+/* ==========================================
+   HOA SEN – phần đầu hoa
+   Màu chính đọc từ --flower-color (mặc định: hồng sen #ff9ec7)
+   Mỗi cánh nhận 4 biến: --r góc xoay, --h chiều cao, --w chiều rộng, --k độ nhạt đầu cánh
+========================================== */
+
+/* Lá sen: hình bầu dục xanh nằm dưới hoa */
+.pad {
+  position: absolute;
+  width: 128px;
+  height: 28px;
+  left: calc(50% - 64px);
+  bottom: 22px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 35%, #8ed18b, #46975b);
+  box-shadow: 0 3px 6px rgba(30, 90, 50, 0.25);
+  z-index: 0;
+}
+
+.petal {
+  position: absolute;
+  bottom: 38px;
+  left: calc(50% - var(--w) / 2);
+  width: var(--w);
+  height: var(--h);
+
+  /* Cánh xoay quanh điểm đáy giữa → các cánh xòe ra như chiếc quạt */
+  transform-origin: 50% 100%;
+  transform: rotate(var(--r));
+
+  /* Đầu cánh nhọn nhẹ, đáy tròn */
+  border-radius: 50% 50% 46% 46% / 88% 88% 12% 12%;
+
+  background: linear-gradient(
+    0deg,
+    var(--flower-color, #ff9ec7),
+    color-mix(in srgb, var(--flower-color, #ff9ec7) calc(100% - var(--k)), white)
+  );
+  border: 1.5px solid color-mix(in srgb, var(--flower-color, #ff9ec7) 75%, #b8366f);
+  box-shadow: 0 2px 5px rgba(200, 90, 140, 0.15);
+}
