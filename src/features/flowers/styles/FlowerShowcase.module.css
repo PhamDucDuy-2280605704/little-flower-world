@@ -1,0 +1,179 @@
+/* ==========================================
+   TỦ HOA NHỎ (FlowerShowcase)
+   Dùng lại bảng màu pastel của trang chủ.
+========================================== */
+
+.showcase {
+  width: min(100%, 900px);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+
+  padding: clamp(24px, 5vw, 48px);
+
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid #f6dce8;
+  border-radius: 32px;
+  box-shadow: 0 15px 50px rgba(190, 137, 160, 0.12);
+
+  color: #624858;
+}
+
+.title {
+  font-size: clamp(24px, 4vw, 32px);
+  color: #674459;
+}
+
+.subtitle {
+  margin-top: 6px;
+  color: #866b7b;
+  line-height: 1.7;
+}
+
+/* ---------- Hàng thẻ chọn loài hoa ---------- */
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+
+  padding: 10px 8px 12px;
+
+  background: #fff;
+  border: 2px solid #f6dce8;
+  border-radius: 20px;
+
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.card:hover {
+  border-color: #e9b3c8;
+}
+
+.cardActive {
+  border-color: #d88eac;
+  background: #fff1f6;
+}
+
+/* Khung chứa hoa mini: cao bằng hoa đã thu nhỏ (0.3 x 340px ≈ 102px) */
+.mini {
+  display: grid;
+  place-items: center;
+  height: 102px;
+}
+
+.cardName {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* ---------- Khu vực xem hoa lớn + điều khiển ---------- */
+
+.workbench {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: stretch;
+}
+
+.stage {
+  min-height: 460px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+
+  background: linear-gradient(145deg, #fff7fa, #f0f9ef);
+  border-radius: 25px;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 24px;
+}
+
+.flowerName {
+  font-size: 22px;
+  color: #674459;
+}
+
+.flowerDescription {
+  margin-top: 6px;
+  line-height: 1.7;
+  color: #866b7b;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: bold;
+  color: #a86d87;
+  padding: 0;
+}
+
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.swatch {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 1px #e5c6d3;
+  cursor: pointer;
+}
+
+.swatchActive {
+  box-shadow: 0 0 0 3px #d88eac;
+}
+
+.slider {
+  width: 100%;
+  accent-color: #d88eac;
+}
+
+/* Hiện viền rõ khi dùng bàn phím (Tab) */
+.card:focus-visible,
+.swatch:focus-visible,
+.slider:focus-visible {
+  outline: 3px solid #a86d87;
+  outline-offset: 3px;
+}
+
+/* ---------- Điện thoại ---------- */
+
+@media (max-width: 700px) {
+  .cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .workbench {
+    grid-template-columns: 1fr;
+  }
+
+  .stage {
+    min-height: 420px;
+  }
+}

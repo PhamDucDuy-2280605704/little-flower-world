@@ -1,40 +1,29 @@
-
+import type { CSSProperties } from "react";
+import type { FlowerProps } from "@/types/flower";
+import FlowerFrame from "./FlowerFrame";
 import styles from "../styles/DaisyFlower.module.css";
 
-// Component DaisyFlower chịu trách nhiệm tạo hình một bông hoa.
-// Sau này chúng ta có thể tái sử dụng component này ở nhiều trang.
-
-export default function DaisyFlower() {
+// Hoa cúc: 8 cánh + nhụy vàng.
+// Thay vì viết tay 8 thẻ <span>, ta dùng Array.from để tạo ra chúng.
+export default function DaisyFlower({ size = 1, color }: FlowerProps) {
   return (
-    // Container chính bao bọc toàn bộ bông hoa.
-    // role="img" giúp trình đọc màn hình nhận biết đây là hình ảnh.
-    <div
-      className={styles.flower}
-      role="img"
-      aria-label="Bông hoa cúc trắng với nhụy vàng và lá xanh"
+    <FlowerFrame
+      size={size}
+      color={color}
+      label="Bông hoa cúc với nhụy vàng và lá xanh"
     >
-      {/* Phần thân hoa */}
-      <div className={styles.stem} />
+      {/* Tạo 8 cánh: i chạy từ 0 đến 7.
+          Biến CSS --i cho CSS biết đây là cánh thứ mấy để xoay cho đúng. */}
+      {Array.from({ length: 8 }, (_, i) => (
+        <span
+          key={i}
+          className={styles.petal}
+          style={{ "--i": i } as CSSProperties}
+        />
+      ))}
 
-      {/* Hai chiếc lá nằm trên thân */}
-      <div className={styles.leftLeaf} />
-      <div className={styles.rightLeaf} />
-
-      {/* Phần đầu hoa */}
-      <div className={styles.flowerHead}>
-        {/* Tạo 8 cánh hoa riêng biệt */}
-        <span className={`${styles.petal} ${styles.petal1}`} />
-        <span className={`${styles.petal} ${styles.petal2}`} />
-        <span className={`${styles.petal} ${styles.petal3}`} />
-        <span className={`${styles.petal} ${styles.petal4}`} />
-        <span className={`${styles.petal} ${styles.petal5}`} />
-        <span className={`${styles.petal} ${styles.petal6}`} />
-        <span className={`${styles.petal} ${styles.petal7}`} />
-        <span className={`${styles.petal} ${styles.petal8}`} />
-
-        {/* Nhụy hoa màu vàng nằm giữa các cánh */}
-        <div className={styles.center} />
-      </div>
-    </div>
+      {/* Nhụy hoa */}
+      <div className={styles.center} />
+    </FlowerFrame>
   );
 }

@@ -1,0 +1,103 @@
+/* ==========================================
+   HỘP QUÀ + HIỆU ỨNG MỞ (ánh sáng, cánh hoa)
+   Phần chuyển động do thư viện Motion điều khiển;
+   file này chỉ lo hình dáng và màu sắc.
+========================================== */
+
+/* Khung chứa hộp quà (cỡ 180 x 190 px) */
+.box {
+  position: relative;
+  width: 180px;
+  height: 190px;
+}
+
+/* Thân hộp */
+.body {
+  position: absolute;
+  left: 10px;
+  bottom: 0;
+  width: 160px;
+  height: 100px;
+  overflow: hidden;
+
+  background: linear-gradient(160deg, #ffc1d6, #f08fb0);
+  border-radius: 6px 6px 16px 16px;
+  box-shadow: 0 14px 30px rgba(190, 100, 140, 0.25);
+}
+
+/* Nắp hộp: nằm trên thân, xoay quanh góc dưới bên trái khi mở */
+.lid {
+  position: absolute;
+  left: 0;
+  bottom: 96px;
+  width: 180px;
+  height: 42px;
+
+  background: linear-gradient(160deg, #ffb0cc, #e57ba0);
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(190, 100, 140, 0.2);
+
+  transform-origin: left bottom;
+  z-index: 2;
+}
+
+/* Dải ruy băng dọc (dùng cho cả thân và nắp) */
+.ribbon {
+  position: absolute;
+  top: 0;
+  left: calc(50% - 14px);
+  width: 28px;
+  height: 100%;
+  background: linear-gradient(90deg, #fff4f8, #ffffff, #fff4f8);
+}
+
+/* Hai vòng của chiếc nơ trên nắp */
+.bowLeft,
+.bowRight {
+  position: absolute;
+  top: -22px;
+  width: 38px;
+  height: 28px;
+  border: 7px solid #fff;
+  border-radius: 50%;
+}
+
+.bowLeft {
+  left: calc(50% - 40px);
+  transform: rotate(-22deg);
+}
+
+.bowRight {
+  left: calc(50% + 2px);
+  transform: rotate(22deg);
+}
+
+/* Vầng sáng lan ra khi mở quà */
+.light {
+  position: absolute;
+  left: calc(50% - 90px);
+  top: 30px;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 250, 220, 0.95),
+    rgba(255, 220, 235, 0.55) 45%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Cánh hoa bay ra */
+.petal {
+  position: absolute;
+  left: calc(50% - 9px);
+  top: 50px;
+  width: 18px;
+  height: 26px;
+  border-radius: 80% 0 80% 0;
+  pointer-events: none;
+  z-index: 3;
+}

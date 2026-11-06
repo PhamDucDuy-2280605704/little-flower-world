@@ -1,0 +1,58 @@
+/* ==========================================
+   HOA TULIP – phần đầu hoa
+   Màu chính đọc từ --flower-color (mặc định: san hô #ff7a8a)
+========================================== */
+
+/* "Chiếc ly" chứa ba cánh hoa */
+.cup {
+  position: absolute;
+  width: 100px;
+  height: 124px;
+  left: 45px;
+  top: 38px;
+}
+
+/* Cánh giữa: cao nhất, đỉnh hơi nhọn, nằm phía sau */
+.petalMiddle {
+  position: absolute;
+  width: 58px;
+  height: 124px;
+  left: 21px;
+  top: 0;
+  border-radius: 50% 50% 46% 46% / 88% 88% 14% 14%;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--flower-color, #ff7a8a) 60%, white),
+    var(--flower-color, #ff7a8a)
+  );
+  z-index: 1;
+}
+
+/* Hai cánh bên: thấp hơn, nghiêng nhẹ ra ngoài */
+.petalLeft,
+.petalRight {
+  position: absolute;
+  width: 62px;
+  height: 100px;
+  top: 24px;
+  transform-origin: 50% 100%;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--flower-color, #ff7a8a) 85%, white),
+    color-mix(in srgb, var(--flower-color, #ff7a8a) 85%, black)
+  );
+  box-shadow: inset 0 -8px 12px rgba(0, 0, 0, 0.08);
+  z-index: 2;
+}
+
+.petalLeft {
+  left: 0;
+  border-radius: 70% 36% 48% 50% / 82% 66% 34% 30%;
+  transform: rotate(-9deg);
+}
+
+.petalRight {
+  right: 0;
+  border-radius: 36% 70% 50% 48% / 66% 82% 30% 34%;
+  transform: rotate(9deg);
+}

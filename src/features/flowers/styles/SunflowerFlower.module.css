@@ -1,0 +1,58 @@
+/* ==========================================
+   HƯỚNG DƯƠNG – phần đầu hoa
+   Màu chính đọc từ --flower-color (mặc định: vàng nắng #ffc928)
+========================================== */
+
+.petal {
+  position: absolute;
+  width: 30px;
+  height: 66px;
+
+  /* Cánh bắt đầu từ mép đầu hoa, hướng vào tâm */
+  left: calc(50% - 15px);
+  top: 3px;
+
+  /* Tâm đầu hoa nằm cách đỉnh cánh 92px → xoay quanh điểm đó */
+  transform-origin: 50% 92px;
+
+  border-radius: 50% 50% 50% 50% / 80% 80% 20% 20%;
+}
+
+/* Vòng trước: sáng hơn, nằm trên */
+.petalFront {
+  transform: rotate(calc(var(--i) * 22.5deg));
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--flower-color, #ffc928) 75%, white),
+    var(--flower-color, #ffc928)
+  );
+  box-shadow: 0 1px 3px rgba(120, 80, 0, 0.18);
+  z-index: 2;
+}
+
+/* Vòng sau: đậm hơn, lệch nửa bước (11.25 độ) */
+.petalBack {
+  transform: rotate(calc(var(--i) * 22.5deg + 11.25deg));
+  background: linear-gradient(
+    180deg,
+    var(--flower-color, #ffc928),
+    color-mix(in srgb, var(--flower-color, #ffc928) 80%, black)
+  );
+  z-index: 1;
+}
+
+/* Nhụy: nền nâu + lớp chấm nhỏ giống hạt */
+.disc {
+  position: absolute;
+  width: 84px;
+  height: 84px;
+  left: calc(50% - 42px);
+  top: calc(50% - 42px);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, #9a6a35 1.2px, transparent 1.8px) 0 0 / 8px 8px,
+    radial-gradient(circle at 40% 35%, #6b4423, #3b2415 75%);
+  border: 3px solid #4a2f19;
+  box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.35);
+  z-index: 3;
+}

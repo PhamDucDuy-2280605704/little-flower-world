@@ -1,0 +1,95 @@
+/* ==========================================
+   KHUNG CHUNG CỦA MỌI BÔNG HOA
+   Thân, lá và chuyển động đung đưa dùng chung.
+   Mỗi loài hoa chỉ cần vẽ phần đầu hoa riêng.
+========================================== */
+
+/* Khung ngoài: chiếm đúng kích thước sau khi phóng to/thu nhỏ */
+.frame {
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* Lớp phóng to/thu nhỏ: vẽ hoa ở cỡ gốc 240x340
+   rồi scale() cả khối theo props "size" */
+.scaler {
+  width: 240px;
+  height: 340px;
+  transform-origin: top left;
+}
+
+/* Bông hoa cỡ gốc */
+.flower {
+  position: relative;
+  width: 240px;
+  height: 340px;
+
+  animation: sway 4s ease-in-out infinite;
+  /* Điểm xoay nằm gần cuối thân hoa */
+  transform-origin: 50% 95%;
+}
+
+/* Thân hoa */
+.stem {
+  position: absolute;
+  width: 10px;
+  height: 180px;
+  left: calc(50% - 5px);
+  top: 135px;
+  background: linear-gradient(90deg, #398b52, #7bc87c, #398b52);
+  border-radius: 999px;
+  z-index: 1;
+}
+
+/* Hai chiếc lá */
+.leftLeaf {
+  position: absolute;
+  width: 72px;
+  height: 34px;
+  left: calc(50% - 76px);
+  top: 215px;
+  background: linear-gradient(135deg, #a7dfa0, #55a967);
+  border-radius: 100% 0 100% 0;
+  transform: rotate(15deg);
+  z-index: 2;
+}
+
+.rightLeaf {
+  position: absolute;
+  width: 72px;
+  height: 34px;
+  left: calc(50% + 4px);
+  top: 250px;
+  background: linear-gradient(135deg, #8ed18b, #46975b);
+  border-radius: 0 100% 0 100%;
+  transform: rotate(-15deg);
+  z-index: 2;
+}
+
+/* Vùng đầu hoa 190x190: mỗi loài hoa vẽ bên trong vùng này */
+.head {
+  position: absolute;
+  width: 190px;
+  height: 190px;
+  top: 0;
+  left: 25px;
+  z-index: 3;
+}
+
+@keyframes sway {
+  0%,
+  100% {
+    transform: rotate(-3deg) translateY(0);
+  }
+
+  50% {
+    transform: rotate(3deg) translateY(-4px);
+  }
+}
+
+/* Tôn trọng người dùng muốn giảm chuyển động */
+@media (prefers-reduced-motion: reduce) {
+  .flower {
+    animation: none;
+  }
+}

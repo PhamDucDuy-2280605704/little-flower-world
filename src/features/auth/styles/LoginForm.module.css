@@ -1,0 +1,123 @@
+/* Giao diện form đăng nhập – dùng lại bảng màu pastel của website */
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.title {
+  font-size: clamp(26px, 4vw, 34px);
+  line-height: 1.2;
+  color: #674459;
+}
+
+.subtitle {
+  margin-top: 8px;
+  line-height: 1.7;
+  color: #866b7b;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: bold;
+  color: #a86d87;
+}
+
+.input {
+  width: 100%;
+  padding: 12px 14px;
+
+  background: #fff;
+  border: 2px solid #f0cfdc;
+  border-radius: 14px;
+
+  color: #624858;
+  font: inherit;
+}
+
+.input:focus-visible {
+  outline: 3px solid #d88eac;
+  outline-offset: 1px;
+  border-color: #d88eac;
+}
+
+/* Ô nhập đang có lỗi */
+.input[aria-invalid="true"] {
+  border-color: #c4506f;
+}
+
+.passwordRow {
+  display: flex;
+  gap: 8px;
+}
+
+.toggle {
+  padding: 0 16px;
+
+  background: #fff1f6;
+  border: 2px solid #f0cfdc;
+  border-radius: 14px;
+
+  color: #a86d87;
+  font: inherit;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.toggle:focus-visible,
+.submit:focus-visible {
+  outline: 3px solid #a86d87;
+  outline-offset: 3px;
+}
+
+.error {
+  font-size: 13px;
+  color: #b0405e;
+}
+
+.submit {
+  padding: 13px 22px;
+
+  background: #d88eac;
+  border: 0;
+  border-radius: 999px;
+
+  color: #fff;
+  font: inherit;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.submit:hover {
+  background: #c77e9c;
+}
+
+.notice {
+  padding: 14px;
+  background: #edf9ee;
+  border-radius: 14px;
+
+  color: #3f7a52;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.hint {
+  font-size: 13px;
+  line-height: 1.7;
+  color: #866b7b;
+}
