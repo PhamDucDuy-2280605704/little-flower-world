@@ -39,3 +39,26 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# ==========================================
+# LITTLE FLOWER WORLD
+# Ignore files that must not be uploaded
+# ==========================================
+
+# Environment variables and secret files
+.env
+.env.*
+!.env.example
+
+# Next.js generated files
+.next/
+out/
+
+# Node.js dependencies
+node_modules/
+
+# Vercel local configuration
+.vercel/
+
+# Private key files
+*.pem

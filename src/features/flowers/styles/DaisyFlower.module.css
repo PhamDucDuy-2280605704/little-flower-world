@@ -1,0 +1,231 @@
+
+/* ==========================================
+   DAISY FLOWER
+   Thiết kế hình dáng bông hoa Daisy
+========================================== */
+
+/* 1. Vùng chứa toàn bộ bông hoa */
+.flower {
+  position: relative;
+
+  /* Kích thước tổng thể */
+  width: 240px;
+  height: 340px;
+
+  /* Tạo chuyển động đung đưa */
+  animation: sway 4s ease-in-out infinite;
+
+  /* Điểm xoay nằm gần cuối thân hoa */
+  transform-origin: 50% 95%;
+}
+
+/* ==========================================
+   2. THÂN HOA
+========================================== */
+
+.stem {
+  position: absolute;
+
+  width: 10px;
+  height: 180px;
+
+  /* Đưa thân hoa vào chính giữa */
+  left: calc(50% - 5px);
+  top: 135px;
+
+  /* Màu xanh chuyển sắc */
+  background: linear-gradient(
+    90deg,
+    #398b52,
+    #7bc87c,
+    #398b52
+  );
+
+  border-radius: 999px;
+
+  z-index: 1;
+}
+
+/* ==========================================
+   3. HAI CHIẾC LÁ
+========================================== */
+
+.leftLeaf {
+  position: absolute;
+
+  width: 72px;
+  height: 34px;
+
+  left: calc(50% - 76px);
+  top: 215px;
+
+  background: linear-gradient(
+    135deg,
+    #a7dfa0,
+    #55a967
+  );
+
+  /* Tạo hình dáng chiếc lá */
+  border-radius: 100% 0 100% 0;
+
+  transform: rotate(15deg);
+
+  z-index: 2;
+}
+
+.rightLeaf {
+  position: absolute;
+
+  width: 72px;
+  height: 34px;
+
+  left: calc(50% + 4px);
+  top: 250px;
+
+  background: linear-gradient(
+    135deg,
+    #8ed18b,
+    #46975b
+  );
+
+  border-radius: 0 100% 0 100%;
+
+  transform: rotate(-15deg);
+
+  z-index: 2;
+}
+
+/* ==========================================
+   4. PHẦN ĐẦU BÔNG HOA
+========================================== */
+
+.flowerHead {
+  position: absolute;
+
+  width: 190px;
+  height: 190px;
+
+  top: 0;
+  left: 25px;
+
+  z-index: 3;
+}
+
+/* ==========================================
+   5. CÁNH HOA
+========================================== */
+
+.petal {
+  position: absolute;
+
+  width: 42px;
+  height: 72px;
+
+  /* Đặt gốc của mỗi cánh tại tâm bông hoa */
+  left: calc(50% - 21px);
+  top: calc(50% - 72px);
+
+  /* Điểm xoay ở gốc cánh hoa */
+  transform-origin: 50% 100%;
+
+  /* Tạo hình cánh hoa mềm mại */
+  border-radius: 50% 50% 44% 44%;
+
+  /* Màu trắng pha hồng */
+  background: linear-gradient(
+    180deg,
+    #fffdfd 0%,
+    #ffeaf2 55%,
+    #ffcddd 100%
+  );
+
+  border: 1px solid #ffd0e0;
+
+  box-shadow: 0 2px 7px rgba(226, 135, 167, 0.12);
+}
+
+/* Xoay 8 cánh hoa theo các góc khác nhau */
+
+.petal1 {
+  transform: rotate(0deg);
+}
+
+.petal2 {
+  transform: rotate(45deg);
+}
+
+.petal3 {
+  transform: rotate(90deg);
+}
+
+.petal4 {
+  transform: rotate(135deg);
+}
+
+.petal5 {
+  transform: rotate(180deg);
+}
+
+.petal6 {
+  transform: rotate(225deg);
+}
+
+.petal7 {
+  transform: rotate(270deg);
+}
+
+.petal8 {
+  transform: rotate(315deg);
+}
+
+/* ==========================================
+   6. NHỤY HOA
+========================================== */
+
+.center {
+  position: absolute;
+
+  width: 54px;
+  height: 54px;
+
+  left: calc(50% - 27px);
+  top: calc(50% - 27px);
+
+  border-radius: 50%;
+
+  background: radial-gradient(
+    circle at 35% 30%,
+    #fff2a8,
+    #ffc83d 55%,
+    #e9a51a
+  );
+
+  border: 3px solid #f9c34a;
+
+  box-shadow: 0 3px 10px rgba(216, 157, 35, 0.25);
+
+  /* Đảm bảo nhụy nằm trên các cánh hoa */
+  z-index: 2;
+}
+
+/* ==========================================
+   7. HIỆU ỨNG HOA ĐUNG ĐƯA
+========================================== */
+
+@keyframes sway {
+  0%,
+  100% {
+    transform: rotate(-3deg) translateY(0);
+  }
+
+  50% {
+    transform: rotate(3deg) translateY(-4px);
+  }
+}
+
+/* Tôn trọng thiết lập giảm chuyển động của người dùng */
+@media (prefers-reduced-motion: reduce) {
+  .flower {
+    animation: none;
+  }
+}

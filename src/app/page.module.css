@@ -1,0 +1,110 @@
+
+/* Giao diện trang chủ Little Flower World */
+
+.page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+
+  padding: 40px 20px;
+
+  background:
+    radial-gradient(circle at 15% 15%, #fff0f6, transparent 40%),
+    radial-gradient(circle at 85% 85%, #edf9ee, transparent 40%),
+    #fffafc;
+
+  color: #624858;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Khung nội dung chính */
+.card {
+  width: min(100%, 900px);
+
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
+  align-items: center;
+  gap: 30px;
+
+  padding: clamp(24px, 5vw, 56px);
+
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid #f6dce8;
+  border-radius: 32px;
+
+  box-shadow: 0 15px 50px rgba(190, 137, 160, 0.12);
+}
+
+/* Phần chữ giới thiệu */
+.copy {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.eyebrow {
+  color: #c77e9c;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+.title {
+  font-size: clamp(36px, 5vw, 56px);
+  line-height: 1.1;
+  color: #674459;
+}
+
+.title span {
+  display: block;
+  color: #d88eac;
+}
+
+.description {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #866b7b;
+}
+
+.note {
+  padding: 14px;
+  background: #fff1f6;
+  border-radius: 14px;
+
+  color: #a86d87;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+/* Khu vực trưng bày hoa */
+.flowerArea {
+  min-height: 380px;
+
+  display: grid;
+  place-items: center;
+
+  background: linear-gradient(
+    145deg,
+    #fff7fa,
+    #f0f9ef
+  );
+
+  border-radius: 25px;
+}
+
+/* Tối ưu giao diện cho điện thoại */
+@media (max-width: 700px) {
+  .card {
+    grid-template-columns: 1fr;
+  }
+
+  .flowerArea {
+    min-height: 360px;
+  }
+
+  .copy {
+    text-align: center;
+  }
+}
