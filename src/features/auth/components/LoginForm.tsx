@@ -21,7 +21,7 @@ export default function LoginForm() {
 
     const cleanEmail = email.trim();
 
-    if (!/^\\S+@\\S+\\.\\S+$/.test(cleanEmail)) {
+    if (!/^\S+@\S+\.\S+$/.test(cleanEmail)) {
       setError("Email chưa đúng định dạng.");
       return;
     }
