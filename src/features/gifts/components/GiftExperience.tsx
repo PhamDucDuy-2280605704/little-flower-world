@@ -41,7 +41,6 @@ export default function GiftExperience() {
   useEffect(() => {
     let active = true;
 
-    // Theo dõi đăng nhập và đăng xuất.
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -51,7 +50,6 @@ export default function GiftExperience() {
       setAuthReady(true);
     });
 
-    // Kiểm tra phiên đăng nhập hiện tại.
     void supabase.auth
       .getSession()
       .then(({ data, error }) => {
@@ -78,7 +76,6 @@ export default function GiftExperience() {
     };
   }, []);
 
-  // Trong lúc kiểm tra phiên đăng nhập.
   if (!authReady) {
     return (
       <main className={styles.page}>
@@ -89,7 +86,6 @@ export default function GiftExperience() {
     );
   }
 
-  // Chưa đăng nhập.
   if (!user) {
     return (
       <main className={styles.page}>
@@ -110,9 +106,6 @@ export default function GiftExperience() {
     );
   }
 
-  // Mỗi tài khoản có một component khu vườn riêng.
-  // Khi đổi tài khoản, component cũ được tháo ra
-  // và component mới được khởi tạo lại từ đầu.
   return (
     <PersonalGardenExperience
       key={user.id}
@@ -141,11 +134,9 @@ function PersonalGardenExperience({
 
   const reduceMotion = useReducedMotion();
 
-  // Toàn bộ chương truyện lấy từ khu vườn của tài khoản.
   const chapters = garden?.chapters ?? [];
   const totalChapters = chapters.length;
 
-  // Chỉ mở lá thư khi tất cả chương của khu vườn đã được đọc.
   const allRead =
     totalChapters > 0 &&
     chapters.every((chapter) => readIds.includes(chapter.id));
@@ -159,7 +150,6 @@ function PersonalGardenExperience({
 
     async function loadPersonalGarden() {
       try {
-        // Lấy khu vườn thuộc tài khoản đang đăng nhập.
         const { data, error } = await supabase
           .from("gardens")
           .select(
@@ -206,15 +196,12 @@ function PersonalGardenExperience({
           return;
         }
 
-        // Tài khoản chưa được tạo khu vườn.
         if (!data) {
           setGarden(null);
           setGardenLoading(false);
           return;
         }
 
-        // Chuyển dữ liệu Supabase sang cấu trúc
-        // mà các component khu vườn hiện tại đang sử dụng.
         const personalGarden = mapPersonalGarden(
           data as unknown as PersonalGardenRow
         );
@@ -223,8 +210,6 @@ function PersonalGardenExperience({
 
         setGarden(personalGarden);
         setGardenLoading(false);
-
-        // Bắt đầu tải tiến độ đọc riêng của người dùng.
         setProgressLoading(true);
 
         try {
@@ -248,7 +233,6 @@ function PersonalGardenExperience({
               "Chưa tải được tiến độ đọc. Hãy thử tải lại trang nhé."
             );
           } else {
-            // Chỉ nhận những chapter_id thuộc khu vườn này.
             const chapterIds = new Set(
               personalGarden.chapters.map((chapter) => chapter.id)
             );
@@ -353,7 +337,6 @@ function PersonalGardenExperience({
       return;
     }
 
-    // Cập nhật giao diện sau khi Supabase lưu thành công.
     setReadIds((current) =>
       current.includes(chapter.id)
         ? current
@@ -361,7 +344,6 @@ function PersonalGardenExperience({
     );
   }
 
-  // Tìm chương theo ID được gắn trên từng bông hoa.
   function openChapterById(chapterId: string) {
     const index = chapters.findIndex(
       (chapter) => chapter.id === chapterId
@@ -494,14 +476,12 @@ function PersonalGardenExperience({
                   "Bấm vào những bông hoa có nhãn chương để đọc câu chuyện bên trong."}
               </p>
 
-              {/* Khu vườn được tải riêng từ Supabase. */}
               <GardenView
                 items={garden.items}
                 readIds={readIds}
                 onOpenChapter={openChapterById}
               />
 
-              {/* Tiến độ đọc của tài khoản hiện tại. */}
               <p className={styles.progress} role="status">
                 {progressLoading
                   ? "Đang tải tiến độ..."
@@ -517,7 +497,6 @@ function PersonalGardenExperience({
                 </p>
               )}
 
-              {/* Chỉ mở lá thư khi đã đọc đủ chương. */}
               {allRead ? (
                 <motion.button
                   type="button"
@@ -574,7 +553,6 @@ function PersonalGardenExperience({
         </AnimatePresence>
       </section>
 
-      {/* Nội dung chương truyện. */}
       {reading?.kind === "chapter" && currentChapter && (
         <ChapterReader
           eyebrow={`Chương ${reading.index + 1} trên ${totalChapters}`}
@@ -601,7 +579,6 @@ function PersonalGardenExperience({
         />
       )}
 
-      {/* Lá thư cuối lấy từ dữ liệu khu vườn riêng. */}
       {reading?.kind === "letter" && allRead && (
         <ChapterReader
           eyebrow="Lá thư cuối"

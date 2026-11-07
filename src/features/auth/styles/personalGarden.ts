@@ -19,27 +19,23 @@ export type PersonalGardenRow = {
   letter_paragraphs: unknown;
   letter_signature: string;
 
-  garden_items:
-    | Array<{
-        id: string;
-        kind: string;
-        color: string;
-        x: number;
-        depth: number;
-        size: number;
-        chapter_id: string | null;
-        label: string | null;
-        title: string | null;
-        sort_order: number;
-      }>
-    | null;
+  garden_items: Array<{
+    id: string;
+    kind: string;
+    color: string;
+    x: number;
+    depth: number;
+    size: number;
+    chapter_id: string | null;
+    label: string | null;
+    title: string | null;
+    sort_order: number;
+  }> | null;
 
-  garden_chapters:
-    | Array<{
-        chapter_id: string;
-        sort_order: number;
-        title: string;
-        paragraphs: unknown;
-      }>
-    | null;
+  garden_chapters: Array<{
+    chapter_id: string;
+    sort_order: number;
+    title: string;
+    paragraphs: unknown;
+  }> | null;
 };

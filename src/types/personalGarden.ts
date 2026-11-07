@@ -1,4 +1,5 @@
-﻿import type { GardenItem } from "@/types/garden";
+
+import type { GardenItem } from "@/types/garden";
 import type { FinalLetter, StoryChapter } from "@/types/story";
 
 export type PersonalGarden = {
