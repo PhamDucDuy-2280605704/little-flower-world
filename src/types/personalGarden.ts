@@ -1,3 +1,4 @@
+
 import type { GardenItem } from "@/types/garden";
 import type { FinalLetter, StoryChapter } from "@/types/story";
 
@@ -17,6 +18,7 @@ export type PersonalGardenRow = {
   letter_title: string;
   letter_paragraphs: unknown;
   letter_signature: string;
+
   garden_items: Array<{
     id: string;
     kind: string;
@@ -29,6 +31,7 @@ export type PersonalGardenRow = {
     title: string | null;
     sort_order: number;
   }> | null;
+
   garden_chapters: Array<{
     chapter_id: string;
     sort_order: number;

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -34,23 +35,28 @@ export default function LoginForm() {
     setLoading(true);
 
     try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: cleanEmail,
-        password,
-      });
+      const { error: signInError } =
+        await supabase.auth.signInWithPassword({
+          email: cleanEmail,
+          password,
+        });
 
       if (signInError) throw signInError;
 
       router.replace("/gift");
       router.refresh();
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Đã xảy ra lỗi. Hãy thử lại.";
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Đã xảy ra lỗi. Hãy thử lại.";
 
-      if (message.toLowerCase().includes("invalid login credentials")) {
+      if (
+        errorMessage.toLowerCase().includes("invalid login credentials")
+      ) {
         setError("Email hoặc mật khẩu không chính xác.");
       } else {
-        setError(message);
+        setError(errorMessage);
       }
     } finally {
       setLoading(false);
@@ -71,6 +77,7 @@ export default function LoginForm() {
           <label htmlFor="login-email" className={styles.label}>
             Email
           </label>
+
           <input
             id="login-email"
             type="email"

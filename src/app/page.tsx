@@ -1,6 +1,7 @@
-import Link from "next/link";
+
 import Flower from "@/features/flowers/components/Flower";
 import FlowerShowcase from "@/features/flowers/components/FlowerShowcase";
+import HomeAuthActions from "@/features/auth/components/HomeAuthActions";
 import styles from "./page.module.css";
 
 // Trang chủ của Little Flower World.
@@ -27,17 +28,13 @@ export default function Home() {
             nhỏ để bạn làm quen với từng loài.
           </p>
 
-          {/* Các nút dẫn sang trang khác */}
-          <div className={styles.actions}>
-            {/* Đường dẫn /login */}
-            <Link href="/login" className={styles.loginLink}>
-              Đăng nhập để mở quà
-            </Link>
-            {/* Đường dẫn /gift: xem thử hành trình mở quà */}
-            <Link href="/gift" className={styles.giftLink}>
-              Xem thử hộp quà
-            </Link>
-          </div>
+          {/* Nút đăng nhập / đăng xuất theo tài khoản */}
+          <HomeAuthActions
+            actionsClassName={styles.actions}
+            loginClassName={styles.loginLink}
+            giftClassName={styles.giftLink}
+            messageClassName={styles.note}
+          />
         </div>
 
         {/* Khu vực hiển thị bông hoa */}
