@@ -34,3 +34,10 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+
+## Vườn hoa riêng cho từng tài khoản
+
+Hướng dẫn tạo database, bật RLS và tạo khu vườn/câu chuyện riêng cho từng tài khoản nằm tại [supabase/README.md](supabase/README.md).
+
+Các thành phần khu vườn hiện tại vẫn dùng chung renderer và animation. Nội dung riêng của từng người được tải từ các bảng Supabase `gardens`, `garden_items` và `garden_chapters`; tiến độ đọc tiếp tục được lưu ở `story_progress` theo `user_id`.
