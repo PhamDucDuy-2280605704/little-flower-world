@@ -58,19 +58,28 @@ create index if not exists garden_items_garden_sort_idx
 
 -- Keep the existing story_progress table/data. Create it only when it is absent.
 create table if not exists public.story_progress (
+  id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users (id) on delete cascade,
   chapter_id text not null,
-  created_at timestamptz not null default now()
+  read_at timestamptz not null default now()
 );
 
 -- Verify the existing table is compatible before adding the unique index/RLS.
 do $$
 declare
+  id_type text;
   user_id_type text;
   chapter_id_type text;
+  read_at_type text;
   duplicate_count bigint;
   null_count bigint;
 begin
+  select udt_name into id_type
+  from information_schema.columns
+  where table_schema = 'public'
+    and table_name = 'story_progress'
+    and column_name = 'id';
+
   select udt_name into user_id_type
   from information_schema.columns
   where table_schema = 'public'
@@ -83,12 +92,26 @@ begin
     and table_name = 'story_progress'
     and column_name = 'chapter_id';
 
+  select udt_name into read_at_type
+  from information_schema.columns
+  where table_schema = 'public'
+    and table_name = 'story_progress'
+    and column_name = 'read_at';
+
+  if id_type is distinct from 'uuid' then
+    raise exception 'story_progress.id must be uuid (found: %). Inspect the existing column before migrating.', id_type;
+  end if;
+
   if user_id_type is distinct from 'uuid' then
     raise exception 'story_progress.user_id must be uuid (found: %). Inspect the existing column before migrating.', user_id_type;
   end if;
 
   if chapter_id_type is distinct from 'text' then
     raise exception 'story_progress.chapter_id must be text (found: %). Inspect the existing column before migrating.', chapter_id_type;
+  end if;
+
+  if read_at_type is distinct from 'timestamptz' then
+    raise exception 'story_progress.read_at must be timestamptz (found: %). Inspect the existing column before migrating.', read_at_type;
   end if;
 
   select count(*) into null_count
@@ -110,7 +133,12 @@ begin
   if duplicate_count > 0 then
     raise exception 'story_progress contains duplicate (user_id, chapter_id) pairs. Resolve duplicates before adding the unique index.';
   end if;
-end $$;
+end $;
+
+-- Ensure inserts from the app can omit id/read_at safely. Existing values are untouched.
+alter table public.story_progress
+  alter column id set default gen_random_uuid(),
+  alter column read_at set default now();
 
 create unique index if not exists story_progress_user_chapter_uidx
   on public.story_progress (user_id, chapter_id);
