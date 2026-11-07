@@ -142,7 +142,7 @@ alter table public.story_progress
 
 -- Reuse an existing valid UNIQUE index/constraint on exactly
 -- (user_id, chapter_id). Do not create a redundant second index.
-do $
+do $$
 begin
   if not exists (
     select 1
@@ -169,7 +169,7 @@ begin
     create unique index story_progress_user_chapter_uidx
       on public.story_progress (user_id, chapter_id);
   end if;
-end $;
+end $$;
 
 -- Enable RLS on every table exposed to the Supabase Data API.
 alter table public.gardens enable row level security;
