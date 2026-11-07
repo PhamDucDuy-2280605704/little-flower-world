@@ -8,6 +8,10 @@ do $$
 declare
   target_user_id uuid := '00000000-0000-0000-0000-000000000000';
   new_garden_id uuid;
+  chapter_1_id text;
+  chapter_2_id text;
+  chapter_3_id text;
+  chapter_4_id text;
 begin
   if target_user_id = '00000000-0000-0000-0000-000000000000'::uuid then
     raise exception 'Replace target_user_id with the real Auth user UUID before running this template.';
@@ -34,24 +38,30 @@ begin
   )
   returning id into new_garden_id;
 
+  -- Give each chapter a garden-specific ID so old shared-demo progress is not reused.
+  chapter_1_id := new_garden_id::text || '-chapter-1';
+  chapter_2_id := new_garden_id::text || '-chapter-2';
+  chapter_3_id := new_garden_id::text || '-chapter-3';
+  chapter_4_id := new_garden_id::text || '-chapter-4';
+
   insert into public.garden_chapters (
     garden_id, chapter_id, sort_order, title, paragraphs
   )
   values
     (
-      new_garden_id, 'chapter-1', 1, 'Tên chương thứ nhất',
+      new_garden_id, chapter_1_id, 1, 'Tên chương thứ nhất',
       jsonb_build_array('Nội dung đoạn thứ nhất.', 'Nội dung đoạn thứ hai.')
     ),
     (
-      new_garden_id, 'chapter-2', 2, 'Tên chương thứ hai',
+      new_garden_id, chapter_2_id, 2, 'Tên chương thứ hai',
       jsonb_build_array('Nội dung câu chuyện riêng của chương hai.')
     ),
     (
-      new_garden_id, 'chapter-3', 3, 'Tên chương thứ ba',
+      new_garden_id, chapter_3_id, 3, 'Tên chương thứ ba',
       jsonb_build_array('Nội dung câu chuyện riêng của chương ba.')
     ),
     (
-      new_garden_id, 'chapter-4', 4, 'Tên chương thứ tư',
+      new_garden_id, chapter_4_id, 4, 'Tên chương thứ tư',
       jsonb_build_array('Nội dung câu chuyện riêng của chương bốn.')
     );
 
@@ -61,10 +71,10 @@ begin
     chapter_id, label, title, sort_order
   )
   values
-    (new_garden_id, 'daisy', '#ffb3cb', 24, 0.10, 0.62, 'chapter-1', 'Chương 1', 'Tên chương thứ nhất', 1),
-    (new_garden_id, 'tulip', '#ff7a8a', 41, 0.04, 0.64, 'chapter-2', 'Chương 2', 'Tên chương thứ hai', 2),
-    (new_garden_id, 'sunflower', '#ffc928', 59, 0.08, 0.64, 'chapter-3', 'Chương 3', 'Tên chương thứ ba', 3),
-    (new_garden_id, 'rose', '#e0436a', 77, 0.12, 0.62, 'chapter-4', 'Chương 4', 'Tên chương thứ tư', 4);
+    (new_garden_id, 'daisy', '#ffb3cb', 24, 0.10, 0.62, chapter_1_id, 'Chương 1', 'Tên chương thứ nhất', 1),
+    (new_garden_id, 'tulip', '#ff7a8a', 41, 0.04, 0.64, chapter_2_id, 'Chương 2', 'Tên chương thứ hai', 2),
+    (new_garden_id, 'sunflower', '#ffc928', 59, 0.08, 0.64, chapter_3_id, 'Chương 3', 'Tên chương thứ ba', 3),
+    (new_garden_id, 'rose', '#e0436a', 77, 0.12, 0.62, chapter_4_id, 'Chương 4', 'Tên chương thứ tư', 4);
 
   -- Các bông hoa trang trí không mở chương: để chapter_id là NULL.
   insert into public.garden_items (
