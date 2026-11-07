@@ -159,7 +159,52 @@ begin
         )
       );
   end if;
-end $$;
+end $;
+
+-- Restrictive read guards ensure that a permissive policy created earlier
+-- cannot accidentally make another account's garden visible.
+do $
+begin
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public' and tablename = 'gardens'
+      and policyname = 'gardens_select_owner_guard'
+  ) then
+    create policy gardens_select_owner_guard
+      on public.gardens as restrictive for select to authenticated
+      using ((select auth.uid()) = owner_id);
+  end if;
+
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public' and tablename = 'garden_chapters'
+      and policyname = 'garden_chapters_select_owner_guard'
+  ) then
+    create policy garden_chapters_select_owner_guard
+      on public.garden_chapters as restrictive for select to authenticated
+      using (
+        exists (
+          select 1 from public.gardens g
+          where g.id = garden_id and g.owner_id = (select auth.uid())
+        )
+      );
+  end if;
+
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public' and tablename = 'garden_items'
+      and policyname = 'garden_items_select_owner_guard'
+  ) then
+    create policy garden_items_select_owner_guard
+      on public.garden_items as restrictive for select to authenticated
+      using (
+        exists (
+          select 1 from public.gardens g
+          where g.id = garden_id and g.owner_id = (select auth.uid())
+        )
+      );
+  end if;
+end $;
 
 -- Story progress remains writable by its owner only, and only for chapters
 -- belonging to that owner's garden. Restrictive policies also constrain any
