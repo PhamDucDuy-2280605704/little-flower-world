@@ -20,7 +20,7 @@ The migration makes garden content read-only to authenticated visitors. The proj
 4. Customize the garden name, introduction, chapter titles/text, flower types/colors/positions, and final letter.
 5. Run the SQL template once for that user. The unique constraint on `gardens.owner_id` prevents assigning a second garden to the same account.
 
-Every row in `garden_chapters` is a story chapter. A row in `garden_items` with the matching `chapter_id` is the flower that opens it. Decorative flowers have a NULL `chapter_id`. Paragraphs and letter text are JSON arrays of strings.
+Every row in `garden_chapters` is a story chapter. A row in `garden_items` with the matching `chapter_id` is the flower that opens it. Decorative flowers have a NULL `chapter_id`. Chapter IDs are derived from the new garden UUID, so a new personalized story does not accidentally inherit read markers from the old shared sample story. Keep those IDs unchanged when editing an existing garden. Paragraphs and letter text are JSON arrays of strings.
 
 ## Data isolation
 
