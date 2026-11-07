@@ -74,24 +74,13 @@ export default function LoginForm() {
         router.refresh();
       }
     } catch (err: unknown) {
-      const message =
+      const errorMessage =
         err instanceof Error ? err.message : "Đã xảy ra lỗi. Hãy thử lại.";
 
-      setError(message);
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
-  }
-
-  async function handleLogout() {
-    const { error } = await supabase.auth.signOut();
-
-    if (error) {
-      setError(error.message);
-      return;
-    }
-
-    setMessage("Đã đăng xuất thành công.");
   }
 
   return (
