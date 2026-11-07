@@ -34,6 +34,7 @@ export default function GiftExperience() {
   const [progressError, setProgressError] = useState("");
 
   const reduceMotion = useReducedMotion();
+  const userId = user?.id ?? null;
   const chapters = garden?.chapters ?? [];
   const totalChapters = chapters.length;
   const allRead =
@@ -77,10 +78,13 @@ export default function GiftExperience() {
 
     setGarden(null);
     setReadIds([]);
+    setReading(null);
+    setStage("closed");
+    setGardenLoading(Boolean(userId));
     setGardenError("");
     setProgressError("");
 
-    if (!user) {
+    if (!userId) {
       setGardenLoading(false);
       setProgressLoading(false);
       return;
@@ -121,7 +125,7 @@ export default function GiftExperience() {
               )
             `
           )
-          .eq("owner_id", user.id)
+          .eq("owner_id", userId)
           .maybeSingle();
 
         if (!active) return;
@@ -153,7 +157,7 @@ export default function GiftExperience() {
         const { data: progress, error: progressLoadError } = await supabase
           .from("story_progress")
           .select("chapter_id")
-          .eq("user_id", user.id);
+          .eq("user_id", userId);
 
         if (!active) return;
 
@@ -190,7 +194,7 @@ export default function GiftExperience() {
     return () => {
       active = false;
     };
-  }, [user, authReady]);
+  }, [userId, authReady]);
 
   // Chuyển từ hiệu ứng mở quà sang khu vườn.
   useEffect(() => {
