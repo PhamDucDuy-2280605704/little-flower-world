@@ -133,7 +133,7 @@ begin
   if duplicate_count > 0 then
     raise exception 'story_progress contains duplicate (user_id, chapter_id) pairs. Resolve duplicates before adding the unique index.';
   end if;
-end $;
+end $$;
 
 -- Ensure inserts from the app can omit id/read_at safely. Existing values are untouched.
 alter table public.story_progress
