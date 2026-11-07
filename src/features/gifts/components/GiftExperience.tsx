@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -8,12 +7,9 @@ import type { User } from "@supabase/supabase-js";
 
 import { supabase } from "@/lib/supabase";
 import GardenView from "@/features/garden/components/GardenView";
-import { sampleGarden } from "@/features/garden/data/sampleGarden";
+import { mapPersonalGarden } from "@/features/garden/data/mapPersonalGarden";
 import ChapterReader from "@/features/stories/components/ChapterReader";
-import {
-  sampleChapters,
-  sampleLetter,
-} from "@/features/stories/data/sampleStory";
+import type { PersonalGardenRow, PersonalGarden } from "@/types/personalGarden";
 import GiftBox from "./GiftBox";
 import styles from "../styles/GiftExperience.module.css";
 
@@ -31,15 +27,18 @@ export default function GiftExperience() {
   const [readIds, setReadIds] = useState<string[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [authReady, setAuthReady] = useState(false);
+  const [garden, setGarden] = useState<PersonalGarden | null>(null);
+  const [gardenLoading, setGardenLoading] = useState(true);
+  const [gardenError, setGardenError] = useState("");
   const [progressLoading, setProgressLoading] = useState(false);
   const [progressError, setProgressError] = useState("");
 
   const reduceMotion = useReducedMotion();
-  const totalChapters = sampleChapters.length;
-
-  const allRead = sampleChapters.every((chapter) =>
-    readIds.includes(chapter.id)
-  );
+  const chapters = garden?.chapters ?? [];
+  const totalChapters = chapters.length;
+  const allRead =
+    totalChapters > 0 &&
+    chapters.every((chapter) => readIds.includes(chapter.id));
 
   // Lấy phiên đăng nhập và theo dõi khi đăng nhập / đăng xuất.
   useEffect(() => {
@@ -49,7 +48,7 @@ export default function GiftExperience() {
       if (!active) return;
 
       if (error) {
-        setProgressError("Không thể kiểm tra phiên đăng nhập.");
+        setGardenError("Không thể kiểm tra phiên đăng nhập. Hãy tải lại trang.");
       }
 
       setUser(data.session?.user ?? null);
@@ -70,44 +69,123 @@ export default function GiftExperience() {
     };
   }, []);
 
-  // Tải tiến độ đọc của tài khoản hiện tại.
+  // Tải khu vườn, câu chuyện và tiến độ chỉ thuộc tài khoản hiện tại.
   useEffect(() => {
     if (!authReady) return;
 
+    let active = true;
+
+    setGarden(null);
+    setReadIds([]);
+    setGardenError("");
+    setProgressError("");
+
     if (!user) {
-      setReadIds([]);
+      setGardenLoading(false);
       setProgressLoading(false);
       return;
     }
 
-    let active = true;
-
-    async function loadProgress() {
-      setProgressLoading(true);
-      setProgressError("");
-
-      const { data, error } = await supabase
-        .from("story_progress")
-        .select("chapter_id")
-        .eq("user_id", user!.id);
-
-      if (!active) return;
-
-      if (error) {
-        console.error("Load story progress error:", error);
-        setProgressError("Chưa tải được tiến độ đọc. Hãy thử tải lại trang.");
-      } else {
-        const validIds = (data ?? [])
-          .map((row) => row.chapter_id)
-          .filter((id) => sampleChapters.some((chapter) => chapter.id === id));
-
-        setReadIds([...new Set(validIds)]);
-      }
-
+    async function loadPersonalGarden() {
+      setGardenLoading(true);
       setProgressLoading(false);
+
+      try {
+        const { data, error } = await supabase
+          .from("gardens")
+          .select(
+            `
+              id,
+              name,
+              introduction,
+              letter_title,
+              letter_paragraphs,
+              letter_signature,
+              garden_items (
+                id,
+                kind,
+                color,
+                x,
+                depth,
+                size,
+                chapter_id,
+                label,
+                title,
+                sort_order
+              ),
+              garden_chapters (
+                chapter_id,
+                sort_order,
+                title,
+                paragraphs
+              )
+            `
+          )
+          .eq("owner_id", user.id)
+          .maybeSingle();
+
+        if (!active) return;
+
+        if (error) {
+          console.error("Load personal garden error:", error);
+          setGardenError(
+            "Chưa tải được khu vườn của bạn. Hãy thử tải lại trang."
+          );
+          setGardenLoading(false);
+          return;
+        }
+
+        if (!data) {
+          setGarden(null);
+          setReadIds([]);
+          setGardenLoading(false);
+          return;
+        }
+
+        const personalGarden = mapPersonalGarden(
+          data as unknown as PersonalGardenRow
+        );
+
+        setGarden(personalGarden);
+        setGardenLoading(false);
+        setProgressLoading(true);
+
+        const { data: progress, error: progressLoadError } = await supabase
+          .from("story_progress")
+          .select("chapter_id")
+          .eq("user_id", user.id);
+
+        if (!active) return;
+
+        if (progressLoadError) {
+          console.error("Load story progress error:", progressLoadError);
+          setProgressError(
+            "Chưa tải được tiến độ đọc. Hãy thử tải lại trang."
+          );
+        } else {
+          const chapterIds = new Set(
+            personalGarden.chapters.map((chapter) => chapter.id)
+          );
+          const validIds = (progress ?? [])
+            .map((row) => row.chapter_id as string)
+            .filter((id) => chapterIds.has(id));
+
+          setReadIds([...new Set(validIds)]);
+        }
+
+        setProgressLoading(false);
+      } catch (error) {
+        if (!active) return;
+        console.error("Load personal garden failed:", error);
+        setGardenError(
+          "Có lỗi khi tải khu vườn. Hãy thử tải lại trang."
+        );
+        setGardenLoading(false);
+        setProgressLoading(false);
+      }
     }
 
-    loadProgress();
+    void loadPersonalGarden();
 
     return () => {
       active = false;
@@ -123,13 +201,13 @@ export default function GiftExperience() {
   }, [stage]);
 
   function handleOpenGift() {
-    if (!user) return;
+    if (!user || !garden) return;
     setStage(reduceMotion ? "garden" : "opening");
   }
 
   // Ghi nhận chương đã đọc lên Supabase.
   async function openChapter(index: number) {
-    const chapter = sampleChapters[index];
+    const chapter = chapters[index];
     if (!chapter || !user) return;
 
     setReading({ kind: "chapter", index });
@@ -163,9 +241,7 @@ export default function GiftExperience() {
   }
 
   function openChapterById(chapterId: string) {
-    const index = sampleChapters.findIndex(
-      (chapter) => chapter.id === chapterId
-    );
+    const index = chapters.findIndex((chapter) => chapter.id === chapterId);
 
     if (index !== -1) {
       void openChapter(index);
@@ -179,9 +255,7 @@ export default function GiftExperience() {
   }
 
   const currentChapter =
-    reading?.kind === "chapter"
-      ? sampleChapters[reading.index]
-      : null;
+    reading?.kind === "chapter" ? chapters[reading.index] : null;
 
   if (!authReady) {
     return (
@@ -203,6 +277,37 @@ export default function GiftExperience() {
           </p>
           <Link href="/login" className={styles.backLink}>
             Đến trang đăng nhập
+          </Link>
+        </section>
+      </main>
+    );
+  }
+
+  if (gardenLoading) {
+    return (
+      <main className={styles.page}>
+        <section className={styles.card}>
+          <p className={styles.message} role="status">
+            Đang tìm khu vườn dành riêng cho bạn...
+          </p>
+        </section>
+      </main>
+    );
+  }
+
+  if (gardenError || !garden) {
+    return (
+      <main className={styles.page}>
+        <section className={styles.card}>
+          <h1 className={styles.title}>
+            {gardenError ? "Khu vườn đang gặp chút trục trặc 🌷" : "Khu vườn chưa được gieo 🌱"}
+          </h1>
+          <p className={styles.message}>
+            {gardenError ||
+              "Món quà này chưa được thiết lập. Hãy liên hệ người đã gửi lời mời cho bạn nhé."}
+          </p>
+          <Link href="/" className={styles.backLink}>
+            Về trang chủ
           </Link>
         </section>
       </main>
@@ -249,15 +354,15 @@ export default function GiftExperience() {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6 }}
             >
-              <h1 className={styles.title}>Khu vườn của bạn</h1>
+              <h1 className={styles.title}>{garden.name}</h1>
 
               <p className={styles.message}>
-                Bấm vào những bông hoa có nhãn chương để đọc câu chuyện bên
-                trong. Thử đổi ngày đêm, đổi gió, hoặc thổi bồ công anh nhé.
+                {garden.introduction ||
+                  "Bấm vào những bông hoa có nhãn chương để đọc câu chuyện bên trong."}
               </p>
 
               <GardenView
-                items={sampleGarden}
+                items={garden.items}
                 readIds={readIds}
                 onOpenChapter={openChapterById}
               />
@@ -291,7 +396,9 @@ export default function GiftExperience() {
                 </motion.button>
               ) : (
                 <p className={styles.locked}>
-                  Đọc hết các chương để mở lá thư cuối nhé.
+                  {totalChapters === 0
+                    ? "Khu vườn đang được chuẩn bị thêm câu chuyện."
+                    : "Đọc hết các chương để mở lá thư cuối nhé."}
                 </p>
               )}
 
@@ -339,9 +446,9 @@ export default function GiftExperience() {
       {reading?.kind === "letter" && allRead && (
         <ChapterReader
           eyebrow="Lá thư cuối"
-          title={sampleLetter.title}
-          paragraphs={sampleLetter.paragraphs}
-          signature={sampleLetter.signature}
+          title={garden.letter.title}
+          paragraphs={garden.letter.paragraphs}
+          signature={garden.letter.signature}
           onClose={() => setReading(null)}
         />
       )}
