@@ -140,8 +140,36 @@ alter table public.story_progress
   alter column id set default gen_random_uuid(),
   alter column read_at set default now();
 
-create unique index if not exists story_progress_user_chapter_uidx
-  on public.story_progress (user_id, chapter_id);
+-- Reuse an existing valid UNIQUE index/constraint on exactly
+-- (user_id, chapter_id). Do not create a redundant second index.
+do $
+begin
+  if not exists (
+    select 1
+    from pg_index i
+    join pg_class t on t.oid = i.indrelid
+    join pg_namespace n on n.oid = t.relnamespace
+    where n.nspname = 'public'
+      and t.relname = 'story_progress'
+      and i.indisunique
+      and i.indisvalid
+      and i.indisready
+      and i.indpred is null
+      and i.indexprs is null
+      and i.indnkeyatts = 2
+      and (
+        select array_agg(a.attname::text order by k.ordinality)
+        from unnest(i.indkey) with ordinality as k(attnum, ordinality)
+        join pg_attribute a
+          on a.attrelid = i.indrelid
+         and a.attnum = k.attnum
+        where k.ordinality <= i.indnkeyatts
+      ) = array['user_id', 'chapter_id']::text[]
+  ) then
+    create unique index story_progress_user_chapter_uidx
+      on public.story_progress (user_id, chapter_id);
+  end if;
+end $;
 
 -- Enable RLS on every table exposed to the Supabase Data API.
 alter table public.gardens enable row level security;
