@@ -159,11 +159,11 @@ begin
         )
       );
   end if;
-end $;
+end $$;
 
 -- Restrictive read guards ensure that a permissive policy created earlier
 -- cannot accidentally make another account's garden visible.
-do $
+do $$
 begin
   if not exists (
     select 1 from pg_policies
@@ -204,12 +204,12 @@ begin
         )
       );
   end if;
-end $;
+end $$;
 
 -- Story progress remains writable by its owner only, and only for chapters
 -- belonging to that owner's garden. Restrictive policies also constrain any
 -- older permissive policies that may already exist on story_progress.
-revoke all on table public.story_progress from anon, authenticated;
+revoke all on table public.story_progress from public, anon, authenticated;
 grant select, insert, update on table public.story_progress to authenticated;
 
 drop policy if exists story_progress_select_owner on public.story_progress;
