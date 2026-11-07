@@ -69,6 +69,7 @@ declare
   user_id_type text;
   chapter_id_type text;
   duplicate_count bigint;
+  null_count bigint;
 begin
   select udt_name into user_id_type
   from information_schema.columns
@@ -88,6 +89,14 @@ begin
 
   if chapter_id_type is distinct from 'text' then
     raise exception 'story_progress.chapter_id must be text (found: %). Inspect the existing column before migrating.', chapter_id_type;
+  end if;
+
+  select count(*) into null_count
+  from public.story_progress
+  where user_id is null or chapter_id is null;
+
+  if null_count > 0 then
+    raise exception 'story_progress contains rows with a NULL user_id or chapter_id. Resolve them before migrating.';
   end if;
 
   select count(*) into duplicate_count
