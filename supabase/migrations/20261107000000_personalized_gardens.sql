@@ -114,7 +114,7 @@ alter table public.story_progress enable row level security;
 
 -- End users can read their own garden, but cannot change its design/content.
 revoke all on table public.gardens, public.garden_chapters, public.garden_items
-  from anon, authenticated;
+  from public, anon, authenticated;
 grant select on table public.gardens, public.garden_chapters, public.garden_items
   to authenticated;
 
