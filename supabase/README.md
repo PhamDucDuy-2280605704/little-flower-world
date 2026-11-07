@@ -2,6 +2,10 @@
 
 Each authenticated account owns at most one garden. Garden content is stored in Supabase instead of using the shared `sampleGarden` and `sampleStory` data at runtime.
 
+## Inspect the existing progress table first
+
+Before changing the database, run the read-only queries in [check-existing-schema.sql](check-existing-schema.sql) from Supabase SQL Editor and review the `story_progress` column types, duplicate pairs, existing indexes, RLS status, and policies. The query does not modify data. Keep its results so the current table state is known before migration.
+
 ## Apply the database migration
 
 1. Open Supabase Dashboard for the Little Flower World project.
