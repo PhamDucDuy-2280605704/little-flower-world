@@ -38,10 +38,10 @@ export function mapPersonalGarden(row: PersonalGardenRow): PersonalGarden {
       title: item.title ?? undefined,
     }));
 
-  const chapterFlowers = new Map(
+  const chapterFlowers = new Map<string, GardenItem>(
     items
       .filter((item) => item.chapterId)
-      .map((item) => [item.chapterId as string, item])
+      .map((item): [string, GardenItem] => [item.chapterId as string, item])
   );
 
   const chapters = [...(row.garden_chapters ?? [])]
