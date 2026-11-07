@@ -28,6 +28,7 @@ export default function GiftExperience() {
   const [user, setUser] = useState<User | null>(null);
   const [authReady, setAuthReady] = useState(false);
   const [garden, setGarden] = useState<PersonalGarden | null>(null);
+  const [gardenOwnerId, setGardenOwnerId] = useState<string | null>(null);
   const [gardenLoading, setGardenLoading] = useState(true);
   const [gardenError, setGardenError] = useState("");
   const [progressLoading, setProgressLoading] = useState(false);
@@ -77,6 +78,7 @@ export default function GiftExperience() {
     let active = true;
 
     setGarden(null);
+    setGardenOwnerId(null);
     setReadIds([]);
     setReading(null);
     setStage("closed");
@@ -141,6 +143,7 @@ export default function GiftExperience() {
 
         if (!data) {
           setGarden(null);
+          setGardenOwnerId(null);
           setReadIds([]);
           setGardenLoading(false);
           return;
@@ -151,6 +154,7 @@ export default function GiftExperience() {
         );
 
         setGarden(personalGarden);
+        setGardenOwnerId(userId);
         setGardenLoading(false);
         setProgressLoading(true);
 
@@ -287,7 +291,7 @@ export default function GiftExperience() {
     );
   }
 
-  if (gardenLoading) {
+  if (gardenLoading || (garden && gardenOwnerId !== user.id)) {
     return (
       <main className={styles.page}>
         <section className={styles.card}>
