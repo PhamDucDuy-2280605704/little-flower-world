@@ -7,24 +7,18 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import styles from "../styles/LoginForm.module.css";
 
-type Mode = "login" | "register";
-
 export default function LoginForm() {
   const router = useRouter();
 
-  const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
     setError("");
-    setMessage("");
 
     const cleanEmail = email.trim();
 
@@ -33,51 +27,37 @@ export default function LoginForm() {
       return;
     }
 
-    if (password.length < 8) {
-      setError("Mật khẩu cần có ít nhất 8 ký tự.");
+    if (!password) {
+      setError("Vui lòng nhập mật khẩu.");
       return;
     }
 
     setLoading(true);
 
     try {
-      if (mode === "register") {
-        const { data, error } = await supabase.auth.signUp({
-          email: cleanEmail,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/login`,
-          },
-        });
-
-        if (error) throw error;
-
-        if (data.session) {
-          setMessage("Đăng ký thành công! Đang mở khu vườn...");
-          router.push("/gift");
-          router.refresh();
-        } else {
-          setMessage(
-            "Đăng ký thành công! Hãy kiểm tra email để xác nhận tài khoản nhé."
-          );
-        }
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({
+      const { error: signInError } =
+        await supabase.auth.signInWithPassword({
           email: cleanEmail,
           password,
         });
 
-        if (error) throw error;
+      if (signInError) throw signInError;
 
-        setMessage("Đăng nhập thành công! Đang mở khu vườn...");
-        router.push("/gift");
-        router.refresh();
-      }
+      router.replace("/gift");
+      router.refresh();
     } catch (err: unknown) {
       const errorMessage =
-        err instanceof Error ? err.message : "Đã xảy ra lỗi. Hãy thử lại.";
+        err instanceof Error
+          ? err.message
+          : "Đã xảy ra lỗi. Hãy thử lại.";
 
-      setError(errorMessage);
+      if (
+        errorMessage.toLowerCase().includes("invalid login credentials")
+      ) {
+        setError("Email hoặc mật khẩu không chính xác.");
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
@@ -86,16 +66,9 @@ export default function LoginForm() {
   return (
     <div className={styles.wrapper}>
       <div>
-        <h1 className={styles.title}>
-          {mode === "login"
-            ? "Một món quà đang chờ bạn"
-            : "Tạo tài khoản mới"}
-        </h1>
-
+        <h1 className={styles.title}>Một món quà đang chờ bạn</h1>
         <p className={styles.subtitle}>
-          {mode === "login"
-            ? "Đăng nhập để bước vào khu vườn bí mật."
-            : "Tạo tài khoản để lưu lại hành trình của bạn."}
+          Đăng nhập để bước vào khu vườn bí mật.
         </p>
       </div>
 
@@ -108,7 +81,7 @@ export default function LoginForm() {
           <input
             id="login-email"
             type="email"
-            autoComplete="email"
+            autoComplete="username"
             className={styles.input}
             value={email}
             onChange={(event) => setEmail(event.target.value)}
@@ -125,14 +98,11 @@ export default function LoginForm() {
             <input
               id="login-password"
               type={showPassword ? "text" : "password"}
-              autoComplete={
-                mode === "login" ? "current-password" : "new-password"
-              }
+              autoComplete="current-password"
               className={styles.input}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               required
-              minLength={8}
             />
 
             <button
@@ -151,11 +121,7 @@ export default function LoginForm() {
           className={styles.submit}
           disabled={loading}
         >
-          {loading
-            ? "Đang xử lý..."
-            : mode === "login"
-              ? "Đăng nhập"
-              : "Đăng ký"}
+          {loading ? "Đang đăng nhập..." : "Đăng nhập"}
         </button>
       </form>
 
@@ -165,28 +131,8 @@ export default function LoginForm() {
         </p>
       )}
 
-      {message && (
-        <p className={styles.notice} role="status">
-          🌷 {message}
-        </p>
-      )}
-
       <p className={styles.hint}>
-        {mode === "login"
-          ? "Chưa có tài khoản? "
-          : "Đã có tài khoản? "}
-
-        <button
-          type="button"
-          className={styles.modeButton}
-          onClick={() => {
-            setMode(mode === "login" ? "register" : "login");
-            setError("");
-            setMessage("");
-          }}
-        >
-          {mode === "login" ? "Đăng ký ngay" : "Đăng nhập"}
-        </button>
+        Tài khoản đăng nhập được cấp riêng bởi quản trị viên.
       </p>
     </div>
   );
