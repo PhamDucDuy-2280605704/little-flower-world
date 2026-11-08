@@ -348,6 +348,16 @@ export default function GardenStudio() {
     return () => { active = false; };
   }, [selectedGarden, loadGardenDetails]);
 
+  async function handleLogout() {
+    const { error: logoutError } = await adminSupabase.auth.signOut({ scope: "local" });
+    if (logoutError) {
+      setError("Đăng xuất chưa thành công. Anh thử lại nhé.");
+      return;
+    }
+    router.replace("/admin/login");
+    router.refresh();
+  }
+
   async function createGarden() {
     if (!userId || saving) return;
     setSaving(true);
@@ -1016,14 +1026,19 @@ export default function GardenStudio() {
   }
 
   if (!userId) {
-    return <main className={styles.loading}><p>{error || "Anh cần đăng nhập để mở Studio."}</p><Link href="/admin/login">Đăng nhập Admin</Link></main>;
+    return <main className={styles.loading}><p>{error || "Anh cần đăng nhập để mở Creator Studio."}</p><Link href="/admin/login">Đăng nhập quản trị</Link><Link href="/">Về trang chủ</Link></main>;
   }
 
   return (
     <main className={styles.shell}>
       <header className={styles.topbar}>
-        <Link href="/" className={styles.brand}><span>✿</span><strong>Little Flower World <small>CREATOR STUDIO</small></strong></Link>
-        <nav><Link href="/admin">Quản lý ảnh</Link><Link href="/admin/login">Tài khoản</Link></nav>
+        <Link href="/" className={styles.brand}><span>✿</span><strong>Little Flower World <small>KHU VỰC QUẢN TRỊ · CREATOR STUDIO</small></strong></Link>
+        <nav aria-label="Điều hướng Admin">
+          <Link href="/admin">Trung tâm Admin</Link>
+          {selectedGarden?.is_published && shareUrl && <a href={shareUrl} target="_blank" rel="noreferrer">Xem trang khách ↗</a>}
+          <Link href="/">Trang chủ</Link>
+          <button type="button" onClick={() => void handleLogout()}>Đăng xuất</button>
+        </nav>
       </header>
 
       <div className={styles.intro}>

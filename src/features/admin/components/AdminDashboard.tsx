@@ -365,10 +365,12 @@ export default function AdminDashboard() {
           </Link>
 
           <div className={styles.sidebarSection}>
-            <p className={styles.sidebarLabel}>KHÔNG GIAN LÀM VIỆC</p>
+            <p className={styles.sidebarLabel}>KHU VỰC QUẢN TRỊ</p>
             <a href="#overview" className={styles.sideLinkActive}>⌂ <span>Tổng quan</span></a>
-            <a href="#garden-list" className={styles.sideLink}>❀ <span>Các khu vườn</span></a>
+            <a href="#garden-list" className={styles.sideLink}>❀ <span>Quản lý khu vườn</span></a>
             <a href="#photo-library" className={styles.sideLink}>▧ <span>Kho ảnh riêng</span></a>
+            <Link href="/studio" className={styles.sideLink}>✎ <span>Creator Studio</span></Link>
+            <Link href="/" className={styles.sideLink}>⌂ <span>Trang chủ</span></Link>
           </div>
 
           <div className={styles.sidebarBottom}>
@@ -384,12 +386,12 @@ export default function AdminDashboard() {
         <div className={styles.main}>
           <header className={styles.topbar}>
             <div>
-              <p className={styles.eyebrow}>ADMIN STUDIO <span>·</span> LITTLE FLOWER WORLD</p>
+              <p className={styles.eyebrow}>KHU VỰC QUẢN TRỊ <span>·</span> ADMIN CENTER</p>
               <h1>Trung tâm quản lý</h1>
               <p className={styles.subtitle}>Mỗi khu vườn có một album riêng, mọi kỷ niệm đều ở đúng nơi.</p>
             </div>
             <div className={styles.topActions}>
-              <Link href="/gift" className={styles.secondaryLink}>Xem khu vườn</Link>
+              <Link href="/studio" className={styles.secondaryLink}>Mở Creator Studio</Link>
               <button type="button" className={styles.logoutButton} onClick={() => void handleLogout()}>Đăng xuất</button>
             </div>
           </header>

@@ -117,15 +117,7 @@ export default function HomeAuthActions({
       )}
 
       <Link href="/gift" className={giftClassName}>
-        Xem thử hộp quà
-      </Link>
-
-      <Link href="/studio" className={giftClassName}>
-        Tạo khu vườn
-      </Link>
-
-      <Link href="/admin/login" className={giftClassName}>
-        Cổng quản trị
+        Vào khu vườn thành viên
       </Link>
 
       {error && (

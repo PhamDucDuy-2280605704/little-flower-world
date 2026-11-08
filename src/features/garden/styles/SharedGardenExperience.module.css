@@ -98,3 +98,11 @@
   outline-offset: 5px;
 }
 .coverOpen .cover { display: block; }
+
+
+/* Guest pages have their own navigation and never expose creator controls. */
+.guestNavigation{width:min(1180px,100%);display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px}
+.guestNavigation .brand{margin-bottom:0}
+.guestExit{display:inline-flex;align-items:center;min-height:36px;padding:7px 13px;border:1px solid rgba(143,113,74,.2);border-radius:999px;background:rgba(255,251,242,.74);color:#80613e;font-size:11px;font-weight:750;text-decoration:none}
+.guestBadge{margin:0 0 10px;padding:6px 10px;border:1px solid rgba(143,113,74,.18);border-radius:999px;background:#f0e9d9;color:#7f835e;font-size:9px;font-weight:850;letter-spacing:.12em}
+@media(max-width:640px){.guestNavigation{margin-bottom:17px}.guestNavigation .brand{margin-bottom:0}.guestExit{min-height:32px;padding:6px 9px;font-size:10px}}

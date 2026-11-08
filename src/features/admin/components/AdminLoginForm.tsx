@@ -164,7 +164,7 @@ export default function AdminLoginForm() {
         <span />
       </div>
 
-      <Link href="/login" className={styles.guestLink}>← Quay về đăng nhập khách</Link>
+      <Link href="/login" className={styles.guestLink}>← Đăng nhập thành viên</Link>
     </div>
   );
 }

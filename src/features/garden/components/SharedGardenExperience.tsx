@@ -239,24 +239,28 @@ export default function SharedGardenExperience({ slug }: { slug: string }) {
             {pinError && <p className={styles.pinError} role="alert">{pinError}</p>}
             <button type="submit" disabled={!pin.trim()}>Mở khu vườn</button>
           </form>
-          <Link href="/">Little Flower World</Link>
+          <Link href="/guest">Quay về cổng khách</Link>
         </section>
       </main>
     );
   }
 
   if (state === "missing") {
-    return <main className={styles.gatePage}><section className={styles.gateCard}><span className={styles.mark}>✿</span><h1>Khu vườn chưa mở cửa</h1><p>Đường link này không còn hoạt động hoặc người tạo đã chuyển khu vườn về bản nháp.</p><Link href="/">Trở về Little Flower World</Link></section></main>;
+    return <main className={styles.gatePage}><section className={styles.gateCard}><span className={styles.mark}>✿</span><h1>Khu vườn chưa mở cửa</h1><p>Đường link này không còn hoạt động hoặc người tạo đã chuyển khu vườn về bản nháp.</p><Link href="/guest">Quay về cổng khách</Link></section></main>;
   }
 
   if (state === "error" || !garden || !payload) {
-    return <main className={styles.gatePage}><section className={styles.gateCard}><span className={styles.mark}>✿</span><h1>Chưa thể bước vào vườn</h1><p>{fatalError || "Có lỗi khi tải khu vườn."}</p><button type="button" onClick={() => void requestGarden()}>Thử lại</button><Link href="/">Little Flower World</Link></section></main>;
+    return <main className={styles.gatePage}><section className={styles.gateCard}><span className={styles.mark}>✿</span><h1>Chưa thể bước vào vườn</h1><p>{fatalError || "Có lỗi khi tải khu vườn."}</p><button type="button" onClick={() => void requestGarden()}>Thử lại</button><Link href="/guest">Quay về cổng khách</Link></section></main>;
   }
 
   return (
     <main className={styles.page}>
       <header className={styles.hero}>
-        <Link className={styles.brand} href="/">✿ LITTLE FLOWER WORLD</Link>
+        <div className={styles.guestNavigation}>
+          <Link className={styles.brand} href="/">✿ LITTLE FLOWER WORLD</Link>
+          <Link className={styles.guestExit} href="/guest">← Cổng khách</Link>
+        </div>
+        <p className={styles.guestBadge}>KHU VỰC KHÁCH · LỜI MỜI RIÊNG</p>
         <p className={styles.eyebrow}>A LITTLE WORLD MADE FOR YOU</p>
         <h1>{garden.name}</h1>
         {garden.introduction && <p>{garden.introduction}</p>}
@@ -313,7 +317,7 @@ export default function SharedGardenExperience({ slug }: { slug: string }) {
         </section>
       )}
 
-      <footer className={styles.footer}><p>Made with care · Vanilla Garden</p><Link href="/">Little Flower World</Link></footer>
+      <footer className={styles.footer}><p>Made with care · Vanilla Garden</p><Link href="/guest">Quay về cổng khách</Link></footer>
 
       {reading?.kind === "chapter" && currentChapter && (
         <ChapterReader
