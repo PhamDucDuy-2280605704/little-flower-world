@@ -21,7 +21,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const saved = window.localStorage.getItem("little-story-world-language");
-      if (saved === "en" || saved === "vi") setLanguageState(saved);
+      if (saved === "en" || saved === "vi") {
+        const frame = window.requestAnimationFrame(() => setLanguageState(saved));
+        return () => window.cancelAnimationFrame(frame);
+      }
     } catch {
       // Keep Vietnamese as the accessible default when storage is unavailable.
     }
