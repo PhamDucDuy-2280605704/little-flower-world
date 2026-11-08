@@ -71,8 +71,6 @@ export default function GardenJournal({
   const progress = chapters.length > 0
     ? Math.round((readIds.length / chapters.length) * 100)
     : 0;
-  const fallbackFlowers = items.slice(0, 7);
-
   function openImage(index: number) {
     if (lightboxImages.length > 0) setActivePhotoIndex(index);
   }
@@ -93,8 +91,8 @@ export default function GardenJournal({
       </header>
 
       <section className={styles.masthead} id="our-story">
-        <p className={styles.overline}><span /> WHAT GROWS HERE <span /></p>
-        <h1>A Garden Journal</h1>
+        <p className={styles.overline}><span /> A STORY CREATED BY YOU <span /></p>
+        <h1>A World of Your Own</h1>
         <p className={styles.mastheadNote}>{name}</p>
       </section>
 
@@ -119,42 +117,28 @@ export default function GardenJournal({
               <span className={styles.imageExpand} aria-hidden="true">↗</span>
             </button>
           ) : (
-            <div className={styles.botanicalCover} aria-label="Minh họa các loài hoa trong khu vườn">
-              <span className={styles.coverSun} />
-              <span className={styles.coverGardenName}>{name}</span>
-              {fallbackFlowers.map((item, index) => (
-                <span
-                  key={item.id}
-                  className={styles.fallbackFlower}
-                  style={{
-                    left: (12 + ((index * 29) % 78)) + "%",
-                    bottom: (12 + ((index * 17) % 44)) + "%",
-                    zIndex: 2 + index,
-                    transform: "translateX(-50%) scale(" + Math.max(.58, Math.min(1.12, item.size)) + ")",
-                  }}
-                >
-                  <Flower kind={item.kind} color={item.color} size={.8} />
-                </span>
-              ))}
-              <span className={styles.coverCaption}>A place to grow, a story to keep</span>
+            <div className={styles.uploadPrompt}>
+              <span aria-hidden="true">＋</span>
+              <strong>Ảnh bìa do anh tự tải lên</strong>
+              <p>Chưa có ảnh bìa. Hãy thêm hình ảnh của riêng anh trong Creator Studio.</p>
             </div>
           )}
           <div className={styles.imageStamp}>
             <strong>{String(chapters.length).padStart(2, "0")}</strong>
-            <span>CHAPTERS IN BLOOM</span>
+            <span>CHAPTERS MEMORIES</span>
           </div>
-          <p className={styles.visualCaption}>A little world, made with care</p>
+          <p className={styles.visualCaption}>A little world, made by you</p>
         </div>
 
         <article className={styles.featureStory}>
           <p className={styles.entryLabel}>FIRST ENTRY — CHAPTER 01</p>
           <h2>{firstChapter?.title || name}</h2>
           <p className={styles.introduction}>
-            {introduction || "Every garden begins with a small beginning, and every flower keeps a story."}
+            {introduction || "Mỗi thế giới bắt đầu từ một ý tưởng và được hoàn thiện bằng câu chuyện của riêng bạn."}
           </p>
           <div className={styles.storyDivider}><span>✳</span></div>
           <p className={styles.entryText}>
-            {firstParagraph || "The first page is waiting to be written."}
+            {firstParagraph || "Trang đầu tiên đang chờ câu chuyện của bạn."}
           </p>
           {firstChapter && (
             <button
@@ -169,7 +153,7 @@ export default function GardenJournal({
             <blockquote className={styles.quoteCard}>
               <span className={styles.quoteFlower} aria-hidden="true">✿</span>
               <p>“{quote}”</p>
-              <cite>— A NOTE FROM THIS GARDEN</cite>
+              <cite>— A NOTE FROM THIS STORY</cite>
             </blockquote>
           )}
         </article>
@@ -177,9 +161,9 @@ export default function GardenJournal({
 
       <section className={styles.pathSection} id="the-path">
         <div className={styles.sectionIntro}>
-          <p className={styles.entryLabel}>THE PATH THROUGH THE GARDEN</p>
-          <h2>Every flower holds a page.</h2>
-          <p>Follow the little path and open each chapter at your own pace.</p>
+          <p className={styles.entryLabel}>THE STORY WORLD</p>
+          <h2>Mỗi chương mở ra một phần thế giới.</h2>
+          <p>Khám phá từng chương theo thứ tự anh đã sắp đặt.</p>
         </div>
         <div className={styles.progressRow}>
           <span>JOURNEY PROGRESS</span>
@@ -193,7 +177,7 @@ export default function GardenJournal({
           {chapters.length > 0 ? chapters.map((chapter, index) => {
             const flower = items.find((item) => item.chapterId === chapter.id);
             const isRead = readIds.includes(chapter.id);
-            const excerpt = chapter.paragraphs[0] ?? "A new page in this garden.";
+            const excerpt = chapter.paragraphs[0] ?? "Một trang mới trong thế giới này.";
             return (
               <article className={styles.chapterRow} key={chapter.id}>
                 <span className={styles.chapterNumber}>{String(index + 1).padStart(2, "0")}</span>
@@ -213,7 +197,7 @@ export default function GardenJournal({
               </article>
             );
           }) : (
-            <p className={styles.emptyStory}>The first chapter is still taking root.</p>
+            <p className={styles.emptyStory}>Chương đầu tiên đang chờ được viết.</p>
           )}
         </div>
         {letterReady && onOpenLetter && (
@@ -229,10 +213,10 @@ export default function GardenJournal({
         <section className={styles.bloomSection} id="in-bloom">
           <div className={styles.bloomHeading}>
             <div>
-              <p className={styles.entryLabel}>IN BLOOM</p>
-              <h2>Little things worth remembering.</h2>
+              <p className={styles.entryLabel}>MEMORIES</p>
+              <h2>Những hình ảnh anh muốn lưu giữ.</h2>
             </div>
-            <span>{photos.length} PHOTOS · {items.length} FLOWERS</span>
+            <span>{photos.length} ẢNH KỶ NIỆM</span>
           </div>
           {secondaryPhotos.length > 0 ? (
             <div className={styles.photoGrid}>
@@ -264,7 +248,7 @@ export default function GardenJournal({
 
       <footer className={styles.footer}>
         <Link href={returnHref}>{returnLabel}</Link>
-        <span>GROWN WITH CARE · LITTLE FLOWER WORLD</span>
+        <span>A WORLD MADE BY YOU · LITTLE FLOWER WORLD</span>
       </footer>
 
       <PhotoLightbox

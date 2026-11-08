@@ -4,7 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, ty
 import Link from "next/link";
 import Image from "next/image";
 import PhotoLightbox from "@/features/garden/components/PhotoLightbox";
-import FairytaleGardenView from "@/features/garden/components/FairytaleGardenView";
+import GardenJournal from "@/features/garden/components/GardenJournal";
+import type { StoryChapter } from "@/types/story";
 import ChapterReader from "@/features/stories/components/ChapterReader";
 import { useRouter } from "next/navigation";
 import Flower from "@/features/flowers/components/Flower";
@@ -212,6 +213,10 @@ export default function GardenStudio() {
     label: item.label ?? undefined,
     title: item.title ?? undefined,
   })), [items]);
+  const previewStoryChapters = useMemo<StoryChapter[]>(() => chapters.map((chapter) => {
+    const marker = items.find((item) => item.chapter_id === chapter.chapter_id);
+    return { id: chapter.chapter_id, title: chapter.title, paragraphs: chapter.paragraphs, flowerKind: marker?.kind ?? "daisy", flowerColor: marker?.color ?? "#e9dfc8" };
+  }), [chapters, items]);
   const previewChapter = chapters.find((chapter) => chapter.chapter_id === previewChapterId) ?? null;
   const previewChapterIndex = chapters.findIndex((chapter) => chapter.chapter_id === previewChapterId);
   const previewChapterFlower = items.find((item) => item.chapter_id === previewChapterId);
@@ -945,7 +950,7 @@ export default function GardenStudio() {
     }).select("id").single();
     if (insertError || !createdItem) {
       console.error("Add garden decoration failed:", insertError);
-      setError("Chưa thêm được bông hoa trang trí.");
+      setError("Chưa thêm được bông điểm trang trí.");
       return;
     }
     await loadGardenDetails(selectedGarden);
@@ -973,7 +978,7 @@ export default function GardenStudio() {
       setError("Hoa gắn với chương truyện cần được xóa cùng chương để tránh mất liên kết.");
       return;
     }
-    if (!window.confirm("Xóa bông hoa trang trí này?")) return;
+    if (!window.confirm("Xóa bông điểm trang trí này?")) return;
     const { error: deleteError } = await adminSupabase.from("garden_items").delete().eq("id", selectedItem.id);
     if (deleteError) setError("Chưa xóa được bông hoa.");
     else await loadGardenDetails(selectedGarden);
@@ -1098,7 +1103,7 @@ export default function GardenStudio() {
             <nav className={styles.stepNav} aria-label="Các bước thiết kế khu vườn">
               <a href="#step-01">01 <span>Thông tin</span></a>
               <a href="#step-02">02 <span>Khung cảnh</span></a>
-              <a href="#step-03">03 <span>Bố cục</span></a>
+              <a href="#step-03">03 <span>Bố cục thế giới</span></a>
               <a href="#step-04">04 <span>Câu chuyện</span></a>
               <a href="#step-05">05 <span>Album</span></a>
               <a href="#step-06">06 <span>Lưu bút</span></a>
@@ -1115,7 +1120,7 @@ export default function GardenStudio() {
             </section>
 
             <section className={styles.section} id="step-02">
-              <div className={styles.sectionTitle}><span>02</span><div><h3>Khung cảnh Vanilla Garden</h3><p>Chọn bối cảnh mặc định khi khách bước vào vườn.</p></div></div>
+              <div className={styles.sectionTitle}><span>02</span><div><h3>Không khí câu chuyện</h3><p>Chọn ánh sáng, mùa và âm thanh để tạo cảm xúc cho thế giới của anh.</p></div></div>
               <div className={styles.formGrid}>
                 <label>Thời tiết<select value={weather} onChange={(event) => setWeather(event.target.value)}><option value="clear">Nắng nhẹ</option><option value="cloudy">Nhiều mây</option><option value="rain">Mưa dịu</option><option value="snow">Tuyết</option></select></label>
                 <label>Mùa<select value={season} onChange={(event) => setSeason(event.target.value)}><option value="spring">Mùa xuân</option><option value="summer">Mùa hạ</option><option value="autumn">Mùa thu</option><option value="winter">Mùa đông</option></select></label>
@@ -1127,7 +1132,7 @@ export default function GardenStudio() {
             </section>
 
             <section className={styles.section} id="step-03">
-              <div className={styles.sectionTitle}><span>03</span><div><h3>Bố cục khu vườn</h3><p>Kéo hoa trên khu vườn để sắp xếp. Thay đổi sẽ được lưu vào bản thiết kế.</p></div></div>
+              <div className={styles.sectionTitle}><span>03</span><div><h3>Sắp đặt thế giới truyện</h3><p>Kéo hoa trên khu vườn để sắp xếp. Thay đổi sẽ được lưu vào bản thiết kế.</p></div></div>
               <div className={styles.layoutTopbar}>
                 <div className={styles.layoutToggles}>
                   <label className={styles.layoutToggle}><input type="checkbox" checked={showLayoutGrid} onChange={(event) => setShowLayoutGrid(event.target.checked)}/> Hiện lưới căn</label>
@@ -1217,16 +1222,16 @@ export default function GardenStudio() {
               </div>
 
               <div className={styles.canvasTools}>
-                <label>Loài hoa<select value={newChapterFlower} onChange={(event) => setNewChapterFlower(event.target.value as FlowerKind)}>{FLOWERS.map((flower) => <option key={flower.value} value={flower.value}>{flower.label}</option>)}</select></label>
-                <button type="button" onClick={autoArrangeGarden} disabled={items.length < 2 || saving}>✧ Tự dàn hoa</button>
-                <button type="button" onClick={addDecoration} disabled={saving}>＋ Thêm hoa trang trí</button>
+                <label>Biểu tượng chương<select value={newChapterFlower} onChange={(event) => setNewChapterFlower(event.target.value as FlowerKind)}>{FLOWERS.map((flower) => <option key={flower.value} value={flower.value}>{flower.label}</option>)}</select></label>
+                <button type="button" onClick={autoArrangeGarden} disabled={items.length < 2 || saving}>✧ Tự sắp xếp điểm truyện</button>
+                <button type="button" onClick={addDecoration} disabled={saving}>＋ Thêm điểm trang trí</button>
                 <button type="button" onClick={discardLayout} disabled={!dirtyLayout || saving}>Hoàn tác</button>
                 <button type="button" onClick={saveLayout} disabled={!dirtyLayout || saving}>{saving ? "Đang lưu..." : "Lưu bố cục"}</button>
               </div>
               <p className={styles.layoutHint}>
                 {overlappingItemIds.size > 0
-                  ? "Đang có " + overlappingItemIds.size + " hoa chồng vùng hiển thị. Bấm “Tự dàn hoa” để tách các hàng, sau đó lưu bố cục."
-                  : "Kéo hoa để đổi vị trí; giữ Shift hoặc bật “Chọn nhiều” để chọn nhóm. Mũi tên dịch theo bước lưới. Hoa được giữ trong mép sân để không bị cắt."}
+                  ? "Đang có " + overlappingItemIds.size + " điểm truyện chồng vùng hiển thị. Bấm “Tự sắp xếp điểm truyện” để tách các hàng, sau đó lưu bố cục."
+                  : "Sắp xếp các điểm mở chương và vật trang trí trên sân khấu; giữ Shift hoặc bật “Chọn nhiều” để di chuyển theo nhóm. Mũi tên dịch theo bước lưới. Hoa được giữ trong mép sân để không bị cắt."}
               </p>
               {selectedItem && <div className={styles.itemEditor}>
                 <strong>{selectedItems.length > 1 ? selectedItems.length + " hoa đang chọn · đang chỉnh " : "Đang chỉnh "}{selectedItem.title || selectedItem.label || "Hoa trang trí"}</strong>
@@ -1234,13 +1239,13 @@ export default function GardenStudio() {
                 <label>Chiều sâu (%)<input type="number" min="0" max="100" step="1" value={Math.round(selectedItem.depth * 100)} onChange={(event) => updateSelectedPosition("depth", Number(event.target.value))}/></label>
                 <label>Kích thước<input type="range" min="0.3" max="1.3" step="0.05" value={selectedItem.size} onChange={(event) => setItems((current) => current.map((item) => item.id === selectedItem.id ? { ...item, size: Number(event.target.value) } : item))}/></label>
                 <label>Màu hoa<input type="color" value={selectedItem.color} onChange={(event) => setItems((current) => current.map((item) => item.id === selectedItem.id ? { ...item, color: event.target.value } : item))}/></label>
-                <button type="button" onClick={saveSelectedItem} disabled={saving}>Lưu hoa đang chỉnh</button>
-                {!selectedItem.chapter_id && <button type="button" className={styles.dangerButton} onClick={removeSelectedItem} disabled={saving}>Xóa hoa</button>}
+                <button type="button" onClick={saveSelectedItem} disabled={saving}>Lưu điểm truyện đang chỉnh</button>
+                {!selectedItem.chapter_id && <button type="button" className={styles.dangerButton} onClick={removeSelectedItem} disabled={saving}>Xóa điểm truyện</button>}
               </div>}
             </section>
 
             <section className={styles.section} id="step-04">
-              <div className={styles.sectionTitle}><span>04</span><div><h3>Câu chuyện ẩn trong hoa</h3><p>Mỗi chương sẽ có một bông hoa để người nhận chạm vào và đọc. Có thể thêm nhiều chương theo thứ tự.</p></div><span className={styles.chapterCount}>{chapters.length} chương</span></div>
+              <div className={styles.sectionTitle}><span>04</span><div><h3>Xây dựng câu chuyện</h3><p>Mỗi chương là một phần của thế giới anh tạo. Biểu tượng trên sân khấu chỉ là cánh cửa để khách mở nội dung, không phải nhiệm vụ chăm sóc hoa.</p></div><span className={styles.chapterCount}>{chapters.length} chương</span></div>
               <div className={styles.chapterList}>
                 {chapters.map((chapter) => <div key={chapter.chapter_id} className={styles.chapterEntry}>
                   <button type="button" onClick={() => setSelectedChapterId(chapter.chapter_id)} className={selectedChapterId === chapter.chapter_id ? styles.chapterActive : styles.chapterButton}>
@@ -1259,15 +1264,15 @@ export default function GardenStudio() {
                 <p className={styles.chapterHelp}>Tạo từng chương một; sau khi thêm, biểu mẫu sẽ làm trống để anh viết chương kế tiếp. Không giới hạn số chương ở giao diện này.</p>
                 <label>Tên chương<input value={newChapterTitle} onChange={(event) => setNewChapterTitle(event.target.value)} placeholder="Một kỷ niệm nhỏ..."/></label>
                 <label>Nội dung<textarea rows={4} value={newChapterText} onChange={(event) => setNewChapterText(event.target.value)} placeholder="Viết từng đoạn của câu chuyện..."/></label>
-                <label>Hoa mở chương<select value={newChapterFlower} onChange={(event) => setNewChapterFlower(event.target.value as FlowerKind)}>{FLOWERS.map((flower) => <option key={flower.value} value={flower.value}>{flower.label}</option>)}</select></label>
+                <label>Biểu tượng mở chương<select value={newChapterFlower} onChange={(event) => setNewChapterFlower(event.target.value as FlowerKind)}>{FLOWERS.map((flower) => <option key={flower.value} value={flower.value}>{flower.label}</option>)}</select></label>
                 <button type="button" onClick={addChapter} disabled={saving || !newChapterTitle.trim()}>{saving ? "Đang thêm..." : "＋ Thêm chương và hoa"}</button>
               </div>
             </section>
 
             <section className={styles.section} id="step-05">
-              <div className={styles.sectionTitle}><span>05</span><div><h3>Ảnh và album kỷ niệm</h3><p>Ảnh được lưu trong kho riêng của khu vườn; bản chia sẻ dùng URL ảnh ký hạn.</p></div></div>
+              <div className={styles.sectionTitle}><span>05</span><div><h3>Hình ảnh do anh tải lên</h3><p>Anh tự tải ảnh bìa và ảnh kỷ niệm. Hệ thống không tự tạo hoặc thay ảnh mẫu.</p></div></div>
               {coverUrl && <button type="button" className={styles.coverOpen} onClick={() => setCoverLightboxOpen(true)} aria-label="Phóng to ảnh bìa"><Image className={styles.coverPreview} src={coverUrl} alt="Ảnh bìa khu vườn" width={1200} height={675} unoptimized/></button>}
-              <label className={styles.uploadButton}>＋ Tải ảnh lên / đổi ảnh bìa<input type="file" accept="image/jpeg,image/png,image/webp,image/avif" onChange={(event) => void uploadPhoto(event)} disabled={uploading}/></label>
+              <label className={styles.uploadButton}>＋ Tải ảnh của anh lên / đổi ảnh bìa<input type="file" accept="image/jpeg,image/png,image/webp,image/avif" onChange={(event) => void uploadPhoto(event)} disabled={uploading}/></label>
               {uploading && <p className={styles.muted}>Đang tải ảnh lên...</p>}
             </section>
 
@@ -1360,31 +1365,9 @@ export default function GardenStudio() {
               <h3>{name.trim() || selectedGarden.name}</h3>
               <p>{introduction.trim() || "Một khu vườn nhỏ đang chờ bạn khám phá."}</p>
             </section>
-            <div className={styles.previewScene}>
-              <FairytaleGardenView
-                gardenId={selectedGarden.id + "-preview"}
-                items={previewItems}
-                readIds={[]}
-                onOpenChapter={(chapterId) => setPreviewChapterId(chapterId)}
-                viewerMode
-                initialSettings={{
-                  weather: weather as "clear" | "cloudy" | "rain" | "snow",
-                  season: season as "spring" | "summer" | "autumn" | "winter",
-                  time: time as "day" | "night",
-                  cinematicLighting,
-                  ecologyEnabled,
-                  musicVolume: musicVolume / 100,
-                  musicMood,
-                }}
-              />
-            </div>
-            <section className={styles.previewStoryList}>
-              <div><p className={styles.eyebrow}>A STORY IN BLOOM</p><h3>Câu chuyện trong hoa</h3></div>
-              {chapters.length > 0 ? chapters.map((chapter,index) => <button key={chapter.chapter_id} type="button" onClick={() => setPreviewChapterId(chapter.chapter_id)}>
-                <span>0{index + 1}</span><strong>{chapter.title}</strong><small>Chạm để đọc</small>
-              </button>) : <p>Chưa có chương truyện. Anh có thể thêm nhiều chương ở bước 04.</p>}
-            </section>
-            {guestbookEnabled && <section className={styles.previewGuestbook}><h3>Sổ lưu bút</h3><p>Khách có thể để lại lời nhắn sau khi ghé thăm khu vườn.</p><span>Biểu mẫu sẽ xuất hiện trong trang khách sau khi xuất bản.</span></section>}
+            <GardenJournal name={name.trim() || selectedGarden.name} introduction={introduction.trim()} coverUrl={coverUrl} items={previewItems} chapters={previewStoryChapters} readIds={[]} onOpenChapter={(chapterId) => setPreviewChapterId(chapterId)} letterReady={false} returnHref="/" returnLabel="Little Flower World" actionHref={guestbookEnabled ? "#guestbook" : "#the-path"} actionLabel={guestbookEnabled ? "ĐỂ LẠI LỜI NHẮN" : "KHÁM PHÁ CÂU CHUYỆN"}>
+              {guestbookEnabled && <section className={styles.previewGuestbook} id="guestbook"><h3>Sổ lưu bút</h3><p>Khách có thể để lại lời nhắn sau khi ghé thăm thế giới này.</p><span>Biểu mẫu sẽ xuất hiện trong trang khách sau khi xuất bản.</span></section>}
+            </GardenJournal>
           </div>
         </>}
       </dialog>

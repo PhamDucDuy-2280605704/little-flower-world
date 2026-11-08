@@ -21,8 +21,12 @@
 .mastheadNote{margin:10px 0 0;color:#818477;font-size:11px;font-weight:600;letter-spacing:.12em}
 .feature{width:min(1120px,100%);margin:0 auto;display:grid;grid-template-columns:minmax(0,.94fr) minmax(0,1fr);align-items:start;gap:clamp(38px,5vw,78px)}
 .featureVisual{position:relative;min-width:0;padding-bottom:35px}
-.coverButton{position:relative;display:block;width:100%;aspect-ratio: .79;overflow:hidden;padding:0;border:0;border-radius:24px 28px 20px 26px;background:#d8d5c3;cursor:zoom-in;box-shadow:0 16px 42px rgba(49,56,39,.12)}
-.coverButton img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .6s cubic-bezier(.2,.7,.25,1)}
+.coverButton{position:relative;display:block;width:100%;overflow:hidden;padding:0;border:0;border-radius:24px 28px 20px 26px;background:#e9e5d9;cursor:zoom-in;box-shadow:0 16px 42px rgba(49,56,39,.12)}
+.coverButton img{display:block;width:100%;height:auto;max-height:680px;object-fit:contain;transition:transform .6s cubic-bezier(.2,.7,.25,1)}
+.uploadPrompt{display:grid;place-content:center;justify-items:center;gap:10px;width:100%;min-height:300px;aspect-ratio:16/10;padding:28px;border:1px dashed rgba(94,111,83,.38);border-radius:24px 28px 20px 26px;background:linear-gradient(145deg,#f0eee4,#e5e7d9);color:#52634f;text-align:center}
+.uploadPrompt>span{display:grid;place-items:center;width:44px;height:44px;border:1px solid rgba(94,111,83,.32);border-radius:50%;font-size:25px}
+.uploadPrompt strong{font-family:Georgia,serif;font-size:20px;font-weight:400}
+.uploadPrompt p{max-width:36ch;margin:0;color:#737b6c;font-size:12px;line-height:1.7}
 .coverButton:hover img{transform:scale(1.025)}
 .coverButton:focus-visible{outline:3px solid #9c865d;outline-offset:5px}
 .imageExpand{position:absolute;right:15px;top:15px;display:grid;place-items:center;width:34px;height:34px;border:1px solid rgba(255,255,255,.56);border-radius:50%;background:rgba(31,47,35,.5);color:#fff;font-size:16px;opacity:0;transition:opacity .2s}
@@ -103,7 +107,7 @@
   .siteHeader nav{gap:21px}.siteHeader nav a{font-size:8px}
   .joinButton{min-height:31px;padding:6px 11px;font-size:8px}
   .masthead{padding:37px 0 30px}.masthead h1{font-size:clamp(38px,11vw,55px)}.overline{font-size:8px;letter-spacing:.2em}.overline span{width:27px}
-  .feature{grid-template-columns:1fr;gap:22px}.featureVisual{padding-bottom:24px}.coverButton,.botanicalCover{aspect-ratio:1.02;max-height:520px}
+  .feature{grid-template-columns:1fr;gap:22px}.featureVisual{padding-bottom:24px}.coverButton,.uploadPrompt{aspect-ratio:1.02;max-height:520px}
   .imageStamp{left:13px;bottom:9px;min-width:95px;padding:9px 12px}.imageStamp strong{font-size:23px}
   .visualCaption{font-size:10px}.featureStory{padding-top:0}.featureStory h2{font-size:30px}
   .storyDivider{margin:19px 0 15px}.quoteCard{margin-top:22px;padding:20px}
