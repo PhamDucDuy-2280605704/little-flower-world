@@ -235,6 +235,7 @@ export default function FairytaleGardenView({ gardenId, items, readIds, onOpenCh
   const audioContextRef = useRef<AudioContext | null>(null);
   const musicTimerRef = useRef<number | null>(null);
   const draggingRef = useRef<string | null>(null);
+  const decorationIdRef = useRef(0);
   const skipSceneClickRef = useRef(false);
 
   const scale = width > 0 ? Math.min(1, Math.max(0.5, width / 860)) : 1;
@@ -242,7 +243,6 @@ export default function FairytaleGardenView({ gardenId, items, readIds, onOpenCh
   const decorationsFromStory = items.filter((item) => !item.chapterId);
   const tourChapter = chapters.length > 0 ? chapters[tourIndex % chapters.length] : null;
   const compact = scale < 0.75;
-  const discoveredCount = discoveries.length;
   const unlockedAchievements = ACHIEVEMENTS.filter((achievement) => discoveries.includes(achievement.id));
 
   const notify = (message: string) => {
@@ -264,7 +264,15 @@ export default function FairytaleGardenView({ gardenId, items, readIds, onOpenCh
         if (saved.version === 1) {
           if (isWeather(saved.weather)) setWeather(saved.weather);
           if (isSeason(saved.season)) setSeason(saved.season);
-          if (Array.isArray(saved.decorations)) setDecorations(saved.decorations.filter(isPlacedDecoration).slice(0, 80));
+          if (Array.isArray(saved.decorations)) {
+            const restored = saved.decorations.filter(isPlacedDecoration).slice(0, 80);
+            setDecorations(restored);
+            decorationIdRef.current = restored.reduce((maximum, item) => {
+              if (!item.id.startsWith("placed-")) return maximum;
+              const suffix = Number(item.id.slice("placed-".length));
+              return Number.isInteger(suffix) ? Math.max(maximum, suffix + 1) : maximum;
+            }, 0);
+          }
           if (typeof saved.moisture === "number" && Number.isFinite(saved.moisture)) setMoisture(Math.max(0, Math.min(100, saved.moisture)));
           if (typeof saved.wateredCount === "number" && Number.isFinite(saved.wateredCount)) setWateredCount(Math.max(0, saved.wateredCount));
           if (Array.isArray(saved.discoveries)) setDiscoveries(saved.discoveries.filter((value): value is string => typeof value === "string" && ACHIEVEMENTS.some((item) => item.id === value)));
@@ -359,7 +367,7 @@ export default function FairytaleGardenView({ gardenId, items, readIds, onOpenCh
     const x = Math.max(3, Math.min(97, ((event.clientX - bounds.left) / bounds.width) * 100));
     const y = Math.max(4, Math.min(92, ((bounds.bottom - event.clientY) / bounds.height) * 100));
     const decoration: PlacedDecoration = {
-      id: String(Date.now()) + "-" + String(decorations.length),
+      id: "placed-" + String(decorationIdRef.current++),
       kind: selectedDecoration,
       x,
       y,
@@ -463,11 +471,9 @@ export default function FairytaleGardenView({ gardenId, items, readIds, onOpenCh
     if (waterTimerRef.current !== null) window.clearTimeout(waterTimerRef.current);
     waterTimerRef.current = window.setTimeout(() => setWaterFlash(false), 1300);
     unlock("first-water");
-    setWateredCount((current) => {
-      const next = current + 1;
-      if (next >= 3) unlock("green-thumb");
-      return next;
-    });
+    const nextWateredCount = wateredCount + 1;
+    setWateredCount(nextWateredCount);
+    if (nextWateredCount >= 3) unlock("green-thumb");
     notify("Một lượt tưới mát lành cho những bông hoa. 💧");
   }
 
