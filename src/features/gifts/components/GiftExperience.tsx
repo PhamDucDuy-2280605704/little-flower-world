@@ -431,11 +431,16 @@ function PersonalGardenExperience({
               className={styles.boxScreen}
               exit={{
                 opacity: 0,
-                scale: 0.96,
+                scale: 0.94,
+                y: -22,
+                rotateX: 7,
+                filter: "blur(8px)",
               }}
               transition={{
-                duration: 0.5,
+                duration: 0.62,
+                ease: [0.22, 1, 0.36, 1],
               }}
+              style={{ transformPerspective: 1200 }}
             >
               <div>
                 <h1 className={styles.title}>
@@ -465,13 +470,21 @@ function PersonalGardenExperience({
               className={styles.garden}
               initial={{
                 opacity: 0,
+                y: 24,
+                scale: 0.97,
+                filter: "blur(10px)",
               }}
               animate={{
                 opacity: 1,
+                y: 0,
+                scale: 1,
+                filter: "blur(0px)",
               }}
               transition={{
-                duration: 0.6,
+                duration: 0.9,
+                ease: [0.22, 1, 0.36, 1],
               }}
+              style={{ transformPerspective: 1200 }}
             >
               <h1 className={isFairytaleGarden ? `${styles.title} ${styles.fairytaleTitle}` : styles.title}>
                 {isFairytaleGarden ? "Khu vườn cổ tích bí mật" : garden.name}
@@ -484,6 +497,8 @@ function PersonalGardenExperience({
 
               {isFairytaleGarden ? (
                 <FairytaleGardenView
+                  key={garden.id}
+                  gardenId={garden.id}
                   items={garden.items}
                   readIds={readIds}
                   onOpenChapter={openChapterById}

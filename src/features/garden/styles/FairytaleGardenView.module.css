@@ -1104,3 +1104,507 @@
 .controlActive{border-color:#89663f;background:linear-gradient(135deg,#9d7547,#735438);color:#fff8e9;box-shadow:0 6px 16px rgba(91,66,38,.18)}
 .controlButton:focus-visible,.controlActive:focus-visible{outline:3px solid rgba(167,123,77,.35);outline-offset:3px}
 @media(max-width:640px){.sceneFrame{padding:4px;border-radius:20px}.realm{border-radius:16px}.sceneCaption{letter-spacing:.08em;font-size:10px}.controls{padding-inline:2px}}
+
+
+/* Cinematic Vanilla Garden experiences — weather, seasons, interactions and editor. */
+.realm { cursor: default; }
+.realm.editing { cursor: crosshair; }
+.lightRays {
+  position: absolute;
+  inset: -18% -8% 15% 26%;
+  z-index: 1;
+  pointer-events: none;
+  opacity: .72;
+  background:
+    conic-gradient(from 194deg at 74% 7%, transparent 0deg, rgba(255, 242, 198, .15) 8deg, transparent 18deg, rgba(255, 247, 220, .1) 26deg, transparent 37deg),
+    radial-gradient(ellipse at 72% 15%, rgba(255, 246, 212, .27), transparent 48%);
+  filter: blur(8px);
+  transform-origin: 74% 7%;
+  animation: lightRayBreath 12s ease-in-out infinite alternate;
+  transition: opacity 600ms ease;
+}
+.lightingOff .lightRays { opacity: .08; animation: none; }
+.night .lightRays { opacity: .14; }
+.seasonSummer .lightRays { opacity: .9; }
+.weatherCloudy .lightRays { opacity: .22; }
+.weatherRain .lightRays { opacity: .08; }
+
+.birdsLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: .55;
+  transition: opacity 500ms ease;
+}
+.ecologyOff .birdsLayer { opacity: 0; }
+.bird {
+  position: absolute;
+  color: rgba(80, 75, 55, .72);
+  font-family: Georgia, serif;
+  font-size: clamp(19px, 2.6vw, 28px);
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(255, 245, 208, .28);
+  animation: birdGlide var(--bird-duration, 28s) ease-in-out infinite alternate;
+}
+
+.rainDrops, .snowfall, .seasonLeaves {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 500ms ease;
+}
+.weatherRain .rainDrops { opacity: .72; }
+.weatherSnow .snowfall { opacity: .9; }
+.seasonAutumn .seasonLeaves { opacity: .82; }
+.rainDrop {
+  position: absolute;
+  top: -12%;
+  width: 1.5px;
+  border-radius: 100%;
+  background: linear-gradient(180deg, transparent, rgba(235, 241, 223, .88));
+  box-shadow: 0 0 3px rgba(232, 240, 219, .25);
+  transform: rotate(13deg);
+  animation: rainFall 1.15s linear infinite;
+}
+.snowFlake {
+  position: absolute;
+  top: -8%;
+  border-radius: 50%;
+  background: rgba(255, 250, 232, .9);
+  box-shadow: 0 0 6px rgba(255, 249, 229, .42);
+  animation: snowDrift 9s linear infinite;
+}
+.autumnLeaf {
+  position: absolute;
+  top: -10%;
+  border-radius: 85% 8% 78% 15%;
+  background: linear-gradient(135deg, #d9b77a, #a46f46 75%);
+  box-shadow: 0 2px 4px rgba(78, 56, 34, .16);
+  animation: leafFall 11s ease-in-out infinite;
+}
+.seasonWinter .mist { opacity: .46; }
+.seasonWinter .ground { filter: saturate(.62) brightness(1.08); }
+.seasonWinter .tree { filter: saturate(.55); }
+.seasonSummer .ground { filter: saturate(1.08) brightness(1.03); }
+.seasonAutumn .ground { filter: sepia(.12) saturate(.82); }
+.seasonSpring .driftingPetals { opacity: .9; }
+.seasonSpring .grass { opacity: .82; }
+.weatherRain .clouds { opacity: .72; }
+.weatherSnow .clouds { opacity: .42; }
+.weatherCloudy .clouds { opacity: .68; }
+.weatherRain .sky { filter: saturate(.76) brightness(.88); }
+.weatherSnow .sky { filter: saturate(.62) brightness(1.06); }
+.weatherCloudy .sky { filter: saturate(.82) brightness(.94); }
+.weatherRain .pond { filter: saturate(.84) brightness(.9); }
+.weatherSnow .sun { opacity: .48; }
+.weatherRain .sun { opacity: .3; }
+.wellWatered .grass { opacity: .9; }
+.wellWatered .ground { filter: saturate(1.08); }
+
+.pondLayer {
+  position: absolute;
+  z-index: 5;
+  inset: 0;
+  pointer-events: none;
+}
+.pond {
+  display: block;
+  padding: 0;
+  appearance: none;
+  font: inherit;
+  cursor: pointer;
+  pointer-events: auto;
+  outline: none;
+  transition: filter 250ms ease, transform 350ms ease;
+}
+.pond:hover { filter: brightness(1.1); transform: rotate(-5deg) scale(1.035); }
+.pond:focus-visible { outline: 3px solid rgba(255, 248, 219, .82); outline-offset: 5px; }
+.pondTouchRing {
+  position: absolute;
+  inset: -18%;
+  border: 1px solid rgba(248, 239, 203, .75);
+  border-radius: 50%;
+  opacity: 0;
+  transform: scale(.5);
+  pointer-events: none;
+}
+.pond:focus-visible .pondTouchRing,
+.pond:hover .pondTouchRing { opacity: .5; transform: scale(1); transition: transform .5s ease, opacity .5s ease; }
+.pondWave .pondTouchRing { animation: waterTouch 1.05s ease-out both; }
+.waterSpark {
+  position: absolute;
+  z-index: 9;
+  left: 50%;
+  bottom: 23%;
+  width: 180px;
+  height: 110px;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse, rgba(255, 246, 205, .5), transparent 70%);
+  transform: translate(-50%, 14px) scale(.72);
+}
+.waterSpark[data-active="true"] { animation: wateringSpark 1.25s ease-out both; }
+
+.placedDecoration {
+  position: absolute;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  min-width: 24px;
+  min-height: 26px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: grab;
+  touch-action: none;
+  transform: translate(-50%, 0);
+  filter: drop-shadow(0 4px 5px rgba(55, 53, 34, .2));
+}
+.placedDecoration:active { cursor: grabbing; }
+.placedDecoration > div { transform-origin: bottom center; }
+.placedIcon { display: inline-block; font-size: clamp(20px, 3vw, 31px); line-height: 1; }
+.placedRemove {
+  position: absolute;
+  top: -9px;
+  right: -11px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid rgba(255, 249, 227, .82);
+  border-radius: 50%;
+  background: #775638;
+  color: #fff8e9;
+  font: inherit;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+.placedRemove:focus-visible { outline: 2px solid #fff7dc; outline-offset: 2px; }
+
+.chapterFlower { transition: filter 250ms ease, transform 250ms ease; }
+.tourHighlight {
+  z-index: 1000 !important;
+  filter: drop-shadow(0 0 12px rgba(255, 243, 195, .95));
+  animation: tourPulse 1.6s ease-in-out infinite alternate;
+}
+.blooming > div {
+  transform-origin: 50% 95%;
+  animation: flowerBloom 1.15s cubic-bezier(.18,.8,.25,1) both;
+  animation-delay: var(--bloom-delay, 0s);
+}
+.secretSeed {
+  position: absolute;
+  z-index: 11;
+  right: 9%;
+  bottom: 44%;
+  display: grid;
+  place-items: center;
+  width: 27px;
+  height: 27px;
+  padding: 0;
+  border: 1px solid rgba(255, 245, 212, .16);
+  border-radius: 50%;
+  background: rgba(255, 249, 218, .08);
+  color: rgba(255, 241, 195, .22);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  transition: color 200ms ease, background 200ms ease, transform 200ms ease;
+}
+.secretSeed:hover, .secretSeed:focus-visible {
+  color: #fff4c9;
+  background: rgba(166, 129, 75, .72);
+  transform: scale(1.14);
+  outline: 2px solid rgba(255, 243, 195, .7);
+  outline-offset: 3px;
+}
+.editHint {
+  position: absolute;
+  z-index: 12;
+  left: 50%;
+  top: 12px;
+  transform: translateX(-50%);
+  max-width: calc(100% - 24px);
+  padding: 6px 11px;
+  border: 1px solid rgba(255, 246, 219, .48);
+  border-radius: 999px;
+  background: rgba(65, 54, 37, .76);
+  color: #fff6e2;
+  font-size: 10px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.experiencePanel {
+  width: min(100%, 920px);
+  margin: 4px auto 0;
+  padding: clamp(16px, 2.8vw, 25px);
+  border: 1px solid rgba(143, 113, 74, .2);
+  border-radius: 22px 28px 20px 26px;
+  background: linear-gradient(135deg, rgba(255, 251, 241, .96), rgba(243, 235, 218, .94));
+  box-shadow: 0 18px 42px rgba(78, 58, 37, .08), inset 0 1px rgba(255, 255, 255, .9);
+  color: #4b4033;
+  text-align: left;
+}
+.panelHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 17px;
+}
+.panelHeader h3 {
+  margin: 2px 0 4px;
+  color: #49382b;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(21px, 3vw, 26px);
+  font-weight: 500;
+  letter-spacing: -.025em;
+}
+.panelHeader p:not(.panelKicker) { margin: 0; color: #827563; font-size: 12px; line-height: 1.65; }
+.panelKicker { margin: 0; color: #9b7449; font-size: 9px; font-weight: 850; letter-spacing: .2em; }
+.savePill {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  border: 1px solid rgba(115, 126, 80, .2);
+  border-radius: 999px;
+  background: rgba(229, 233, 210, .68);
+  color: #61704b;
+  font-size: 10px;
+  font-weight: 700;
+}
+.experienceGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.toolCard {
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid rgba(143, 113, 74, .14);
+  border-radius: 13px 17px 13px 16px;
+  background: rgba(255, 253, 247, .74);
+}
+.toolCard h4, .careCard h4, .collectionCard h4, .editorPanel h4 {
+  margin: 0 0 9px;
+  color: #6f5337;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 15px;
+  font-weight: 600;
+}
+.choiceRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.choiceRow + .choiceRow { margin-top: 8px; }
+.choiceButton, .choiceActive {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 32px;
+  padding: 6px 10px;
+  border: 1px solid rgba(139, 109, 70, .2);
+  border-radius: 999px;
+  background: #f5eee1;
+  color: #715d45;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+.choiceButton:hover, .choiceActive:hover { transform: translateY(-1px); border-color: rgba(157, 119, 70, .52); }
+.choiceActive {
+  border-color: #967044;
+  background: linear-gradient(135deg, #a77b4d, #775638);
+  color: #fff8e9;
+  box-shadow: 0 4px 10px rgba(103, 76, 45, .13);
+}
+.choiceButton:focus-visible, .choiceActive:focus-visible, .actionButton:focus-visible, .actionActive:focus-visible {
+  outline: 3px solid rgba(167, 123, 77, .28);
+  outline-offset: 2px;
+}
+.actionBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.actionButton, .actionActive {
+  min-height: 38px;
+  padding: 8px 13px;
+  border: 1px solid rgba(139, 109, 70, .27);
+  border-radius: 11px 14px 11px 13px;
+  background: rgba(255, 252, 244, .9);
+  color: #71583c;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: transform 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+.actionButton:hover, .actionActive:hover { transform: translateY(-1px); background: #fffdf6; box-shadow: 0 5px 12px rgba(82, 62, 38, .08); }
+.actionActive { border-color: #8e6d46; background: #eee2cb; color: #5d452e; }
+.editorPanel {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 14px;
+  border: 1px dashed rgba(147, 112, 68, .34);
+  border-radius: 13px 17px 13px 16px;
+  background: rgba(236, 226, 205, .38);
+}
+.editorPanel h4 { margin-bottom: 4px; }
+.editorPanel p { margin: 0; color: #827563; font-size: 11px; line-height: 1.65; }
+.editorCount { color: #9b7449 !important; font-weight: 750; }
+.careAndCollection {
+  display: grid;
+  grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr);
+  gap: 10px;
+  margin-top: 12px;
+}
+.careCard, .collectionCard {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(143, 113, 74, .15);
+  border-radius: 14px 18px 14px 17px;
+  background: rgba(255, 253, 247, .68);
+}
+.careHeader { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.careHeader h4 { margin-bottom: 3px; }
+.careHeader p { margin: 0; color: #92836e; font-size: 10px; }
+.careHeader strong { color: #8a6946; font-size: 18px; font-variant-numeric: tabular-nums; }
+.moistureTrack {
+  height: 8px;
+  margin-top: 11px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e8dfcd;
+  box-shadow: inset 0 1px 2px rgba(77, 58, 38, .07);
+}
+.moistureTrack span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #a9ae7b, #75855b 65%, #62784e);
+  transition: width 450ms ease;
+}
+.careHint { margin: 9px 0 0; color: #827563; font-size: 10px; line-height: 1.6; }
+.badgeShelf { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+.achievement, .achievementLocked {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 26px;
+  padding: 4px 8px;
+  border: 1px solid rgba(143, 113, 74, .2);
+  border-radius: 999px;
+  background: #eee5d3;
+  color: #6f5439;
+  font-size: 9px;
+  font-weight: 700;
+}
+.achievement span { color: #927044; font-size: 12px; }
+.achievementLocked { background: rgba(238, 231, 216, .42); color: #a19683; border-style: dashed; }
+.gardenNotice {
+  margin: 12px 0 0;
+  padding: 9px 12px;
+  border: 1px solid rgba(145, 117, 74, .2);
+  border-radius: 10px;
+  background: rgba(239, 229, 207, .72);
+  color: #6e5439;
+  font-size: 11px;
+  line-height: 1.55;
+}
+.localSaveNote { margin: 10px 0 0; color: #a1937d; font-size: 9px; line-height: 1.55; }
+
+@keyframes lightRayBreath {
+  from { opacity: .42; transform: rotate(-2deg) scale(1); }
+  to { opacity: .9; transform: rotate(3deg) scale(1.035); }
+}
+@keyframes rainFall {
+  from { transform: translate3d(-18px, -5%, 0) rotate(13deg); opacity: 0; }
+  12% { opacity: .72; }
+  to { transform: translate3d(36px, 125%, 0) rotate(13deg); opacity: 0; }
+}
+@keyframes snowDrift {
+  from { transform: translate3d(0, -8%, 0) rotate(0); opacity: 0; }
+  12% { opacity: .85; }
+  to { transform: translate3d(32px, 120%, 0) rotate(220deg); opacity: .12; }
+}
+@keyframes leafFall {
+  0% { transform: translate3d(0, -8%, 0) rotate(-25deg); opacity: 0; }
+  14% { opacity: .9; }
+  50% { transform: translate3d(48px, 55vh, 0) rotate(140deg); }
+  100% { transform: translate3d(-12px, 115vh, 0) rotate(280deg); opacity: 0; }
+}
+@keyframes birdGlide {
+  from { transform: translate3d(-8px, 2px, 0) scale(.86); }
+  to { transform: translate3d(42px, -13px, 0) scale(1.06); }
+}
+@keyframes flowerBloom {
+  0% { opacity: .35; transform: translateY(12px) scale(.72); filter: blur(2px); }
+  68% { opacity: 1; transform: translateY(-3px) scale(1.04); filter: blur(0); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+@keyframes waterTouch {
+  0% { opacity: .75; transform: scale(.45); }
+  100% { opacity: 0; transform: scale(1.6); }
+}
+@keyframes wateringSpark {
+  0% { opacity: 0; transform: translate(-50%, 14px) scale(.72); }
+  35% { opacity: .85; }
+  100% { opacity: 0; transform: translate(-50%, -22px) scale(1.2); }
+}
+@keyframes tourPulse {
+  from { filter: drop-shadow(0 0 6px rgba(255, 243, 195, .5)); }
+  to { filter: drop-shadow(0 0 18px rgba(255, 243, 195, 1)); }
+}
+@media (max-width: 640px) {
+  .experienceGrid, .careAndCollection { grid-template-columns: 1fr; }
+  .panelHeader { flex-direction: column; }
+  .savePill { align-self: flex-start; }
+  .experiencePanel { padding: 14px 12px; }
+  .toolCard { padding: 11px; }
+  .choiceButton, .choiceActive { min-height: 34px; font-size: 10px; }
+  .actionBar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .actionButton, .actionActive { padding: 8px 9px; min-height: 42px; }
+  .editHint { max-width: calc(100% - 18px); font-size: 8px; }
+  .bird:nth-child(n + 3) { display: none; }
+  .rainDrop:nth-child(n + 19) { display: none; }
+  .snowFlake:nth-child(n + 16) { display: none; }
+  .autumnLeaf:nth-child(n + 10) { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lightRays, .rainDrop, .snowFlake, .autumnLeaf, .bird, .blooming > div, .tourHighlight, .waterSpark[data-active="true"] { animation: none !important; }
+  .moistureTrack span, .choiceButton, .choiceActive { transition: none !important; }
+  .rainDrop, .snowFlake, .autumnLeaf { display: none; }
+}
+
+
+/* Editor, presentation and ecosystem refinements. */
+.editing { cursor: crosshair; }
+.presentation .sceneCaption { color: rgba(255, 249, 231, .96); letter-spacing: .08em; }
+.ecologyOff .butterflies,
+.ecologyOff .fireflies,
+.ecologyOff .birdsLayer { opacity: .035; }
+.ecologyOff .butterflies { display: none; }
+.cinematicLighting .lightRays { will-change: opacity, transform; }
+.weatherRain .mist { opacity: .55; }
+.weatherSnow .mist { opacity: .38; }
+.seasonAutumn .driftingPetals { opacity: .22; }
+.seasonWinter .driftingPetals { opacity: .12; }
+.placedDecoration:focus-within { filter: drop-shadow(0 0 9px rgba(255, 242, 193, .86)); }
+@media (prefers-reduced-motion: reduce) {
+  .tourHighlight { filter: drop-shadow(0 0 8px rgba(255, 243, 195, .7)); }
+}

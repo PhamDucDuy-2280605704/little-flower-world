@@ -64,9 +64,10 @@ export default function ChapterReader({
       <motion.div
         key={title}
         className={styles.sheet}
-        initial={reduceMotion ? false : { opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, ease: "easeOut" }}
+        initial={reduceMotion ? false : { opacity: 0, y: 28, rotateY: -7, rotateX: 2, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, rotateY: 0, rotateX: 0, scale: 1 }}
+        transition={{ duration: 0.52, ease: [0.22, 1, 0.36, 1] }}
+        style={{ transformPerspective: 1400 }}
       >
         <div className={styles.topBar}>
           <p className={styles.eyebrow}>{eyebrow}</p>
@@ -91,9 +92,15 @@ export default function ChapterReader({
           </h2>
 
           {paragraphs.map((text, index) => (
-            <p key={index} className={styles.paragraph}>
+            <motion.p
+              key={index}
+              className={styles.paragraph}
+              initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.34, delay: reduceMotion ? 0 : Math.min(index * 0.055, 0.5) }}
+            >
               {text}
-            </p>
+            </motion.p>
           ))}
 
           {signature && <p className={styles.signature}>{signature}</p>}

@@ -16,3 +16,30 @@
 .navButton:hover:not(:disabled){background:linear-gradient(135deg,#b18758,#846141)}
 .navButton:disabled{background:#eee4d1;color:#a99b83;border-color:rgba(139,109,70,.16);cursor:default}
 .close:focus-visible,.navButton:focus-visible{outline:3px solid rgba(167,123,77,.38);outline-offset:3px}
+
+
+/* Vanilla storybook: paper grain, binding, page depth and quiet typography. */
+.dialog {
+  perspective: 1400px;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255, 255, 250, .92), transparent 42%),
+    repeating-linear-gradient(0deg, rgba(129, 101, 65, .018) 0 1px, transparent 1px 4px),
+    #fffaf0;
+  border-color: rgba(153, 119, 72, .24);
+}
+.sheet {
+  position: relative;
+  background: linear-gradient(90deg, rgba(147, 118, 75, .035), transparent 12%, transparent 88%, rgba(147,118,75,.025));
+  transform-origin: center center;
+  backface-visibility: hidden;
+}
+.topBar { position: relative; z-index: 1; }
+.body {
+  scrollbar-color: #c4ad86 #f5eddc;
+  background:
+    linear-gradient(90deg, transparent 0 22px, rgba(176, 133, 88, .08) 22px 23px, transparent 23px),
+    repeating-linear-gradient(180deg, transparent 0 31px, rgba(154, 130, 95, .055) 31px 32px);
+}
+.flower { filter: drop-shadow(0 7px 8px rgba(85, 63, 38, .12)); }
+.nav { background: rgba(242, 233, 216, .42); }
+.paragraph { text-wrap: pretty; }
