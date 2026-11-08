@@ -1132,7 +1132,7 @@ export default function GardenStudio() {
             </section>
 
             <section className={styles.section} id="step-03">
-              <div className={styles.sectionTitle}><span>03</span><div><h3>Sắp đặt thế giới truyện</h3><p>Kéo hoa trên khu vườn để sắp xếp. Thay đổi sẽ được lưu vào bản thiết kế.</p></div></div>
+              <div className={styles.sectionTitle}><span>03</span><div><h3>Sắp đặt sân khấu câu chuyện</h3><p>Đặt các biểu tượng mở chương vào vị trí anh muốn. Đây là bản đồ tương tác của câu chuyện, không phải trò chơi chăm sóc hoa.</p></div></div>
               <div className={styles.layoutTopbar}>
                 <div className={styles.layoutToggles}>
                   <label className={styles.layoutToggle}><input type="checkbox" checked={showLayoutGrid} onChange={(event) => setShowLayoutGrid(event.target.checked)}/> Hiện lưới căn</label>
@@ -1140,7 +1140,7 @@ export default function GardenStudio() {
                   <label className={styles.gridStepControl}>Bước lưới<select value={gridStep} onChange={(event) => setGridStep(Number(event.target.value))}><option value={5}>5%</option><option value={10}>10%</option></select></label>
                 </div>
                 <div className={styles.selectionControls}>
-                  <label className={styles.layoutToggle}><input type="checkbox" checked={multiSelect} onChange={(event) => setMultiSelect(event.target.checked)}/> Chọn nhiều hoa</label>
+                  <label className={styles.layoutToggle}><input type="checkbox" checked={multiSelect} onChange={(event) => setMultiSelect(event.target.checked)}/> Chọn nhiều điểm</label>
                   <button type="button" onClick={() => { setSelectedItemIds([]); setSelectedItemId(""); }}>Bỏ chọn</button>
                   <span>{selectedItems.length} đang chọn</span>
                 </div>
@@ -1156,7 +1156,7 @@ export default function GardenStudio() {
                 onKeyDown={handleCanvasKeyDown}
                 tabIndex={0}
                 role="group"
-                aria-label="Bản đồ bố cục khu vườn. Chọn hoa rồi dùng phím mũi tên để di chuyển."
+                aria-label="Sân khấu câu chuyện. Chọn điểm truyện rồi dùng phím mũi tên để di chuyển."
               >
                 <div className={styles.canvasRulerX} aria-hidden="true">
                   {[0, 25, 50, 75, 100].map((value) => <span key={value} style={{ left: value + "%" }}>{value}</span>)}
@@ -1164,7 +1164,7 @@ export default function GardenStudio() {
                 <div className={styles.canvasDepthLabels} aria-hidden="true"><span>SAU</span><span>TRƯỚC</span></div>
                 <div className={styles.canvasDepthPlane} aria-hidden="true"/>
                 {showLayoutGrid && <div className={styles.canvasGrid} style={{ ["--grid-step" as string]: gridStep + "%", ["--grid-depth-step" as string]: (gridStep / 27 * 100) + "%" }} aria-hidden="true"/>}
-                <span className={styles.canvasSun}/><span className={styles.canvasPond}/><span className={styles.canvasPath}/>
+                
                 {items.map((item) => {
                   const isSelected = selectedItemIds.includes(item.id);
                   const isFocused = item.id === selectedItemId;
@@ -1189,21 +1189,21 @@ export default function GardenStudio() {
                       onPointerDown={(event) => handleDragStart(event, item.id)}
                       onClick={(event) => selectCanvasItem(item.id, multiSelect || event.shiftKey)}
                       aria-pressed={isSelected}
-                      aria-label={"Chọn " + (FLOWERS.find((flower) => flower.value === item.kind)?.label ?? "bông hoa") + (item.title ? ": " + item.title : "")}
-                      title={(item.title || item.label || "Hoa trang trí") + " · X " + Math.round(item.x) + "% · " + Math.round(item.depth * 100) + "% chiều sâu"}
+                      aria-label={"Chọn " + (FLOWERS.find((flower) => flower.value === item.kind)?.label ?? "biểu tượng chương") + (item.title ? ": " + item.title : "")}
+                      title={(item.title || item.label || "Điểm truyện") + " · X " + Math.round(item.x) + "% · " + Math.round(item.depth * 100) + "% chiều sâu"}
                     >
                       <Flower kind={item.kind} color={item.color} size={0.42}/>
                       {item.chapter_id && <span>{item.label || "Chương"}</span>}
                     </button>
                   );
                 })}
-                {items.length === 0 && <p className={styles.canvasHint}>Thêm hoa hoặc chương để bắt đầu bố trí.</p>}
+                {items.length === 0 && <p className={styles.canvasHint}>Các chương sẽ xuất hiện tại đây dưới dạng điểm mở truyện.</p>}
               </div>
 
               <div className={styles.layoutActionGroups}>
                 <div className={styles.layoutActionGroup}>
                   <span className={styles.layoutGroupLabel}>Căn chỉnh</span>
-                  <button type="button" onClick={() => alignSelection("center")} disabled={selectedItems.length === 0}>Căn giữa khu vườn</button>
+                  <button type="button" onClick={() => alignSelection("center")} disabled={selectedItems.length === 0}>Căn giữa sân khấu</button>
                   <button type="button" onClick={() => alignSelection("row")} disabled={selectedItems.length < 2}>Cùng hàng</button>
                   <button type="button" onClick={() => alignSelection("column")} disabled={selectedItems.length < 2}>Cùng cột</button>
                 </div>
@@ -1214,10 +1214,10 @@ export default function GardenStudio() {
                 </div>
                 <div className={styles.layoutActionGroup}>
                   <span className={styles.layoutGroupLabel}>Di chuyển chính xác</span>
-                  <button type="button" onClick={() => moveSelection(-1, 0)} disabled={selectedItems.length === 0 && !selectedItemId} aria-label="Dịch hoa sang trái">← Trái</button>
-                  <button type="button" onClick={() => moveSelection(1, 0)} disabled={selectedItems.length === 0 && !selectedItemId} aria-label="Dịch hoa sang phải">Phải →</button>
-                  <button type="button" onClick={() => moveSelection(0, 1)} disabled={selectedItems.length === 0 && !selectedItemId} aria-label="Đưa hoa ra phía sau">↑ Sau</button>
-                  <button type="button" onClick={() => moveSelection(0, -1)} disabled={selectedItems.length === 0 && !selectedItemId} aria-label="Đưa hoa ra phía trước">↓ Trước</button>
+                  <button type="button" onClick={() => moveSelection(-1, 0)} disabled={selectedItems.length === 0 && !selectedItemId} aria-label="Dịch điểm truyện sang trái">← Trái</button>
+                  <button type="button" onClick={() => moveSelection(1, 0)} disabled={selectedItems.length === 0 && !selectedItemId} aria-label="Dịch điểm truyện sang phải">Phải →</button>
+                  <button type="button" onClick={() => moveSelection(0, 1)} disabled={selectedItems.length === 0 && !selectedItemId} aria-label="Đưa điểm truyện ra phía sau">↑ Sau</button>
+                  <button type="button" onClick={() => moveSelection(0, -1)} disabled={selectedItems.length === 0 && !selectedItemId} aria-label="Đưa điểm truyện ra phía trước">↓ Trước</button>
                 </div>
               </div>
 
@@ -1234,7 +1234,7 @@ export default function GardenStudio() {
                   : "Sắp xếp các điểm mở chương và vật trang trí trên sân khấu; giữ Shift hoặc bật “Chọn nhiều” để di chuyển theo nhóm. Mũi tên dịch theo bước lưới. Hoa được giữ trong mép sân để không bị cắt."}
               </p>
               {selectedItem && <div className={styles.itemEditor}>
-                <strong>{selectedItems.length > 1 ? selectedItems.length + " hoa đang chọn · đang chỉnh " : "Đang chỉnh "}{selectedItem.title || selectedItem.label || "Hoa trang trí"}</strong>
+                <strong>{selectedItems.length > 1 ? selectedItems.length + " điểm đang chọn · đang chỉnh " : "Đang chỉnh "}{selectedItem.title || selectedItem.label || "Hoa trang trí"}</strong>
                 <label>Vị trí ngang X (%)<input type="number" min="6" max="94" step="1" value={Math.round(selectedItem.x)} onChange={(event) => updateSelectedPosition("x", Number(event.target.value))}/></label>
                 <label>Chiều sâu (%)<input type="number" min="0" max="100" step="1" value={Math.round(selectedItem.depth * 100)} onChange={(event) => updateSelectedPosition("depth", Number(event.target.value))}/></label>
                 <label>Kích thước<input type="range" min="0.3" max="1.3" step="0.05" value={selectedItem.size} onChange={(event) => setItems((current) => current.map((item) => item.id === selectedItem.id ? { ...item, size: Number(event.target.value) } : item))}/></label>
