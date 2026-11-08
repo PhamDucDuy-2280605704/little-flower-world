@@ -203,3 +203,53 @@
   outline: 3px solid #a86d87;
   outline-offset: 3px;
 }
+
+/* Separate full-page presentation for the test account's fairy-tale garden. */
+.fairytalePage {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: clamp(18px, 4vw, 48px);
+  background:
+    radial-gradient(circle at 8% 10%, rgba(190, 164, 113, 0.28), transparent 28%),
+    radial-gradient(circle at 92% 86%, rgba(67, 91, 82, 0.25), transparent 34%),
+    linear-gradient(145deg, #171d35, #2d3049 52%, #4b3d50);
+  color: #f6ebd5;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.fairytaleCard {
+  width: min(100%, 1180px);
+  min-height: 0;
+  display: block;
+  overflow: visible;
+  padding: clamp(18px, 3vw, 34px);
+  background: linear-gradient(145deg, rgba(43, 48, 67, 0.94), rgba(35, 47, 56, 0.96));
+  border: 1px solid rgba(226, 196, 143, 0.48);
+  border-radius: 30px;
+  box-shadow: 0 24px 80px rgba(5, 10, 22, 0.34), inset 0 1px rgba(255, 244, 210, 0.08);
+}
+
+.fairytaleTitle {
+  color: #f8e7be;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(30px, 4.4vw, 44px);
+  font-weight: 500;
+  letter-spacing: 0.025em;
+  text-shadow: 0 3px 18px rgba(235, 199, 129, 0.18);
+}
+
+.fairytaleMessage {
+  max-width: 680px;
+  color: #d8cdb8;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.fairytalePage .progress { color: #ead9b6; }
+.fairytalePage .locked { color: #d7c7a7; }
+.fairytalePage .letterButton {
+  background: linear-gradient(135deg, #9a6c50, #c99d69);
+  box-shadow: 0 8px 22px rgba(9, 16, 27, 0.28);
+}
+.fairytalePage .replay { background: #586f63; }
+.fairytalePage .backLink { color: #e5c992; }

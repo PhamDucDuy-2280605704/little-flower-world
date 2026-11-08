@@ -8,6 +8,8 @@ import type { User } from "@supabase/supabase-js";
 
 import { supabase } from "@/lib/supabase";
 import GardenView from "@/features/garden/components/GardenView";
+import FairytaleGardenView from "@/features/garden/components/FairytaleGardenView";
+import { FAIRYTALE_TEST_GARDEN_ID } from "@/features/garden/data/gardenThemes";
 import { mapPersonalGarden } from "@/features/garden/data/mapPersonalGarden";
 import ChapterReader from "@/features/stories/components/ChapterReader";
 import type {
@@ -140,6 +142,9 @@ function PersonalGardenExperience({
   const allRead =
     totalChapters > 0 &&
     chapters.every((chapter) => readIds.includes(chapter.id));
+
+  // Only this specific test garden receives the separate fairy-tale renderer.
+  const isFairytaleGarden = garden?.id === FAIRYTALE_TEST_GARDEN_ID;
 
   // ====================================================
   // TẢI KHU VƯỜN VÀ TIẾN ĐỘ CỦA NGƯỜI DÙNG
@@ -416,8 +421,8 @@ function PersonalGardenExperience({
   // ====================================================
 
   return (
-    <main className={styles.page}>
-      <section className={styles.card}>
+    <main className={isFairytaleGarden && stage === "garden" ? styles.fairytalePage : styles.page}>
+      <section className={isFairytaleGarden && stage === "garden" ? styles.fairytaleCard : styles.card}>
         <AnimatePresence mode="wait">
           {stage !== "garden" ? (
             <motion.div
@@ -467,20 +472,28 @@ function PersonalGardenExperience({
                 duration: 0.6,
               }}
             >
-              <h1 className={styles.title}>
-                {garden.name}
+              <h1 className={isFairytaleGarden ? `${styles.title} ${styles.fairytaleTitle}` : styles.title}>
+                {isFairytaleGarden ? "Khu vườn cổ tích bí mật" : garden.name}
               </h1>
 
-              <p className={styles.message}>
+              <p className={isFairytaleGarden ? `${styles.message} ${styles.fairytaleMessage}` : styles.message}>
                 {garden.introduction ||
                   "Bấm vào những bông hoa có nhãn chương để đọc câu chuyện bên trong."}
               </p>
 
-              <GardenView
-                items={garden.items}
-                readIds={readIds}
-                onOpenChapter={openChapterById}
-              />
+              {isFairytaleGarden ? (
+                <FairytaleGardenView
+                  items={garden.items}
+                  readIds={readIds}
+                  onOpenChapter={openChapterById}
+                />
+              ) : (
+                <GardenView
+                  items={garden.items}
+                  readIds={readIds}
+                  onOpenChapter={openChapterById}
+                />
+              )}
 
               <p className={styles.progress} role="status">
                 {progressLoading

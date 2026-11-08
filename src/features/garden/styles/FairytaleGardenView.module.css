@@ -1,0 +1,481 @@
+.wrapper {
+  width: 100%;
+  display: grid;
+  gap: 14px;
+}
+
+.sceneFrame {
+  width: min(100%, 920px);
+  margin: 0 auto;
+  padding: 8px;
+  border-radius: 34px;
+  background: linear-gradient(135deg, #f8e6bd, #b88b62 44%, #f1d8a9);
+  box-shadow: 0 18px 48px rgba(35, 29, 58, 0.22);
+}
+
+.realm {
+  position: relative;
+  width: 100%;
+  min-height: 360px;
+  aspect-ratio: 860 / 520;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid rgba(255, 239, 197, 0.55);
+  border-radius: 27px;
+  background: #18233d;
+}
+
+.sky,
+.farHills,
+.trees,
+.ground,
+.pond,
+.path,
+.pathStones,
+.stars,
+.fireflies,
+.flowers {
+  position: absolute;
+  inset: 0;
+}
+
+.sky {
+  z-index: 0;
+  background:
+    radial-gradient(ellipse at 50% 58%, rgba(137, 111, 153, 0.46), transparent 44%),
+    linear-gradient(180deg, #101a39 0%, #28345b 48%, #6d5d78 78%, #b38b77 100%);
+  transition: background 900ms ease;
+}
+
+.day .sky {
+  background:
+    radial-gradient(ellipse at 75% 28%, rgba(255, 242, 182, 0.55), transparent 24%),
+    linear-gradient(180deg, #86c9e5 0%, #c7e2df 48%, #f5d8bc 78%, #d5ba91 100%);
+}
+
+.stars {
+  z-index: 1;
+  pointer-events: none;
+  transition: opacity 700ms ease;
+}
+
+.star {
+  position: absolute;
+  border-radius: 50%;
+  background: #fff5c6;
+  box-shadow: 0 0 7px 2px rgba(255, 235, 168, 0.45);
+  animation: starTwinkle 3.4s ease-in-out infinite alternate;
+}
+
+.day .stars,
+.day .fireflies {
+  opacity: 0;
+}
+
+.moon,
+.sun {
+  position: absolute;
+  top: 9%;
+  right: 13%;
+  z-index: 1;
+  width: calc(62px * var(--scene-scale, 1));
+  height: calc(62px * var(--scene-scale, 1));
+  border-radius: 50%;
+  transition: opacity 700ms ease, transform 700ms ease;
+}
+
+.moon {
+  background: radial-gradient(circle at 35% 32%, #fffce7, #e6dcae 72%);
+  box-shadow: 0 0 32px 10px rgba(255, 239, 180, 0.26);
+}
+
+.sun {
+  opacity: 0;
+  transform: translateY(18px);
+  background: radial-gradient(circle at 35% 30%, #fff9cc, #f4c77d 76%);
+  box-shadow: 0 0 42px 15px rgba(255, 214, 142, 0.4);
+}
+
+.day .moon { opacity: 0; transform: translateY(18px); }
+.day .sun { opacity: 1; transform: translateY(0); }
+
+.farHills {
+  z-index: 1;
+  inset: auto -12% 20%;
+  height: 34%;
+  border-radius: 48% 52% 0 0 / 54% 60% 0 0;
+  background: linear-gradient(180deg, #43536c, #344b59);
+  transform: rotate(-2deg);
+  transition: background 800ms ease;
+}
+
+.day .farHills { background: linear-gradient(180deg, #9cb99a, #719b7d); }
+
+.trees {
+  z-index: 2;
+  pointer-events: none;
+}
+
+.tree {
+  position: absolute;
+  bottom: 25%;
+  display: block;
+  border-radius: 48% 52% 25% 25% / 43% 48% 18% 18%;
+  background:
+    radial-gradient(ellipse at 32% 25%, rgba(142, 168, 121, 0.38), transparent 34%),
+    linear-gradient(145deg, #334d4d, #1b393d 70%);
+  box-shadow: inset -18px -8px 20px rgba(9, 24, 35, 0.24), 0 12px 24px rgba(12, 25, 34, 0.15);
+  transform-origin: 50% 100%;
+  animation: treeSway var(--sway-duration, 4.5s) ease-in-out infinite alternate;
+}
+
+.tree::after {
+  content: "";
+  position: absolute;
+  left: 44%;
+  bottom: -22%;
+  width: 18%;
+  height: 33%;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #4b3e3c, #795747, #493b3b);
+}
+
+.day .tree {
+  background:
+    radial-gradient(ellipse at 30% 25%, rgba(231, 242, 184, 0.42), transparent 34%),
+    linear-gradient(145deg, #668c62, #315d50 70%);
+}
+
+.ground {
+  z-index: 2;
+  inset: auto -5% -10%;
+  height: 48%;
+  border-radius: 50% 50% 0 0 / 18% 20% 0 0;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(145, 171, 119, 0.23), transparent 55%),
+    linear-gradient(180deg, #416b58, #1f493f 78%);
+  transition: background 800ms ease;
+}
+
+.day .ground {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(240, 224, 157, 0.48), transparent 50%),
+    linear-gradient(180deg, #88ad73, #4b805e 78%);
+}
+
+.pond {
+  z-index: 3;
+  inset: auto 5% 9% auto;
+  width: 24%;
+  height: 11%;
+  border: 2px solid rgba(207, 220, 190, 0.36);
+  border-radius: 50%;
+  background: linear-gradient(160deg, #8bb8b2 0%, #436c78 48%, #293e58 100%);
+  box-shadow: inset 0 5px 13px rgba(218, 237, 211, 0.28), 0 8px 20px rgba(10, 25, 34, 0.25);
+  transform: rotate(-8deg);
+}
+
+.day .pond {
+  background: linear-gradient(160deg, #c4e6dc 0%, #70aaa4 48%, #477e84 100%);
+}
+
+.pondShine {
+  position: absolute;
+  left: 18%;
+  top: 22%;
+  width: 42%;
+  height: 13%;
+  border-radius: 50%;
+  background: rgba(255, 245, 207, 0.68);
+  filter: blur(2px);
+}
+
+.lilyPad {
+  position: absolute;
+  right: 18%;
+  bottom: 25%;
+  width: 17%;
+  height: 22%;
+  border-radius: 70% 30% 65% 35%;
+  background: #78966a;
+  transform: rotate(25deg);
+}
+
+.path {
+  z-index: 3;
+  inset: auto auto -23% 34%;
+  width: 31%;
+  height: 70%;
+  clip-path: polygon(44% 0, 60% 0, 100% 100%, 0 100%);
+  background: linear-gradient(90deg, rgba(107, 80, 75, 0.82), #bda58c 47%, #d6c3a0 54%, rgba(105, 82, 73, 0.86));
+  filter: drop-shadow(0 4px 6px rgba(18, 24, 32, 0.24));
+  transform: rotate(-7deg);
+  opacity: 0.9;
+}
+
+.pathStones {
+  z-index: 3;
+  pointer-events: none;
+}
+
+.stone {
+  position: absolute;
+  height: 10px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #e4d1b1, #9e8b79);
+  box-shadow: 0 2px 4px rgba(22, 31, 37, 0.26);
+}
+
+.flowers {
+  z-index: 5;
+  pointer-events: none;
+}
+
+.chapterFlower,
+.decorativeFlower {
+  position: absolute;
+  transform: translateX(-50%);
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.chapterFlower {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.flowerArt {
+  display: block;
+  transform-origin: 50% 100%;
+  filter: drop-shadow(0 8px 7px rgba(12, 26, 30, 0.25));
+  animation: flowerSway var(--sway-duration, 4.5s) ease-in-out infinite alternate;
+  transition: filter 180ms ease, transform 180ms ease;
+}
+
+.chapterFlower:hover .flowerArt {
+  filter: drop-shadow(0 0 12px rgba(255, 231, 161, 0.72));
+  transform: translateY(-5px) scale(1.035);
+}
+
+.chapterFlower:focus-visible {
+  outline: 3px solid #ffe9a7;
+  outline-offset: 7px;
+  border-radius: 16px;
+}
+
+.label,
+.readLabel {
+  z-index: 2;
+  padding: 4px 10px;
+  white-space: nowrap;
+  border: 1px solid rgba(255, 238, 188, 0.72);
+  border-radius: 999px;
+  background: rgba(40, 46, 62, 0.74);
+  color: #fff2c9;
+  box-shadow: 0 3px 10px rgba(14, 25, 35, 0.2);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  backdrop-filter: blur(5px);
+}
+
+.readLabel {
+  background: rgba(64, 102, 74, 0.88);
+  color: #e9ffd9;
+}
+
+.decorativeFlower {
+  opacity: 0.94;
+  pointer-events: none;
+}
+
+.flowerArt { pointer-events: none; }
+
+.fireflies {
+  z-index: 6;
+  pointer-events: none;
+  transition: opacity 700ms ease;
+}
+
+.firefly {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #fff2a3;
+  box-shadow: 0 0 8px 4px rgba(255, 226, 123, 0.65), 0 0 22px 8px rgba(255, 214, 100, 0.2);
+  animation:
+    fireflyFloat var(--firefly-duration, 5s) ease-in-out infinite alternate,
+    fireflyGlow 2.4s ease-in-out infinite;
+}
+
+.sceneCaption {
+  position: absolute;
+  z-index: 7;
+  left: 50%;
+  bottom: 12px;
+  display: flex;
+  gap: 11px;
+  align-items: center;
+  transform: translateX(-50%);
+  color: rgba(255, 241, 204, 0.85);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 12px;
+  font-style: italic;
+  letter-spacing: 0.16em;
+  text-shadow: 0 2px 6px rgba(15, 26, 37, 0.55);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.sceneCaption span { color: #f5d58e; }
+
+.still *,
+.still *::before,
+.still *::after {
+  animation: none !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 14px 30px;
+  margin-top: 5px;
+}
+
+.controlGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.controlLabel {
+  color: #e8d7b2;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.controlButtons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 7px;
+}
+
+.controlButton,
+.controlActive {
+  padding: 8px 13px;
+  border: 1px solid rgba(215, 190, 145, 0.52);
+  border-radius: 999px;
+  background: rgba(49, 59, 77, 0.86);
+  color: #eee2c8;
+  font: inherit;
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+.controlButton:hover,
+.controlActive:hover {
+  border-color: #e8c98f;
+  transform: translateY(-1px);
+}
+
+.controlActive {
+  border-color: #e3c18b;
+  background: linear-gradient(135deg, #79614f, #66566a);
+  color: #fff0ca;
+  box-shadow: 0 4px 12px rgba(9, 16, 27, 0.2);
+}
+
+.controlButton:focus-visible,
+.controlActive:focus-visible {
+  outline: 3px solid #f1d8a0;
+  outline-offset: 3px;
+}
+
+@keyframes starTwinkle {
+  from { opacity: 0.35; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1.2); }
+}
+
+@keyframes treeSway {
+  from { transform: rotate(-0.5deg); }
+  to { transform: rotate(0.5deg); }
+}
+
+@keyframes flowerSway {
+  from { transform: rotate(-1.5deg); }
+  to { transform: rotate(1.5deg); }
+}
+
+@keyframes fireflyFloat {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(13px, -18px, 0); }
+}
+
+@keyframes fireflyGlow {
+  0%, 100% { opacity: 0.28; }
+  50% { opacity: 1; }
+}
+
+@media (max-width: 640px) {
+  .realm {
+    min-height: 0;
+    height: clamp(300px, 84vw, 340px);
+    aspect-ratio: auto;
+  }
+
+  .sceneFrame {
+    padding: 5px;
+    border-radius: 25px;
+  }
+
+  .realm { border-radius: 20px; }
+
+  .pond {
+    width: 26%;
+    height: 9%;
+  }
+
+  .label,
+  .readLabel {
+    padding: 3px 7px;
+    font-size: 9px;
+  }
+
+  .sceneCaption {
+    bottom: 8px;
+    font-size: 10px;
+  }
+
+  .controls {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .controlGroup {
+    flex-direction: column;
+    gap: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .realm *,
+  .realm *::before,
+  .realm *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
