@@ -575,3 +575,25 @@
     transition: none;
   }
 }
+
+
+/* Position inputs make precise placement measurable as well as clickable. */
+.itemEditor {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.itemEditor label {
+  min-width: 0;
+}
+.itemEditor input[type="number"] {
+  width: 100%;
+  min-width: 0;
+  font-variant-numeric: tabular-nums;
+}
+.itemEditor button {
+  justify-self: start;
+}
+@media (max-width: 620px) {
+  .itemEditor {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

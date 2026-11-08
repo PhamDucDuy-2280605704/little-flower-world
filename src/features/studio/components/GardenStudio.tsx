@@ -664,17 +664,33 @@ export default function GardenStudio() {
     if (dragging?.pointerId === event.pointerId) draggingRef.current = null;
   }
 
-  function moveSelection(horizontal: number, depthDirection: number) {
-    const ids = selectedItemIds.length > 0 ? selectedItemIds : selectedItemId ? [selectedItemId] : [];
+  function moveSelection(horizontal: number, depthDirection: number, targetIds: string[] = selectedItems.map((item) => item.id)) {
+    // Use the exact selection rendered beside the controls, with a focused-item fallback.
+    const ids = targetIds.length > 0 ? targetIds : selectedItemId ? [selectedItemId] : [];
     if (ids.length === 0) return;
+
     const step = snapToGrid ? gridStep : 1;
     const depthStep = step / 100;
+    const selectedIdSet = new Set(ids);
 
     setItems((current) => current.map((item) => {
-      if (!ids.includes(item.id)) return item;
-      const x = Math.max(2, Math.min(98, snapCoordinate(item.x + horizontal * step, step)));
-      const depth = Math.max(0, Math.min(1, snapCoordinate(item.depth + depthDirection * depthStep, depthStep)));
+      if (!selectedIdSet.has(item.id)) return item;
+      const rawX = item.x + horizontal * step;
+      const rawDepth = item.depth + depthDirection * depthStep;
+      const x = Math.max(2, Math.min(98, snapToGrid ? Math.round(rawX / step) * step : rawX));
+      const depth = Math.max(0, Math.min(1, snapToGrid ? Math.round(rawDepth / depthStep) * depthStep : rawDepth));
       return { ...item, x, depth };
+    }));
+    setDirtyLayout(true);
+  }
+
+  function updateSelectedPosition(axis: "x" | "depth", value: number) {
+    if (!Number.isFinite(value) || !selectedItemId) return;
+    setItems((current) => current.map((item) => {
+      if (item.id !== selectedItemId) return item;
+      return axis === "x"
+        ? { ...item, x: Math.max(2, Math.min(98, value)) }
+        : { ...item, depth: Math.max(0, Math.min(1, value / 100)) };
     }));
     setDirtyLayout(true);
   }
@@ -1027,10 +1043,10 @@ export default function GardenStudio() {
                 </div>
                 <div className={styles.layoutActionGroup}>
                   <span className={styles.layoutGroupLabel}>Di chuyển chính xác</span>
-                  <button type="button" onClick={() => moveSelection(-1, 0)} disabled={selectedItems.length === 0}>← Trái</button>
-                  <button type="button" onClick={() => moveSelection(1, 0)} disabled={selectedItems.length === 0}>Phải →</button>
-                  <button type="button" onClick={() => moveSelection(0, 1)} disabled={selectedItems.length === 0}>↑ Sau</button>
-                  <button type="button" onClick={() => moveSelection(0, -1)} disabled={selectedItems.length === 0}>↓ Trước</button>
+                  <button type="button" onClick={() => moveSelection(-1, 0, selectedItems.map((item) => item.id))} disabled={selectedItems.length === 0} aria-label="Dịch hoa sang trái">← Trái</button>
+                  <button type="button" onClick={() => moveSelection(1, 0, selectedItems.map((item) => item.id))} disabled={selectedItems.length === 0} aria-label="Dịch hoa sang phải">Phải →</button>
+                  <button type="button" onClick={() => moveSelection(0, 1, selectedItems.map((item) => item.id))} disabled={selectedItems.length === 0} aria-label="Đưa hoa ra phía sau">↑ Sau</button>
+                  <button type="button" onClick={() => moveSelection(0, -1, selectedItems.map((item) => item.id))} disabled={selectedItems.length === 0} aria-label="Đưa hoa ra phía trước">↓ Trước</button>
                 </div>
               </div>
 
@@ -1043,6 +1059,8 @@ export default function GardenStudio() {
               <p className={styles.layoutHint}>Mẹo: kéo hoa để đổi vị trí; giữ Shift hoặc bật “Chọn nhiều” để chọn nhóm. Dùng phím mũi tên khi vùng vườn đang được chọn để dịch chính xác theo bước lưới.</p>
               {selectedItem && <div className={styles.itemEditor}>
                 <strong>{selectedItems.length > 1 ? selectedItems.length + " hoa đang chọn · đang chỉnh " : "Đang chỉnh "}{selectedItem.title || selectedItem.label || "Hoa trang trí"}</strong>
+                <label>Vị trí ngang X (%)<input type="number" min="2" max="98" step="1" value={Math.round(selectedItem.x)} onChange={(event) => updateSelectedPosition("x", Number(event.target.value))}/></label>
+                <label>Chiều sâu (%)<input type="number" min="0" max="100" step="1" value={Math.round(selectedItem.depth * 100)} onChange={(event) => updateSelectedPosition("depth", Number(event.target.value))}/></label>
                 <label>Kích thước<input type="range" min="0.3" max="1.3" step="0.05" value={selectedItem.size} onChange={(event) => setItems((current) => current.map((item) => item.id === selectedItem.id ? { ...item, size: Number(event.target.value) } : item))}/></label>
                 <label>Màu hoa<input type="color" value={selectedItem.color} onChange={(event) => setItems((current) => current.map((item) => item.id === selectedItem.id ? { ...item, color: event.target.value } : item))}/></label>
                 <button type="button" onClick={saveSelectedItem} disabled={saving}>Lưu hoa đang chỉnh</button>
