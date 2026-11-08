@@ -209,7 +209,7 @@ export default function GardenJournal({
         )}
       </section>
 
-      {(photos.length > 0 || items.length > 0) && (
+      {secondaryPhotos.length > 0 && (
         <section className={styles.bloomSection} id="in-bloom">
           <div className={styles.bloomHeading}>
             <div>
