@@ -16,8 +16,10 @@ type Props = {
 };
 
 export default function PhotoLightbox({ images, activeIndex, onClose, onChange }: Props) {
-  const isOpen = activeIndex !== null && activeIndex >= 0 && activeIndex < images.length;
-  const activeImage = isOpen ? images[activeIndex] : null;
+  const activeImage = activeIndex !== null && activeIndex >= 0 && activeIndex < images.length
+    ? images[activeIndex]
+    : null;
+  const isOpen = activeImage !== null;
 
   useEffect(() => {
     if (!isOpen) return;

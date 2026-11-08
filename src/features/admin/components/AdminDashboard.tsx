@@ -8,7 +8,6 @@ import {
   FAIRYTALE_TEST_GARDEN_ID,
 } from "@/features/garden/data/gardenThemes";
 import styles from "../styles/AdminDashboard.module.css";
-import PhotoLightbox from "@/features/garden/components/PhotoLightbox";
 
 const BUCKET = "garden-photos";
 const LEGACY_TEST_FOLDER = "be6c9d98-2b4e-46a9-a6a0-30b4bbadc6b0";
@@ -73,7 +72,6 @@ export default function AdminDashboard() {
   const [selectedGardenId, setSelectedGardenId] = useState("");
   const [gardensLoading, setGardensLoading] = useState(false);
   const [photos, setPhotos] = useState<Photo[]>([]);
-  const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
   const [photosLoading, setPhotosLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [dragging, setDragging] = useState(false);
@@ -538,15 +536,7 @@ export default function AdminDashboard() {
                     <div className={styles.photoGrid}>
                       {photos.map((photo) => (
                         <figure className={styles.photoCard} key={photo.path}>
-                          <button
-                            type="button"
-                            className={styles.photoPreview}
-                            onClick={() => setActivePhotoIndex(photos.findIndex((item) => item.path === photo.path))}
-                            aria-label="Phóng to ảnh"
-                          >
-                            <img src={photo.url} alt={"Ảnh trong " + selectedGarden.name} loading="lazy" />
-                            <span aria-hidden="true">⌕</span>
-                          </button>
+                          <img src={photo.url} alt={"Ảnh trong " + selectedGarden.name} loading="lazy" />
                           <figcaption>
                             <span>{photo.name.replace(/^[0-9a-f-]{36}-/i, "")}</span>
                             <button
@@ -577,12 +567,6 @@ export default function AdminDashboard() {
           </footer>
         </div>
       </div>
-      <PhotoLightbox
-        images={photos.map((photo) => ({ url: photo.url, alt: photo.name }))}
-        activeIndex={activePhotoIndex}
-        onClose={() => setActivePhotoIndex(null)}
-        onChange={setActivePhotoIndex}
-      />
     </main>
   );
 }

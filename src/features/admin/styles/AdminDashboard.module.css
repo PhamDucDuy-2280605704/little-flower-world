@@ -919,34 +919,3 @@
   .photoCard figcaption span { font-size: 10px; }
   .footer { font-size: 10px; }
 }
-
-.photoPreview {
-  position: relative;
-  display: block;
-  width: 100%;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  cursor: zoom-in;
-}
-.photoPreview img { display: block; }
-.photoPreview > span {
-  position: absolute;
-  right: 9px;
-  bottom: 9px;
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  border: 1px solid rgba(255,255,255,.45);
-  border-radius: 50%;
-  background: rgba(12,18,24,.76);
-  color: #fff4dc;
-  font-size: 22px;
-  opacity: 0;
-  transition: opacity 160ms ease;
-}
-.photoPreview:hover > span,
-.photoPreview:focus-visible > span { opacity: 1; }
-.photoPreview:focus-visible { outline: 3px solid #f1d8a0; outline-offset: -3px; }
-@media (max-width: 600px) { .photoPreview > span { opacity: 1; } }
