@@ -1,0 +1,25 @@
+.wrapper { display: flex; flex-direction: column; gap: 24px; }
+.heading .eyebrow { margin: 0 0 10px; color: #c5a978; font-size: 10px; font-weight: 800; letter-spacing: .18em; }
+.heading h1 { margin: 0; color: #f5ecdb; font-size: clamp(27px, 4vw, 34px); font-weight: 650; line-height: 1.2; }
+.heading > p:last-child { margin: 10px 0 0; color: #a9b4a9; font-size: 14px; line-height: 1.7; }
+.form { display: grid; gap: 18px; }
+.field { display: grid; gap: 8px; }
+.field label { color: #d6cbb3; font-size: 13px; font-weight: 650; }
+.field input { box-sizing: border-box; width: 100%; min-width: 0; min-height: 48px; padding: 0 14px; border: 1px solid rgba(218, 196, 157, .24); border-radius: 12px; outline: none; background: rgba(4, 13, 18, .3); color: #f3ead9; font: inherit; font-size: 14px; }
+.field input::placeholder { color: #73837b; }
+.field input:focus { border-color: #c9a66e; box-shadow: 0 0 0 3px rgba(201, 166, 110, .12); }
+.passwordField { display: flex; gap: 8px; }
+.passwordField input { flex: 1; }
+.showPassword { padding: 0 13px; border: 1px solid rgba(218, 196, 157, .24); border-radius: 12px; background: rgba(230, 219, 193, .06); color: #d6c398; font: inherit; font-size: 12px; cursor: pointer; }
+.submit { display: flex; align-items: center; justify-content: space-between; min-height: 50px; margin-top: 4px; padding: 0 18px; border: 1px solid rgba(232, 208, 164, .35); border-radius: 13px; background: linear-gradient(110deg, #b28e5d, #7b9675); color: #18251e; font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; transition: filter 160ms ease, transform 160ms ease; }
+.submit:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); }
+.submit:disabled { opacity: .65; cursor: wait; }
+.submit:focus-visible, .showPassword:focus-visible, .guestLink:focus-visible { outline: 3px solid #e7cc97; outline-offset: 3px; }
+.error { margin: -5px 0 0; padding: 11px 13px; border: 1px solid rgba(220, 128, 111, .3); border-radius: 10px; background: rgba(137, 68, 55, .13); color: #f1bdb0; font-size: 13px; line-height: 1.5; }
+.separation { display: flex; align-items: center; gap: 10px; color: #87968b; }
+.separation span { height: 1px; flex: 1; background: rgba(218, 196, 157, .14); }
+.separation p { margin: 0; font-size: 10px; text-align: center; }
+.guestLink { align-self: center; color: #c8b88f; font-size: 12px; text-decoration: none; }
+.guestLink:hover { color: #f0ddb0; text-decoration: underline; text-underline-offset: 4px; }
+.checking { padding: 22px 0; color: #bec9bc; font-size: 13px; text-align: center; }
+@media (max-width: 480px) { .separation p { max-width: 190px; line-height: 1.5; } }

@@ -1,0 +1,167 @@
+.page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: clamp(16px, 4vw, 48px);
+  background:
+    radial-gradient(circle at 12% 15%, rgba(194, 159, 105, .16), transparent 30%),
+    radial-gradient(circle at 90% 88%, rgba(102, 143, 109, .16), transparent 35%),
+    #101a22;
+  color: #efe8d8;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+.shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(390px, .88fr);
+  width: min(100%, 1080px);
+  min-height: 660px;
+  overflow: hidden;
+  border: 1px solid rgba(225, 207, 171, .18);
+  border-radius: 30px;
+  background: rgba(21, 31, 39, .96);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, .38);
+}
+
+.illustration {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 100%;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 50% 48%, rgba(216, 187, 126, .13), transparent 33%),
+    linear-gradient(155deg, #263b3c, #17272f 60%, #151d2b);
+}
+
+.moon {
+  position: absolute;
+  top: 15%;
+  right: 18%;
+  width: 82px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 30%, #fff2cf, #c6a46c 72%);
+  box-shadow: 0 0 55px rgba(226, 195, 137, .3);
+}
+
+.glow {
+  position: absolute;
+  width: 360px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: rgba(194, 166, 111, .08);
+  filter: blur(26px);
+}
+
+.flower {
+  position: relative;
+  z-index: 2;
+  width: 230px;
+  height: 250px;
+  transform: translateY(-10px);
+}
+
+.flower span {
+  position: absolute;
+  left: 92px;
+  top: 34px;
+  width: 55px;
+  height: 105px;
+  transform-origin: 50% 88%;
+  border: 1px solid rgba(255, 226, 175, .34);
+  border-radius: 80% 20% 65% 35%;
+  background: linear-gradient(145deg, #ead6aa, #b58b62 75%);
+  box-shadow: 0 0 24px rgba(214, 179, 120, .12);
+}
+.flower span:nth-child(1) { transform: rotate(0deg) translateY(-24px); }
+.flower span:nth-child(2) { transform: rotate(72deg) translateY(-24px); }
+.flower span:nth-child(3) { transform: rotate(144deg) translateY(-24px); }
+.flower span:nth-child(4) { transform: rotate(216deg) translateY(-24px); }
+.flower span:nth-child(5) { transform: rotate(288deg) translateY(-24px); }
+.flower i {
+  position: absolute;
+  top: 112px;
+  left: 102px;
+  z-index: 3;
+  width: 34px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff0ad, #a8794c);
+  box-shadow: 0 0 24px rgba(243, 209, 142, .5);
+}
+
+.landscape {
+  position: absolute;
+  right: -8%;
+  bottom: -23%;
+  left: -8%;
+  height: 43%;
+  border-radius: 50% 50% 0 0;
+  background: linear-gradient(145deg, #3b6554, #182d31);
+  box-shadow: 0 -22px 70px rgba(0, 0, 0, .16);
+}
+
+.artCaption {
+  position: absolute;
+  z-index: 3;
+  bottom: 44px;
+  width: 80%;
+  color: rgba(238, 222, 190, .72);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 14px;
+  font-style: italic;
+  letter-spacing: .06em;
+  text-align: center;
+}
+
+.formSide {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(28px, 5vw, 60px);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: clamp(32px, 5vw, 58px);
+  color: #f2e9d7;
+  text-decoration: none;
+}
+
+.brandMark {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba(221, 194, 143, .55);
+  border-radius: 15px;
+  background: linear-gradient(145deg, rgba(173, 141, 91, .27), rgba(89, 120, 92, .24));
+  color: #e5c88e;
+  font-size: 24px;
+}
+
+.brand strong,
+.brand small { display: block; }
+.brand strong { font-size: 15px; font-weight: 700; }
+.brand small { margin-top: 4px; color: #9caa9e; font-size: 10px; font-weight: 800; letter-spacing: .2em; }
+
+.footer {
+  margin: 24px 0 0;
+  color: #829288;
+  font-size: 11px;
+  line-height: 1.7;
+  text-align: center;
+}
+
+@media (max-width: 760px) {
+  .shell { grid-template-columns: 1fr; width: min(100%, 520px); min-height: 0; }
+  .illustration { min-height: 190px; }
+  .moon { top: 12%; right: 14%; width: 55px; }
+  .flower { transform: scale(.58) translateY(-52px); height: 145px; margin-bottom: -26px; }
+  .artCaption { bottom: 16px; font-size: 11px; }
+  .formSide { padding: 30px 24px; }
+  .brand { margin-bottom: 30px; }
+}

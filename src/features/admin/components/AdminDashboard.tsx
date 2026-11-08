@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type DragEvent } from "react";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
+import { adminSupabase } from "@/lib/adminSupabase";
 import {
   FAIRYTALE_GARDEN_ADMIN_USER_ID,
   FAIRYTALE_TEST_GARDEN_ID,
@@ -82,7 +82,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     let active = true;
 
-    void supabase.auth.getSession().then(({ data, error: sessionError }) => {
+    void adminSupabase.auth.getSession().then(({ data, error: sessionError }) => {
       if (!active) return;
 
       const currentUser = data.session?.user;
@@ -122,7 +122,7 @@ export default function AdminDashboard() {
     const rows = (data ?? []) as unknown as GardenRow[];
     const results = await Promise.all(rows.map(async (row) => {
       const folderResults = await Promise.all(photoFolders(row.id).map(async (folder) => {
-        const { data: files, error: listError } = await supabase.storage
+        const { data: files, error: listError } = await adminSupabase.storage
           .from(BUCKET)
           .list(folder, { limit: MAX_PHOTOS });
         if (listError) {
@@ -165,7 +165,7 @@ export default function AdminDashboard() {
     setNotice("");
 
     const listings = await Promise.all(photoFolders(garden.id).map(async (folder) => {
-      const { data, error: listError } = await supabase.storage
+      const { data, error: listError } = await adminSupabase.storage
         .from(BUCKET)
         .list(folder, {
           limit: MAX_PHOTOS,
@@ -194,7 +194,7 @@ export default function AdminDashboard() {
     );
 
     const signedPhotos = await Promise.all(records.map(async (record) => {
-      const { data, error: signedError } = await supabase.storage
+      const { data, error: signedError } = await adminSupabase.storage
         .from(BUCKET)
         .createSignedUrl(record.path, 60 * 60);
       if (signedError || !data?.signedUrl) return null;
@@ -256,7 +256,7 @@ export default function AdminDashboard() {
         .replace(/-+/g, "-")
         .slice(-80);
       const path = selectedGarden.id + "/" + crypto.randomUUID() + "-" + (safeName || "photo");
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError } = await adminSupabase.storage
         .from(BUCKET)
         .upload(path, file, {
           cacheControl: "3600",
@@ -298,7 +298,7 @@ export default function AdminDashboard() {
 
     setError("");
     setNotice("");
-    const { error: deleteError } = await supabase.storage
+    const { error: deleteError } = await adminSupabase.storage
       .from(BUCKET)
       .remove([photo.path]);
 
@@ -314,12 +314,12 @@ export default function AdminDashboard() {
   }
 
   async function handleLogout() {
-    const { error: logoutError } = await supabase.auth.signOut();
+    const { error: logoutError } = await adminSupabase.auth.signOut();
     if (logoutError) {
       setError("Đăng xuất chưa thành công. Anh thử lại nhé.");
       return;
     }
-    window.location.assign("/");
+    window.location.assign("/admin/login");
   }
 
   if (authState === "checking") {
@@ -339,7 +339,7 @@ export default function AdminDashboard() {
           <p className={styles.eyebrow}>LITTLE FLOWER WORLD</p>
           <h1>Khu vực dành riêng cho Admin</h1>
           <p>Anh cần đăng nhập bằng tài khoản quản trị để mở trung tâm này.</p>
-          <Link href="/login" className={styles.primaryLink}>Đăng nhập Admin</Link>
+          <Link href="/admin/login" className={styles.primaryLink}>Đăng nhập Admin</Link>
           <Link href="/" className={styles.backLink}>Về trang chủ</Link>
         </div>
       </main>
