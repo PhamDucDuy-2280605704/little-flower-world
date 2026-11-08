@@ -194,3 +194,34 @@
   .viewer .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .deleteButton { opacity: 1; }
 }
+
+.photoButton {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: zoom-in;
+}
+.photoButton:focus-visible { outline: 3px solid #f1d8a0; outline-offset: -3px; }
+.zoomHint {
+  position: absolute;
+  right: 9px;
+  bottom: 9px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba(255,255,255,.45);
+  border-radius: 50%;
+  background: rgba(12,18,24,.72);
+  color: #fff4dc;
+  font-size: 22px;
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+.photo:hover .zoomHint, .photoButton:focus-visible .zoomHint { opacity: 1; }
+@media (max-width: 600px) { .zoomHint { opacity: 1; } }

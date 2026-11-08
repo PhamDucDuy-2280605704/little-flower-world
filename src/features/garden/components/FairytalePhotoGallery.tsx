@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import styles from "../styles/FairytalePhotoGallery.module.css";
+import PhotoLightbox from "./PhotoLightbox";
 
 const BUCKET = "garden-photos";
 const MAX_PHOTOS = 40;
@@ -32,6 +33,7 @@ export default function FairytalePhotoGallery({
   legacyFolderId,
 }: Props) {
   const [photos, setPhotos] = useState<Photo[]>([]);
+  const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
 
   const loadPhotos = useCallback(async () => {
     const folders = Array.from(new Set(
@@ -102,10 +104,24 @@ export default function FairytalePhotoGallery({
       <div className={styles.grid}>
         {photos.map((photo) => (
           <figure className={styles.photo} key={photo.path}>
-            <img src={photo.url} alt="Khoảnh khắc trong khu vườn" loading="lazy" />
+            <button
+              type="button"
+              className={styles.photoButton}
+              onClick={() => setActivePhotoIndex(photos.findIndex((item) => item.path === photo.path))}
+              aria-label="Phóng to ảnh trong khu vườn"
+            >
+              <img src={photo.url} alt="Khoảnh khắc trong khu vườn" loading="lazy" />
+              <span className={styles.zoomHint} aria-hidden="true">⌕</span>
+            </button>
           </figure>
         ))}
       </div>
+      <PhotoLightbox
+        images={photos.map((photo) => ({ url: photo.url, alt: "Khoảnh khắc trong khu vườn" }))}
+        activeIndex={activePhotoIndex}
+        onClose={() => setActivePhotoIndex(null)}
+        onChange={setActivePhotoIndex}
+      />
     </section>
   );
 }
