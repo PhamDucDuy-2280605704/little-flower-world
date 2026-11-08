@@ -189,15 +189,14 @@ export default function GardenStudio() {
   const [coverLightboxOpen, setCoverLightboxOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [dirtyLayout, setDirtyLayout] = useState(false);
+  const [canvasSize, setCanvasSize] = useState({ width: 860, height: 410 });
 
   const selectedGarden = gardens.find((garden) => garden.id === selectedId) ?? null;
   const selectedItem = items.find((item) => item.id === selectedItemId) ?? null;
   const selectedItems = items.filter((item) => selectedItemIds.includes(item.id));
-  const canvasWidth = canvasRef.current?.clientWidth || 860;
-  const canvasHeight = canvasRef.current?.clientHeight || 410;
   const overlappingItemIds = useMemo(
-    () => findOverlappingItems(items, canvasWidth, canvasHeight),
-    [items, canvasWidth, canvasHeight],
+    () => findOverlappingItems(items, canvasSize.width, canvasSize.height),
+    [items, canvasSize.width, canvasSize.height],
   );
   const selectedChapter = chapters.find((chapter) => chapter.chapter_id === selectedChapterId) ?? null;
   const shareUrl = selectedGarden?.share_slug
@@ -319,6 +318,22 @@ export default function GardenStudio() {
     });
     return () => { active = false; };
   }, [loadGardens, router]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!selectedGarden || !canvas || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver((entries) => {
+      const rectangle = entries[0]?.contentRect;
+      if (!rectangle || rectangle.width <= 0 || rectangle.height <= 0) return;
+      setCanvasSize((current) => (
+        Math.abs(current.width - rectangle.width) < 1 && Math.abs(current.height - rectangle.height) < 1
+          ? current
+          : { width: rectangle.width, height: rectangle.height }
+      ));
+    });
+    observer.observe(canvas);
+    return () => observer.disconnect();
+  }, [selectedGarden?.id]);
 
   useEffect(() => {
     if (!selectedGarden) return;
