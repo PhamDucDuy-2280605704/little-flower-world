@@ -191,7 +191,7 @@ export default function SharedGardenExperience({ slug }: { slug: string }) {
       letterSignature={garden.letter_signature}
       letterReady={allRead}
       returnHref="/guest"
-      returnLabel=t("Quay về cổng khách", "Back to reader portal")
+      returnLabel={t("Quay về cổng khách", "Back to reader portal")}
       actionHref={garden.guestbook_enabled ? "#guestbook" : "#the-book"}
       actionLabel={garden.guestbook_enabled ? "ĐỂ LẠI LỜI NHẮN" : "MỞ CUỐN SÁCH"}
     >
@@ -206,8 +206,8 @@ export default function SharedGardenExperience({ slug }: { slug: string }) {
             </div>
           </div>
           <form onSubmit={submitGuestbook}>
-            <label>{t("Tên của bạn", "Your name")}<input value={guestName} onChange={(event) => setGuestName(event.target.value)} maxLength={50} required placeholder=t("Tên hoặc biệt danh", "Name or nickname")/></label>
-            <label>{t("Lời nhắn", "Your note")}<textarea value={guestMessage} onChange={(event) => setGuestMessage(event.target.value)} maxLength={1000} rows={4} required placeholder=t("Gửi lại một điều dễ thương...", "Leave a kind note...")/></label>
+            <label>{t("Tên của bạn", "Your name")}<input value={guestName} onChange={(event) => setGuestName(event.target.value)} maxLength={50} required placeholder={t("Tên hoặc biệt danh", "Name or nickname")}/></label>
+            <label>{t("Lời nhắn", "Your note")}<textarea value={guestMessage} onChange={(event) => setGuestMessage(event.target.value)} maxLength={1000} rows={4} required placeholder={t("Gửi lại một điều dễ thương...", "Leave a kind note...")}/></label>
             <button type="submit" disabled={guestSending || !guestName.trim() || !guestMessage.trim()}>{guestSending ? t("Đang gửi...", "Sending...") : t("Gửi lời nhắn", "Send note")}</button>
             {guestNotice && <p role="status">{guestNotice}</p>}
           </form>

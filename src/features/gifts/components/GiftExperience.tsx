@@ -253,7 +253,7 @@ function PersonalGardenJournal({ user }: { user: User }) {
       returnHref="/"
       returnLabel="Little Story World"
       actionHref="#the-book"
-      actionLabel=t("MỞ CUỐN SÁCH", "OPEN STORY")
+      actionLabel={t("MỞ CUỐN SÁCH", "OPEN STORY")}
     >
       {progressError && <p role="alert" className={styles.stateKicker}>{progressError}</p>}
       {progressLoading && <p role="status" className={styles.stateKicker}>{t("Đang tải tiến độ đọc...", "Loading reading progress...")}</p>}
