@@ -1,6 +1,6 @@
 /* Form đăng nhập — mực nâu, giấy kem, caramel. */
 .wrapper{display:flex;flex-direction:column;gap:20px}
-.title{margin:0;color:var(--cocoa);font-family:Georgia,"Times New Roman",serif;font-size:clamp(29px,4vw,38px);font-weight:500;line-height:1.14;letter-spacing:-.035em}
+.title{margin:0;color:var(--cocoa);font-family:var(--font-display),Georgia,"Times New Roman",serif;font-size:clamp(29px,4vw,38px);font-weight:500;line-height:1.14;letter-spacing:-.035em}
 .subtitle{margin-top:8px;color:#7c705f;font-size:14px;line-height:1.75}
 .form{display:flex;flex-direction:column;gap:16px}.field{display:flex;flex-direction:column;gap:7px}
 .label{color:#74593d;font-size:12px;font-weight:750;letter-spacing:.03em}

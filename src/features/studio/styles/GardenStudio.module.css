@@ -39,7 +39,7 @@
 .topbar nav a:hover { text-decoration: underline; text-underline-offset: 4px; }
 .intro { width: min(1440px, 100%); margin: 32px auto 24px; }
 .kicker,.eyebrow { margin: 0 0 7px; color: #a27a4b; font-size: 10px; font-weight: 800; letter-spacing: .16em; }
-.intro h1 { margin: 0; color: #48382b; font-family: var(--font-geist-sans), Arial, sans-serif; font-size: clamp(26px, 3.5vw, 38px); font-weight: 650; letter-spacing: -.025em; line-height: 1.2; }
+.intro h1 { margin: 0; color: #48382b; font-family: var(--font-body), Arial, sans-serif; font-size: clamp(26px, 3.5vw, 38px); font-weight: 650; letter-spacing: -.025em; line-height: 1.2; }
 .intro > p:last-child { max-width: 690px; margin: 10px 0 0; color: #827563; font-size: 14px; line-height: 1.7; }
 .workspace { width: min(1440px, 100%); margin: 0 auto; display: grid; grid-template-columns: minmax(220px, 290px) minmax(0, 1fr); gap: 18px; align-items: start; }
 .sidebar,.editor,.emptyEditor {
@@ -710,15 +710,15 @@
 /* Section headers keep titles readable and all Vietnamese marks on the same line. */
 .sectionTitle>div{flex:1;min-width:0}
 .sectionTitle h3,.editorHeading h2,.sideHeader h2,.intro h1,.chapterEditor label,.addChapter label{
-  font-family:var(--font-geist-sans),"Noto Sans",Arial,sans-serif;
+  font-family:var(--font-body),"Noto Sans",Arial,sans-serif;
   font-kerning:normal;letter-spacing:0;word-spacing:normal;
 }
 .sectionTitle h3{line-height:1.35}
 .sectionTitle p{line-height:1.65;overflow-wrap:anywhere}
 .section{scroll-margin-top:78px}
 .section label{line-height:1.45}
-.section input,.section select,.section textarea{font-family:var(--font-geist-sans),"Noto Sans",Arial,sans-serif;letter-spacing:0;line-height:1.45}
-.section button{font-family:var(--font-geist-sans),"Noto Sans",Arial,sans-serif;letter-spacing:0;line-height:1.35}
+.section input,.section select,.section textarea{font-family:var(--font-body),"Noto Sans",Arial,sans-serif;letter-spacing:0;line-height:1.45}
+.section button{font-family:var(--font-body),"Noto Sans",Arial,sans-serif;letter-spacing:0;line-height:1.35}
 
 /* Chapter collection supports a growing story, with a visible count and predictable spacing. */
 .chapterCount{

@@ -278,7 +278,7 @@
   background: rgba(40, 46, 62, 0.74);
   color: #fff2c9;
   box-shadow: 0 3px 10px rgba(14, 25, 35, 0.2);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-body), Arial, Helvetica, sans-serif;
   font-size: 12px;
   font-weight: 650;
   line-height: 1.35;
@@ -326,7 +326,7 @@
   align-items: center;
   transform: translateX(-50%);
   color: rgba(255, 241, 204, 0.85);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-body), Arial, Helvetica, sans-serif;
   font-size: 12px;
   font-style: italic;
   letter-spacing: 0.16em;
@@ -362,7 +362,7 @@
 
 .controlLabel {
   color: #e8d7b2;
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-body), Arial, Helvetica, sans-serif;
   font-size: 13px;
   font-weight: 650;
   line-height: 1.35;
@@ -389,7 +389,7 @@
   border-radius: 999px;
   background: rgba(49, 59, 77, 0.86);
   color: #eee2c8;
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-body), Arial, Helvetica, sans-serif;
   font-size: 13px;
   font-weight: 500;
   line-height: 1.3;
@@ -1095,10 +1095,10 @@
 .firefly{width:3px;height:3px;background:#e8d89c;box-shadow:0 0 4px 2px rgba(231,216,159,.3)}
 .driftingPetal{box-shadow:0 1px 3px rgba(57,45,29,.14)}.day .driftingPetal{opacity:.36}.night .driftingPetal{opacity:.17}
 .pollenParticle{opacity:0;box-shadow:none}.butterflies{opacity:.32}.night .butterflies{opacity:.06}
-.sceneCaption{z-index:9;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;color:rgba(255,247,222,.78);font-family:Georgia,"Times New Roman",serif;font-size:12px;letter-spacing:.12em;text-shadow:0 2px 5px rgba(45,39,27,.42);backdrop-filter:none;-webkit-backdrop-filter:none}
+.sceneCaption{z-index:9;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;color:rgba(255,247,222,.78);font-family:var(--font-display),Georgia,"Times New Roman",serif;font-size:12px;letter-spacing:.12em;text-shadow:0 2px 5px rgba(45,39,27,.42);backdrop-filter:none;-webkit-backdrop-filter:none}
 .sceneCaption span{color:#f2dbab}
 .controls{gap:14px 26px;padding:12px 12px 2px}
-.controlLabel{color:#746047;font-family:Georgia,"Times New Roman",serif;font-size:14px}
+.controlLabel{color:#746047;font-family:var(--font-display),Georgia,"Times New Roman",serif;font-size:14px}
 .controlButton,.controlActive{border-color:rgba(133,103,66,.24);border-radius:999px;background:rgba(255,250,239,.82);color:#71583c;box-shadow:0 4px 12px rgba(83,63,39,.08)}
 .controlButton:hover,.controlActive:hover{border-color:#a98253;background:#fffaf0}
 .controlActive{border-color:#89663f;background:linear-gradient(135deg,#9d7547,#735438);color:#fff8e9;box-shadow:0 6px 16px rgba(91,66,38,.18)}
@@ -1142,7 +1142,7 @@
 .bird {
   position: absolute;
   color: rgba(80, 75, 55, .72);
-  font-family: Georgia, serif;
+  font-family: var(--font-display), Georgia, serif;
   font-size: clamp(19px, 2.6vw, 28px);
   line-height: 1;
   text-shadow: 0 1px 2px rgba(255, 245, 208, .28);
@@ -1363,7 +1363,7 @@
 .panelHeader h3 {
   margin: 2px 0 4px;
   color: #49382b;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display), Georgia, "Times New Roman", serif;
   font-size: clamp(21px, 3vw, 26px);
   font-weight: 500;
   letter-spacing: -.025em;
@@ -1395,7 +1395,7 @@
 .toolCard h4, .careCard h4, .collectionCard h4, .editorPanel h4 {
   margin: 0 0 9px;
   color: #6f5337;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display), Georgia, "Times New Roman", serif;
   font-size: 15px;
   font-weight: 600;
 }
@@ -1613,7 +1613,7 @@
 /* Vietnamese typography and control alignment polish. */
 .experiencePanel,
 .experiencePanel * {
-  font-family: var(--font-geist-sans), "Noto Sans", Arial, sans-serif;
+  font-family: var(--font-body), "Noto Sans", Arial, sans-serif;
   font-kerning: normal;
   font-feature-settings: "kern" 1;
   letter-spacing: normal;
@@ -1621,7 +1621,7 @@
 }
 
 .panelHeader h3 {
-  font-family: var(--font-geist-sans), "Noto Sans", Arial, sans-serif;
+  font-family: var(--font-body), "Noto Sans", Arial, sans-serif;
   font-size: clamp(22px, 2.8vw, 26px);
   font-weight: 600;
   letter-spacing: 0;
@@ -1637,7 +1637,7 @@
 .careCard h4,
 .collectionCard h4,
 .editorPanel h4 {
-  font-family: var(--font-geist-sans), "Noto Sans", Arial, sans-serif;
+  font-family: var(--font-body), "Noto Sans", Arial, sans-serif;
   font-size: 15px;
   font-weight: 700;
   letter-spacing: 0;
