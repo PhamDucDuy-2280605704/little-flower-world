@@ -15,3 +15,15 @@
 .guestLink{align-self:center;color:#89643f;font-size: 14px;text-decoration:none}.guestLink:hover{color:#5f452d;text-decoration:underline;text-underline-offset:4px}
 .checking{padding:22px 0;color:#817462;font-size: 15px;text-align:center}
 @media(max-width:480px){.separation p{max-width:190px;line-height:1.5}}
+
+
+.heading .eyebrow{color:#7f9b75}
+.heading h1{color:#355640}
+.heading>p:last-child{color:#71806e}
+.field label{color:#496b50}
+.field input{border-color:rgba(86,122,83,.25);background:#fffef9;color:#354b3a}
+.field input:focus{border-color:#719773;box-shadow:0 0 0 3px rgba(113,151,115,.14)}
+.showPassword{border-color:#d5e1ce;background:#edf3e8;color:#4d6d51}
+.submit{border-color:#416b4d;background:linear-gradient(110deg,#5d815f,#416b4d);color:#fffdf6;box-shadow:0 8px 18px rgba(65,107,77,.16)}
+.submit:focus-visible,.showPassword:focus-visible,.guestLink:focus-visible{outline-color:rgba(113,151,115,.32)}
+.guestLink{color:#4b7352}

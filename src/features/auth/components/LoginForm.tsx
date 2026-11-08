@@ -6,9 +6,11 @@ import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import styles from "../styles/LoginForm.module.css";
+import { useLanguage } from "@/features/i18n/LanguageProvider";
 
 export default function LoginForm() {
   const router = useRouter();
+  const { t } = useLanguage();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,12 +25,12 @@ export default function LoginForm() {
     const cleanEmail = email.trim();
 
     if (!/^\S+@\S+\.\S+$/.test(cleanEmail)) {
-      setError("Email chưa đúng định dạng.");
+      setError(t("Email chưa đúng định dạng.", "Invalid email format."));
       return;
     }
 
     if (!password) {
-      setError("Vui lòng nhập mật khẩu.");
+      setError(t("Vui lòng nhập mật khẩu.", "Please enter your password."));
       return;
     }
 
@@ -51,12 +53,12 @@ export default function LoginForm() {
       const errorMessage =
         err instanceof Error
           ? err.message
-          : "Đã xảy ra lỗi. Hãy thử lại.";
+          : t("Đã xảy ra lỗi. Hãy thử lại.", "Something went wrong. Please try again.");
 
       if (
         errorMessage.toLowerCase().includes("invalid login credentials")
       ) {
-        setError("Email hoặc mật khẩu không chính xác.");
+        setError(t("Email hoặc mật khẩu không chính xác.", "Incorrect email or password."));
       } else {
         setError(errorMessage);
       }
@@ -68,9 +70,9 @@ export default function LoginForm() {
   return (
     <div className={styles.wrapper}>
       <div>
-        <h1 className={styles.title}>Câu chuyện của bạn đang chờ được viết</h1>
+        <h1 className={styles.title}>{t("Câu chuyện của bạn đang chờ được viết", "Your story is waiting to be written")}</h1>
         <p className={styles.subtitle}>
-          Đăng nhập để viết câu chuyện riêng hoặc mở tác phẩm được gửi tặng.
+          {t("Đăng nhập để viết câu chuyện riêng hoặc mở tác phẩm được gửi tặng.", "Sign in to write your own story or open a story someone shared with you.")}
         </p>
       </div>
 
@@ -93,7 +95,7 @@ export default function LoginForm() {
 
         <div className={styles.field}>
           <label htmlFor="login-password" className={styles.label}>
-            Mật khẩu
+            {t("Mật khẩu", "Password")}
           </label>
 
           <div className={styles.passwordRow}>
@@ -113,7 +115,7 @@ export default function LoginForm() {
               aria-pressed={showPassword}
               onClick={() => setShowPassword((value) => !value)}
             >
-              {showPassword ? "Ẩn" : "Hiện"}
+              {showPassword ? t("Ẩn", "Hide") : t("Hiện", "Show")}
             </button>
           </div>
         </div>
@@ -123,7 +125,7 @@ export default function LoginForm() {
           className={styles.submit}
           disabled={loading}
         >
-          {loading ? "Đang đăng nhập..." : "Đăng nhập"}
+          {loading ? t("Đang đăng nhập...", "Signing in...") : t("Đăng nhập", "Sign in")}
         </button>
       </form>
 
@@ -134,7 +136,7 @@ export default function LoginForm() {
       )}
 
       <p className={styles.hint}>
-        Tài khoản đăng nhập được cấp riêng bởi quản trị viên.
+        {t("Tài khoản đăng nhập được cấp riêng bởi quản trị viên.", "Writer accounts are provided by the administrator.")}
       </p>
     </div>
   );

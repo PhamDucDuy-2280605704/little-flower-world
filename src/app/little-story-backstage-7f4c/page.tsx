@@ -14,11 +14,7 @@ export default function PrivateAdminLoginPage() {
     <main className={styles.page}>
       <section className={styles.shell}>
         <div className={styles.illustration} aria-hidden="true">
-          <div className={styles.moon} />
-          <div className={styles.glow} />
-          <div className={styles.flower}><span /><span /><span /><span /><span /><i /></div>
-          <div className={styles.landscape} />
-          <p className={styles.artCaption}>A quiet place to care for every little thing</p>
+          <p className={styles.artCaption}>WORDS BECOME MEMORIES</p>
         </div>
         <div className={styles.formSide}>
           <Link className={styles.brand} href="/">

@@ -45,7 +45,7 @@ export default function AdminLoginForm() {
       if (active) setChecking(false);
     }).catch(() => {
       if (active) {
-        setError("Không thể kết nối tới cổng quản trị.");
+        setError(t("Không thể kết nối tới cổng quản trị.", "Could not connect to the Admin portal."));
         setChecking(false);
       }
     });
@@ -62,11 +62,11 @@ export default function AdminLoginForm() {
     setError("");
     const cleanEmail = email.trim();
     if (!/^\S+@\S+\.\S+$/.test(cleanEmail)) {
-      setError("Anh kiểm tra lại địa chỉ email nhé.");
+      setError(t("Bạn kiểm tra lại địa chỉ email nhé.", "Please check your email address."));
       return;
     }
     if (!password) {
-      setError("Anh nhập mật khẩu quản trị nhé.");
+      setError(t("Bạn nhập mật khẩu quản trị nhé.", "Please enter the Admin password."));
       return;
     }
 
@@ -80,14 +80,14 @@ export default function AdminLoginForm() {
       if (signInError) {
         const message = signInError.message.toLowerCase();
         setError(message.includes("invalid login credentials")
-          ? "Email hoặc mật khẩu quản trị không chính xác."
-          : "Đăng nhập chưa thành công. Anh thử lại nhé.");
+          ? t("Email hoặc mật khẩu quản trị không chính xác.", "Incorrect Admin email or password.")
+          : t("Đăng nhập chưa thành công. Hãy thử lại nhé.", "Sign-in failed. Please try again."));
         return;
       }
 
       if (data.user?.id !== FAIRYTALE_GARDEN_ADMIN_USER_ID) {
         await adminSupabase.auth.signOut({ scope: "local" });
-        setError("Tài khoản này không được cấp quyền quản trị.");
+        setError(t("Tài khoản này không được cấp quyền quản trị.", "This account does not have Admin access."));
         return;
       }
 
@@ -95,27 +95,27 @@ export default function AdminLoginForm() {
       router.refresh();
     } catch (cause: unknown) {
       console.error("Admin sign-in failed:", cause);
-      setError("Có lỗi kết nối. Anh thử lại sau nhé.");
+      setError(t("Có lỗi kết nối. Hãy thử lại sau nhé.", "A connection error occurred. Please try again later."));
     } finally {
       setLoading(false);
     }
   }
 
   if (checking) {
-    return <div className={styles.checking} role="status">Đang kiểm tra phiên quản trị...</div>;
+    return <div className={styles.checking} role="status">{t("Đang kiểm tra phiên quản trị...", "Checking Admin session...")}</div>;
   }
 
   return (
     <div className={styles.wrapper}>
       <div className={styles.heading}>
         <p className={styles.eyebrow}>WELCOME BACK, ADMIN</p>
-        <h1>Chào mừng trở lại</h1>
-        <p>Đăng nhập để chăm sóc những khu vườn và lưu giữ các kỷ niệm.</p>
+        <h1>{t("Chào mừng trở lại", "Welcome back")}</h1>
+        <p>{t("Đăng nhập để quản lý tác phẩm và lưu giữ những câu chuyện.", "Sign in to manage stories and preserve memories.")}</p>
       </div>
 
       <form className={styles.form} onSubmit={handleSubmit} noValidate>
         <div className={styles.field}>
-          <label htmlFor="admin-email">Email quản trị</label>
+          <label htmlFor="admin-email">{t("Email quản trị", "Admin email")}</label>
           <input
             id="admin-email"
             type="email"
@@ -130,7 +130,7 @@ export default function AdminLoginForm() {
         </div>
 
         <div className={styles.field}>
-          <label htmlFor="admin-password">Mật khẩu</label>
+          <label htmlFor="admin-password">{t("Mật khẩu", "Password")}</label>
           <div className={styles.passwordField}>
             <input
               id="admin-password"
@@ -138,7 +138,7 @@ export default function AdminLoginForm() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               autoComplete="current-password"
-              placeholder="Nhập mật khẩu quản trị"
+              placeholder={t("Nhập mật khẩu quản trị", "Enter Admin password")}
               required
             />
             <button
@@ -147,7 +147,7 @@ export default function AdminLoginForm() {
               onClick={() => setShowPassword((value) => !value)}
               aria-pressed={showPassword}
             >
-              {showPassword ? "Ẩn" : "Hiện"}
+              {showPassword ? t("Ẩn", "Hide") : t("Hiện", "Show")}
             </button>
           </div>
         </div>
@@ -155,7 +155,7 @@ export default function AdminLoginForm() {
         {error && <p className={styles.error} role="alert">{error}</p>}
 
         <button className={styles.submit} type="submit" disabled={loading}>
-          {loading ? "Đang xác thực..." : "Vào trung tâm quản trị"}
+          {loading ? t("Đang xác thực...", "Authenticating...") : t("Vào trung tâm quản trị", "Open Admin center")}
           <span aria-hidden="true">↗</span>
         </button>
       </form>
