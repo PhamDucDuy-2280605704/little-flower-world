@@ -423,3 +423,26 @@
 @media (max-width: 640px) {
   .fairytaleCard { border-radius: 22px; }
 }
+
+
+/* Vanilla keepsake page — align gift opening, reading and the private garden. */
+.page{background:var(--garden-page-bg);color:var(--cocoa)}
+.card{background:rgba(255,251,242,.92);border:1px solid rgba(143,113,74,.2);border-radius:28px 38px 28px 38px;box-shadow:0 26px 72px rgba(78,58,37,.12),inset 0 1px rgba(255,255,255,.85)}
+.title{color:#49382b;font-family:Georgia,"Times New Roman",serif;font-weight:500;letter-spacing:-.03em}
+.hint,.message{color:#7f715e}
+.replay{border:1px solid #765638;background:linear-gradient(135deg,#a77b4d,#775638);color:#fff8e9;box-shadow:0 7px 16px rgba(103,76,45,.13)}
+.replay:hover{background:linear-gradient(135deg,#b18758,#846141)}
+.backLink{color:#89643f;text-underline-offset:4px}
+.flowerButton:hover{background:rgba(232,220,195,.46)}
+.caption{color:#8a6843}.progress{color:#7a705f}.locked{color:#94856c}
+.letterButton{border:1px solid #80603e;background:linear-gradient(135deg,#b48a57,#80603e);box-shadow:0 9px 20px rgba(103,76,45,.18)}
+.fairytalePage{background:var(--garden-page-bg);color:var(--cocoa)}
+.fairytalePage::before{opacity:.13;background:radial-gradient(circle at 14% 22%,rgba(129,102,65,.11) 0 1px,transparent 2px),radial-gradient(circle at 82% 68%,rgba(155,153,112,.11) 0 1px,transparent 2px)}
+.fairytaleCard{background:rgba(255,251,242,.9);border:1px solid rgba(143,113,74,.2);border-radius:28px 38px 28px 34px;box-shadow:0 25px 72px rgba(78,58,37,.12),inset 0 1px rgba(255,255,255,.86);backdrop-filter:blur(12px)}
+.fairytaleTitle{color:#49382b;font-family:Georgia,"Times New Roman",serif;font-size:clamp(30px,3.6vw,44px);font-weight:500;letter-spacing:-.04em;text-shadow:none}
+.fairytaleMessage{color:#7f715e}
+.fairytalePage .progress{color:#796d59}.fairytalePage .locked{color:#92836c}
+.fairytalePage .letterButton{border:1px solid #80603e;background:linear-gradient(135deg,#b48a57,#80603e);box-shadow:0 9px 20px rgba(103,76,45,.18)}
+.fairytalePage .replay{border:1px solid #765638;background:linear-gradient(135deg,#a77b4d,#775638);color:#fff8e9}
+.fairytalePage .backLink{color:#89643f}
+@media(max-width:640px){.fairytalePage{padding:13px 10px 24px}.fairytaleCard{padding:17px 13px;border-radius:21px}}

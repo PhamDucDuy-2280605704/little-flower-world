@@ -2,26 +2,45 @@
 
 :root {
   color-scheme: light;
-  --background: #edf0e5;
-  --foreground: #35463a;
+  --vanilla: #f7f0e2;
+  --vanilla-light: #fffaf0;
+  --vanilla-cream: #efe3cc;
+  --vanilla-shadow: #e5d5b9;
+  --caramel: #b7834e;
+  --caramel-deep: #94683f;
+  --toffee: #76563d;
+  --cocoa: #49382b;
+  --espresso: #33271f;
+  --olive: #68704f;
+  --olive-deep: #4c593e;
+  --sage: #aab091;
+  --sage-light: #d8dcc6;
+  --ink: #4b4033;
+  --muted: #817565;
+  --line: rgba(128, 101, 66, 0.2);
 
-  --garden-forest: #344b3b;
-  --garden-deep: #263d32;
-  --garden-moss: #687d55;
-  --garden-leaf: #82966a;
-  --garden-sage: #b9c5a5;
-  --garden-clay: #a58b6d;
-  --garden-earth: #786b55;
-  --garden-cream: #f5f2e7;
-  --garden-paper: #edf0e5;
-  --garden-muted: #687566;
-  --garden-line: rgba(91, 111, 78, 0.22);
-  --garden-shadow: rgba(43, 59, 43, 0.12);
+  --background: var(--vanilla);
+  --foreground: var(--ink);
+  --garden-forest: var(--olive-deep);
+  --garden-deep: var(--cocoa);
+  --garden-moss: var(--olive);
+  --garden-leaf: var(--sage);
+  --garden-sage: var(--sage-light);
+  --garden-clay: var(--caramel);
+  --garden-earth: var(--toffee);
+  --garden-cream: var(--vanilla-light);
+  --garden-paper: var(--vanilla);
+  --garden-muted: var(--muted);
+  --garden-line: var(--line);
+  --garden-shadow: rgba(76, 57, 38, 0.13);
   --garden-page-bg:
-    radial-gradient(ellipse at 12% 10%, rgba(190, 202, 165, 0.32), transparent 36%),
-    radial-gradient(ellipse at 88% 82%, rgba(171, 190, 163, 0.26), transparent 34%),
-    linear-gradient(135deg, #f0f1e7 0%, #e9eee3 54%, #e3ebdf 100%);
-  --garden-surface: rgba(250, 249, 241, 0.86);
+    radial-gradient(ellipse at 12% 9%, rgba(255, 252, 235, 0.92), transparent 36%),
+    radial-gradient(ellipse at 88% 82%, rgba(211, 207, 175, 0.38), transparent 35%),
+    linear-gradient(135deg, #f8f2e7 0%, #f1e8d8 52%, #e9e2d0 100%);
+  --garden-surface: rgba(255, 251, 242, 0.9);
+  --garden-surface-strong: #fffaf0;
+  --garden-control: #f0e6d5;
+  --garden-focus: #a97845;
 }
 
 @theme inline {
@@ -31,32 +50,26 @@
   --font-mono: var(--font-geist-mono);
 }
 
-html,
-body {
-  min-height: 100%;
-}
-
+html, body { min-height: 100%; }
 html {
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
   text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  scrollbar-color: #b8a27e #f1e8d8;
 }
-
 body {
   margin: 0;
   background: var(--garden-page-bg);
   color: var(--foreground);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
   font-size: 16px;
-  line-height: 1.6;
+  line-height: 1.65;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-
-button,
-input,
-textarea,
-select {
-  font: inherit;
-}
+button, input, textarea, select { font: inherit; }
+::selection { color: #fffaf0; background: #8c704c; }
+:where(button, a, input, textarea, select):focus-visible { outline-color: var(--garden-focus); }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }

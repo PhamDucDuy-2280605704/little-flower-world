@@ -1047,3 +1047,60 @@
   .realm { border-radius: 17px; }
   .sceneCaption { letter-spacing: 0.08em; }
 }
+
+
+/* Vanilla conservatory: warm morning light, muted olive and limestone. */
+.sceneFrame{padding:6px;border-radius:26px 32px 25px 31px;background:linear-gradient(135deg,#d7c5a4,#9b8868 46%,#e6d6b8);box-shadow:0 22px 52px rgba(74,57,37,.18),0 3px 10px rgba(68,52,34,.08)}
+.realm{border:1px solid rgba(255,247,222,.42);border-radius:21px 27px 20px 24px;background:#78815f}
+.realm::before{z-index:4;opacity:.12;background-image:repeating-linear-gradient(8deg,rgba(255,247,222,.1) 0 1px,transparent 1px 5px),repeating-linear-gradient(94deg,rgba(73,70,46,.08) 0 1px,transparent 1px 8px);mix-blend-mode:soft-light}
+.realm::after{z-index:4;background:linear-gradient(180deg,rgba(255,249,224,.08),transparent 32%,rgba(56,57,39,.18)),radial-gradient(ellipse at 50% 40%,transparent 46%,rgba(55,53,37,.2) 100%)}
+.sky{background:radial-gradient(ellipse at 76% 18%,rgba(255,242,202,.42),transparent 26%),linear-gradient(180deg,#b9b79b 0%,#d2c5a0 47%,#d8c49a 74%,#a6a47b 100%)}
+.day .sky{background:radial-gradient(ellipse at 77% 23%,rgba(255,250,224,.84),transparent 24%),linear-gradient(180deg,#d9d3b9 0%,#e8ddbd 43%,#e1d1a8 72%,#a6ad82 100%)}
+.night .sky{background:radial-gradient(ellipse at 77% 22%,rgba(215,195,151,.2),transparent 25%),linear-gradient(180deg,#4e5146 0%,#686b52 48%,#898566 78%,#6a7254 100%)}
+.ambientGlow{opacity:.7;background:radial-gradient(ellipse at 74% 36%,rgba(255,235,185,.32),transparent 39%)}
+.day .ambientGlow{opacity:.9}.night .ambientGlow{opacity:.28}
+.clouds{opacity:.2}.day .clouds{opacity:.32}.night .clouds{opacity:.08}
+.stars{opacity:.36}.star{background:rgba(250,233,190,.62);box-shadow:0 0 4px 1px rgba(231,210,164,.14)}
+.moon,.sun{width:calc(45px * var(--scene-scale,1));height:calc(45px * var(--scene-scale,1))}
+.moon{background:radial-gradient(circle at 36% 32%,#f5ebd0,#cbb58a 76%);box-shadow:0 0 17px 5px rgba(238,214,165,.15)}
+.sun{background:radial-gradient(circle at 36% 30%,#fff9dc,#d9b87b 78%);box-shadow:0 0 32px 10px rgba(250,224,160,.26)}
+.farHills{inset:auto -12% 21%;height:30%;border-radius:0;clip-path:polygon(0 48%,10% 34%,23% 42%,39% 17%,52% 37%,68% 20%,82% 42%,93% 25%,100% 37%,100% 100%,0 100%);background:linear-gradient(180deg,#9b9a70,#6e8058);filter:blur(.5px);transform:none}
+.day .farHills{background:linear-gradient(180deg,#b5b58a,#788b5f)}.night .farHills{background:linear-gradient(180deg,#77785d,#53664b)}
+.tree{bottom:23%;border-radius:58% 42% 40% 38% / 46% 42% 58% 54%;background:radial-gradient(ellipse at 24% 22%,rgba(221,211,158,.36),transparent 30%),radial-gradient(ellipse at 70% 50%,rgba(48,65,39,.56),transparent 48%),radial-gradient(ellipse at 35% 68%,rgba(131,139,82,.5),transparent 54%),linear-gradient(145deg,#9a9b68 0%,#677650 58%,#455b40 100%);box-shadow:inset -14px -10px 18px rgba(42,53,34,.24),inset 8px 5px 15px rgba(255,244,200,.11),0 13px 20px rgba(40,48,30,.14);filter:saturate(.76)}
+.tree::before{content:"";position:absolute;inset:8% 7% 18%;border-radius:48% 52% 44% 56%;background:radial-gradient(ellipse at 22% 35%,rgba(236,224,171,.2) 0 5%,transparent 23%),radial-gradient(ellipse at 70% 24%,rgba(48,64,39,.2) 0 6%,transparent 30%),radial-gradient(ellipse at 48% 74%,rgba(46,62,36,.21) 0 7%,transparent 32%)}
+.tree::after{left:43%;bottom:-23%;width:17%;height:35%;border-radius:3px 5px 2px 2px;background:linear-gradient(90deg,#65523a,#9b7c55 48%,#574832)}
+.day .tree{background:radial-gradient(ellipse at 25% 22%,rgba(238,225,171,.42),transparent 30%),radial-gradient(ellipse at 70% 50%,rgba(56,77,43,.48),transparent 48%),radial-gradient(ellipse at 35% 68%,rgba(151,157,93,.48),transparent 54%),linear-gradient(145deg,#b0ad77 0%,#82915e 58%,#536d45 100%)}
+.ground{inset:auto -5% -10%;height:47%;border-radius:48% 52% 0 0 / 14% 17% 0 0;background:radial-gradient(ellipse at 50% 3%,rgba(227,211,151,.32),transparent 48%),radial-gradient(ellipse at 18% 52%,rgba(68,83,42,.5),transparent 42%),radial-gradient(ellipse at 82% 43%,rgba(76,91,46,.46),transparent 46%),linear-gradient(180deg,#94986b 0%,#727f51 54%,#536944 100%)}
+.day .ground{background:radial-gradient(ellipse at 50% 4%,rgba(255,240,190,.36),transparent 48%),radial-gradient(ellipse at 18% 53%,rgba(107,121,63,.36),transparent 40%),linear-gradient(180deg,#b1af79 0%,#87935c 60%,#607448 100%)}
+.night .ground{filter:brightness(.75)}
+.grass{z-index:4;opacity:.68}.grassBlade{width:2px;border-radius:100% 0 100% 0;background:linear-gradient(90deg,#4b6039,#a8a06a 60%,#607547)}
+.grassBlade::after{background:linear-gradient(90deg,rgba(74,94,54,.68),rgba(205,190,128,.62))}
+.pond{right:6%;bottom:10%;width:21%;height:8%;border:1px solid rgba(226,222,187,.34);border-radius:48% 52% 44% 56% / 43% 56% 44% 57%;background:radial-gradient(ellipse at 30% 24%,rgba(242,231,191,.32),transparent 42%),linear-gradient(165deg,#a7b2a0,#6f8875 54%,#4f6656);box-shadow:inset 0 2px 8px rgba(255,246,213,.18),0 6px 14px rgba(50,59,37,.18);transform:rotate(-5deg)}
+.day .pond{background:radial-gradient(ellipse at 30% 24%,rgba(255,247,214,.5),transparent 42%),linear-gradient(165deg,#c1c3a7,#819a85 54%,#5c7664)}
+.night .pond{filter:brightness(.76)}
+.pondShine{left:16%;top:24%;width:34%;height:8%;opacity:.42;filter:blur(1.5px)}
+.lilyPad{background:linear-gradient(135deg,#899365,#536e4b);box-shadow:inset 1px 1px 2px rgba(229,224,175,.24)}
+.pondRipple,.pondRippleSecondary{border-color:rgba(249,241,212,.24)}
+.path{inset:auto auto -23% 36%;width:27%;height:65%;clip-path:polygon(43% 0,57% 0,74% 26%,66% 51%,100% 100%,0 100%,28% 53%,20% 30%);background:repeating-linear-gradient(164deg,rgba(109,86,58,.12) 0 2px,transparent 2px 7px),linear-gradient(90deg,rgba(154,128,91,.95),#d0bd96 48%,#dfd0ad 55%,rgba(143,119,84,.94));filter:drop-shadow(0 5px 8px rgba(59,48,30,.22));opacity:.9;transform:rotate(-5deg)}
+.stone{height:8px;border:1px solid rgba(252,243,216,.38);background:linear-gradient(180deg,#e2d5b8,#a99b7a);box-shadow:0 2px 4px rgba(62,51,34,.22)}
+.flowers{z-index:8}
+.flowerArt{filter:drop-shadow(0 7px 6px rgba(48,55,31,.28)) saturate(.94)}
+.night .flowerArt{filter:drop-shadow(0 7px 7px rgba(24,30,22,.4)) brightness(.82) saturate(.78)}
+.day .flowerArt{filter:drop-shadow(0 7px 6px rgba(48,55,31,.22)) saturate(.98)}
+.label,.readLabel{padding:5px 10px;border:1px solid rgba(255,245,215,.46);border-radius:7px 11px 7px 11px;background:rgba(75,59,39,.82);color:#fff8e8;box-shadow:0 3px 9px rgba(48,38,24,.2);font-size:11px;font-weight:650;letter-spacing:0;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.readLabel{background:rgba(90,105,64,.9)}
+.chapterFlower:hover .flowerArt{filter:drop-shadow(0 0 9px rgba(255,236,186,.48)) saturate(1.02)}
+.decorativeFlower{opacity:.88}
+.fireflies{opacity:.38}.day .fireflies{opacity:0}.night .fireflies{opacity:.45}
+.firefly{width:3px;height:3px;background:#e8d89c;box-shadow:0 0 4px 2px rgba(231,216,159,.3)}
+.driftingPetal{box-shadow:0 1px 3px rgba(57,45,29,.14)}.day .driftingPetal{opacity:.36}.night .driftingPetal{opacity:.17}
+.pollenParticle{opacity:0;box-shadow:none}.butterflies{opacity:.32}.night .butterflies{opacity:.06}
+.sceneCaption{z-index:9;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;color:rgba(255,247,222,.78);font-family:Georgia,"Times New Roman",serif;font-size:12px;letter-spacing:.12em;text-shadow:0 2px 5px rgba(45,39,27,.42);backdrop-filter:none;-webkit-backdrop-filter:none}
+.sceneCaption span{color:#f2dbab}
+.controls{gap:14px 26px;padding:12px 12px 2px}
+.controlLabel{color:#746047;font-family:Georgia,"Times New Roman",serif;font-size:14px}
+.controlButton,.controlActive{border-color:rgba(133,103,66,.24);border-radius:999px;background:rgba(255,250,239,.82);color:#71583c;box-shadow:0 4px 12px rgba(83,63,39,.08)}
+.controlButton:hover,.controlActive:hover{border-color:#a98253;background:#fffaf0}
+.controlActive{border-color:#89663f;background:linear-gradient(135deg,#9d7547,#735438);color:#fff8e9;box-shadow:0 6px 16px rgba(91,66,38,.18)}
+.controlButton:focus-visible,.controlActive:focus-visible{outline:3px solid rgba(167,123,77,.35);outline-offset:3px}
+@media(max-width:640px){.sceneFrame{padding:4px;border-radius:20px}.realm{border-radius:16px}.sceneCaption{letter-spacing:.08em;font-size:10px}.controls{padding-inline:2px}}

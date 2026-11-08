@@ -1,147 +1,108 @@
-/* Trang chủ Little Flower World — bảng màu vườn tự nhiên dùng chung. */
+/* Little Flower World — Vanilla Garden editorial home. */
 .page {
+  position: relative;
+  isolation: isolate;
   min-height: 100vh;
   display: grid;
   justify-items: center;
   align-content: center;
-  gap: 28px;
-  padding: 40px 20px;
+  gap: clamp(24px, 4vw, 42px);
+  overflow: hidden;
+  padding: clamp(28px, 5vw, 64px) 20px;
   background: var(--garden-page-bg);
   color: var(--garden-forest);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
-
+.page::before, .page::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: 50%;
+}
+.page::before {
+  top: -220px; right: -100px;
+  width: min(54vw, 620px); aspect-ratio: 1;
+  border: 1px solid rgba(161, 129, 83, .16);
+  box-shadow: 0 0 0 24px rgba(255, 251, 238, .14), 0 0 0 70px rgba(161, 129, 83, .035);
+}
+.page::after {
+  bottom: -260px; left: -160px;
+  width: min(48vw, 540px); aspect-ratio: 1;
+  background: radial-gradient(circle, rgba(176, 177, 137, .22), transparent 68%);
+}
 .card {
-  width: min(100%, 900px);
+  position: relative;
+  width: min(100%, 1080px);
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, .92fr) minmax(340px, 1.08fr);
   align-items: center;
-  gap: 30px;
-  padding: clamp(24px, 5vw, 56px);
-  background: var(--garden-surface);
-  border: 1px solid rgba(115, 132, 91, 0.2);
-  border-radius: 28px 32px 26px 34px;
-  box-shadow:
-    0 22px 60px rgba(52, 72, 49, 0.09),
-    0 3px 12px rgba(70, 83, 53, 0.04);
-  backdrop-filter: blur(8px);
-}
-
-.copy {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.eyebrow {
-  color: var(--garden-moss);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 2.4px;
-  text-transform: uppercase;
-}
-
-.title {
-  font-size: clamp(36px, 5vw, 56px);
-  line-height: 1.1;
-  letter-spacing: -0.035em;
-  color: var(--garden-deep);
-}
-
-.title span {
-  display: block;
-  color: #71865c;
-}
-
-.description {
-  font-size: 16px;
-  line-height: 1.8;
-  color: var(--garden-muted);
-}
-
-.note {
-  padding: 14px 16px;
-  background: rgba(220, 229, 207, 0.62);
-  border-left: 3px solid #8a9b70;
-  border-radius: 4px 14px 14px 4px;
-  color: #5e7055;
-  font-size: 13px;
-  line-height: 1.7;
-}
-
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 14px;
-}
-
-.giftLink {
-  padding: 10px 20px;
-  border: 1px solid #85956f;
-  border-radius: 999px;
-  color: #536c4b;
-  font-weight: 650;
-  text-decoration: none;
-  transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
-}
-
-.giftLink:hover {
-  background: rgba(222, 231, 211, 0.8);
-  border-color: #667f58;
-  transform: translateY(-1px);
-}
-
-.giftLink:focus-visible,
-.loginLink:focus-visible {
-  outline: 3px solid #71865c;
-  outline-offset: 3px;
-}
-
-.loginLink {
-  padding: 12px 22px;
-  background: #526f4b;
-  border: 1px solid #526f4b;
-  border-radius: 999px;
-  color: #fbf8ee;
-  font-weight: 700;
-  text-decoration: none;
-  transition: background-color 160ms ease, transform 160ms ease;
-}
-
-.loginLink:hover {
-  background: #3f5d3d;
-  transform: translateY(-1px);
-}
-
-.flowerArea {
-  min-height: 380px;
-  display: grid;
-  place-items: center;
+  gap: clamp(26px, 5vw, 64px);
+  padding: clamp(28px, 5.4vw, 68px);
   overflow: hidden;
-  border: 1px solid rgba(118, 138, 96, 0.16);
-  border-radius: 22px 28px 20px 30px;
-  background:
-    radial-gradient(ellipse at 50% 84%, rgba(132, 157, 103, 0.22), transparent 48%),
-    radial-gradient(ellipse at 28% 15%, rgba(255, 250, 225, 0.8), transparent 55%),
-    linear-gradient(150deg, #f0f0df, #e5ecdf 58%, #dce7d7);
-  box-shadow: inset 0 1px rgba(255, 255, 255, 0.68);
+  border: 1px solid rgba(142, 112, 73, .2);
+  border-radius: 30px 42px 30px 42px;
+  background: linear-gradient(125deg, rgba(255, 252, 245, .94), rgba(248, 241, 226, .91));
+  box-shadow: 0 34px 90px rgba(77, 58, 39, .12), 0 5px 18px rgba(100, 78, 52, .055), inset 0 1px rgba(255,255,255,.88);
+  backdrop-filter: blur(14px);
 }
-
-@media (max-width: 700px) {
-  .card {
-    grid-template-columns: 1fr;
-  }
-
-  .flowerArea {
-    min-height: 360px;
-  }
-
-  .copy {
-    text-align: center;
-  }
-
-  .actions {
-    justify-content: center;
-  }
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: clamp(28px, 5.4vw, 68px);
+  width: 76px; height: 3px;
+  border-radius: 0 0 4px 4px;
+  background: linear-gradient(90deg, var(--caramel), #d3b17c);
 }
+.copy { display: flex; flex-direction: column; gap: 19px; }
+.eyebrow {
+  display: inline-flex; align-items: center; gap: 10px;
+  color: var(--caramel-deep); font-size: 10px; font-weight: 800;
+  letter-spacing: .24em; text-transform: uppercase;
+}
+.eyebrow::before { content: ""; width: 28px; height: 1px; background: #b58a58; }
+.title {
+  margin: 0; color: var(--cocoa);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(42px, 5vw, 66px); font-weight: 500;
+  line-height: .99; letter-spacing: -.055em; text-wrap: balance;
+}
+.title span { display: block; margin-top: 8px; color: #a77b4d; font-style: italic; font-weight: 400; }
+.description { max-width: 42ch; margin: 0; color: #776b5b; font-size: 15px; line-height: 1.9; }
+.note {
+  max-width: 42ch; padding: 15px 17px;
+  border: 1px solid rgba(157, 125, 82, .18); border-left: 3px solid #a98559;
+  border-radius: 3px 14px 14px 3px; background: rgba(237, 227, 205, .46);
+  color: #77634a; font-size: 12px; line-height: 1.75;
+}
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 4px; }
+.giftLink, .loginLink {
+  min-height: 48px; display: inline-flex; align-items: center; justify-content: center;
+  padding: 0 22px; border-radius: 999px; font-size: 13px; font-weight: 750;
+  text-decoration: none; transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease, border-color 180ms ease;
+}
+.giftLink { border: 1px solid rgba(134, 105, 68, .42); background: rgba(255, 250, 240, .72); color: #76583b; }
+.giftLink:hover { transform: translateY(-2px); border-color: #a27c4f; background: #fffaf0; box-shadow: 0 9px 22px rgba(91, 66, 40, .09); }
+.loginLink { border: 1px solid #755536; background: linear-gradient(135deg, #8c6945, #604832); color: #fff8e9; box-shadow: 0 9px 22px rgba(96, 72, 45, .18); }
+.loginLink:hover { transform: translateY(-2px); background: linear-gradient(135deg, #9b774f, #6d5035); box-shadow: 0 13px 28px rgba(96, 72, 45, .22); }
+.giftLink:focus-visible, .loginLink:focus-visible { outline: 3px solid #a77b4d; outline-offset: 4px; }
+.flowerArea {
+  position: relative; min-height: clamp(340px, 42vw, 470px);
+  display: grid; place-items: center; overflow: hidden; isolation: isolate;
+  border: 1px solid rgba(150, 123, 84, .2);
+  border-radius: 48% 44% 42% 48% / 30% 34% 28% 31%;
+  background: radial-gradient(ellipse at 50% 79%, rgba(114, 131, 83, .22), transparent 46%), radial-gradient(ellipse at 50% 18%, rgba(255, 250, 229, .96), transparent 56%), linear-gradient(155deg, #eee5d1 0%, #e8e2cc 48%, #d9dfc8 100%);
+  box-shadow: inset 0 0 0 8px rgba(255, 251, 239, .24), inset 0 -24px 38px rgba(116, 119, 77, .08), 0 22px 45px rgba(91, 76, 47, .1);
+}
+.flowerArea::before, .flowerArea::after { content: ""; position: absolute; z-index: -1; border-radius: 50%; pointer-events: none; }
+.flowerArea::before { inset: 9% 12% auto; height: 34%; background: radial-gradient(ellipse, rgba(255,255,242,.55), transparent 70%); filter: blur(10px); }
+.flowerArea::after { right: 7%; bottom: 10%; width: 38%; height: 20%; background: rgba(127,145,94,.12); filter: blur(24px); }
+@media (max-width: 760px) {
+  .card { grid-template-columns: 1fr; gap: 30px; }
+  .copy { text-align: center; align-items: center; }
+  .title { font-size: clamp(39px, 11vw, 56px); }
+  .eyebrow, .actions { justify-content: center; }
+  .description, .note { max-width: 52ch; }
+  .flowerArea { min-height: 330px; border-radius: 28px 38px 26px 34px; }
+}
+@media (prefers-reduced-motion: reduce) { .giftLink, .loginLink { transition: none; } }

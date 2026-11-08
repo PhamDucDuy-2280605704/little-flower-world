@@ -926,3 +926,63 @@
 .photoOpenButton:hover>span,.photoOpenButton:focus-visible>span{opacity:1}
 .photoOpenButton:focus-visible{outline:3px solid #f1d8a0;outline-offset:-3px}
 @media(max-width:600px){.photoOpenButton>span{opacity:1}}
+
+
+/* Admin atelier — warm vanilla canvas, olive navigation, walnut accents. */
+.shell {
+  background: radial-gradient(circle at 82% 4%, rgba(206,188,145,.25), transparent 30%), radial-gradient(circle at 3% 94%, rgba(160,166,125,.18), transparent 28%), linear-gradient(135deg,#f4eddf,#e9e0ce);
+  color:#4b4033;
+}
+.orbOne{border-color:rgba(130,105,69,.12);box-shadow:0 0 0 42px rgba(130,105,69,.025),0 0 0 90px rgba(130,105,69,.018)}
+.orbTwo{background:rgba(104,119,79,.1)}
+.app{border:1px solid rgba(126,99,64,.2);border-radius:25px 34px 24px 32px;background:rgba(255,251,242,.94);box-shadow:0 28px 90px rgba(73,55,35,.14),inset 0 1px rgba(255,255,255,.86);backdrop-filter:blur(18px)}
+.sidebar{border-right:1px solid rgba(255,246,224,.1);background:linear-gradient(180deg,#5c634a,#48533d 70%,#3c4836)}
+.brand{color:#fff5df}.brandMark{border-color:rgba(235,211,170,.4);border-radius:13px;background:linear-gradient(145deg,rgba(222,194,143,.25),rgba(205,216,177,.13));color:#f2d49d}
+.brand small{color:#d5d0b6}.sidebarLabel,.panelEyebrow{color:#c9bd9e}
+.sideLink,.sideLinkActive{color:#e4e0ca}.sideLink:hover{background:rgba(255,248,226,.1);color:#fff9e9}
+.sideLinkActive{border-color:rgba(238,215,170,.36);background:linear-gradient(100deg,rgba(222,190,133,.21),rgba(221,226,192,.12));color:#fff2d3}
+.sidebarBottom{border-top-color:rgba(255,246,224,.15)}
+.avatar{border-radius:12px;background:linear-gradient(145deg,#e4c995,#aeb58a);color:#46503a}
+.accountCopy strong{color:#fff4dc}.accountCopy span{color:#d1d1ba}.adminDot{background:#d5dba4;box-shadow:0 0 9px rgba(220,224,165,.4)}
+.main{color:#4b4033}.eyebrow{color:#9a7549}.eyebrow span{color:#89916a}
+.topbar h1{color:#49382b;font-family:Georgia,"Times New Roman",serif;font-weight:500;letter-spacing:-.03em}
+.subtitle{color:#817565}
+.secondaryLink,.logoutButton{border-color:rgba(139,109,70,.24);color:#71583c}
+.secondaryLink{background:rgba(239,230,211,.56)}.logoutButton{background:rgba(162,103,80,.08);color:#985a49}
+.secondaryLink:hover,.logoutButton:hover{border-color:rgba(139,109,70,.55)}
+.hero{border-color:rgba(143,113,74,.2);border-radius:20px 28px 20px 25px;background:radial-gradient(ellipse at 78% 50%,rgba(255,251,226,.56),transparent 35%),linear-gradient(110deg,#e5dcc5,#d4d5b9 52%,#c7c6a7);box-shadow:inset 0 1px rgba(255,255,255,.5),0 12px 26px rgba(85,69,42,.07)}
+.heroTag{color:#80623f}.heroCopy h2{color:#4d3b29;font-family:Georgia,"Times New Roman",serif;font-weight:500;letter-spacing:-.03em}
+.heroCopy h2 em{color:#8b6a43}.heroCopy p{color:#6f6c56}
+.heroMoon{background:radial-gradient(circle at 33% 30%,#fff9df,#c5a16a);box-shadow:0 0 32px rgba(191,157,99,.22)}
+.heroStem{background:linear-gradient(180deg,#a58b5b,#71805a)}
+.heroPetalOne,.heroPetalTwo{background:linear-gradient(145deg,#f5ead0,#ba9865 70%);box-shadow:0 0 26px rgba(170,139,92,.12)}
+.heroLeafOne,.heroLeafTwo{background:linear-gradient(145deg,#aab18a,#697c51)}
+.statCard{border:1px solid rgba(143,113,74,.17);border-radius:15px 19px 15px 18px;background:rgba(255,251,242,.82);box-shadow:0 8px 20px rgba(78,58,37,.055),inset 0 1px rgba(255,255,255,.78)}
+.statIcon{color:#9b7449}.statCard strong{color:#4b4033}.statCard span:not(.statIcon){color:#857867}
+.albumPanel{border:1px solid rgba(143,113,74,.18);border-radius:18px 24px 18px 22px;background:rgba(255,251,242,.82);box-shadow:0 12px 28px rgba(78,58,37,.06),inset 0 1px rgba(255,255,255,.75)}
+.albumHeader h2,.photoToolbar h3{color:#49382b;font-family:Georgia,"Times New Roman",serif;font-weight:500}
+.albumHeader p:not(.panelEyebrow),.photoToolbar p{color:#837663}
+.albumCount{background:#eee4d1;color:#75583a}
+.searchBox{border-color:rgba(139,109,70,.2);background:#fffdf7}.searchBox span{color:#94714b}.searchBox input{color:#49382b}.searchBox input::placeholder{color:#aa9d88}
+.gardenCard{border-color:rgba(143,113,74,.14);background:rgba(245,239,225,.65)}
+.gardenCard:hover{background:#f1e7d4}
+.gardenCardActive{border-color:rgba(148,111,65,.46);background:#eee3cd;box-shadow:inset 0 0 0 1px rgba(148,111,65,.12)}
+.gardenThumb{background:linear-gradient(145deg,#e4d6b9,#c9d0b0)}
+.gardenInfo strong{color:#4b4033}.gardenInfo small,.gardenInfo span{color:#857867}.gardenInfo b,.gardenArrow{color:#9a7449}
+.panelEmpty{color:#867865}
+.dropzoneActive{border-color:rgba(153,119,72,.46);background:rgba(241,232,211,.5)}
+.uploadMark{color:#9b7449}.dropzone strong{color:#5a4630}.dropzoneActive p{color:#857867}
+.uploadButton{border-color:#80603e;background:linear-gradient(135deg,#a77b4d,#775638);color:#fff8e9}.uploadButton:hover{filter:brightness(1.06)}
+.dropzone small{color:#96866d}.photoToolbar>span{color:#8b765c}
+.photoCard{border-color:rgba(143,113,74,.2);border-radius:12px 16px 12px 15px;background:#f7f0e3;box-shadow:0 7px 16px rgba(71,54,34,.08)}
+.photoCard figcaption{color:#5f513f}.photoCard figcaption span{color:#8b7a64}.photoCard figcaption button{color:#946545}.photoCard figcaption button:hover{color:#633d2d}
+.photoEmpty{border-color:rgba(143,113,74,.22);color:#776b5b}.photoEmpty strong{color:#5a4630}.photoEmpty p{color:#8b7b64}
+.noticeBanner{background:#edf0df;border-color:rgba(112,126,78,.2);color:#52633f}
+.errorBanner{background:#f8e8df;border-color:rgba(177,91,75,.22);color:#9c483b}
+.footer{color:#9a8d79}.deniedPage,.loadingPage{color:#4b4033}.deniedMark{color:#a77b4d}
+.deniedCard{border-color:rgba(143,113,74,.2);background:rgba(255,251,242,.94);box-shadow:0 24px 65px rgba(78,58,37,.12)}
+.deniedCard h1{color:#49382b;font-family:Georgia,"Times New Roman",serif;font-weight:500}.deniedCard>p:not(.eyebrow){color:#817565}
+.primaryLink{border-color:#80603e;background:linear-gradient(135deg,#a77b4d,#775638);color:#fff8e9}.backLink{color:#89643f}
+.photoOpenButton>span{background:rgba(67,49,32,.78)}.photoOpenButton:focus-visible{outline-color:#c59a61}
+@media(max-width:820px){.sidebar{background:linear-gradient(180deg,#5c634a,#48533d)}.app{border-radius:20px}}
+@media(max-width:560px){.shell{padding:12px}.main{padding:20px 15px}.hero{min-height:180px}}
