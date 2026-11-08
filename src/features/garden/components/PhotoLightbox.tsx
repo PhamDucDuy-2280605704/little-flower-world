@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import styles from "./PhotoLightbox.module.css";
+import styles from "../styles/PhotoLightbox.module.css";
 
 export type LightboxImage = {
   url: string;
