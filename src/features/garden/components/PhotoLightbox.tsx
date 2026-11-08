@@ -1,12 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import styles from "../styles/PhotoLightbox.module.css";
 
-export type LightboxImage = {
-  url: string;
-  alt: string;
-};
+export type LightboxImage = { url: string; alt: string };
 
 type Props = {
   images: LightboxImage[];
@@ -19,30 +17,26 @@ export default function PhotoLightbox({ images, activeIndex, onClose, onChange }
   const activeImage = activeIndex !== null && activeIndex >= 0 && activeIndex < images.length
     ? images[activeIndex]
     : null;
-  const isOpen = activeImage !== null;
 
   useEffect(() => {
-    if (!isOpen) return;
-
+    if (activeIndex === null || !activeImage) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
-      if (event.key === "ArrowRight") onChange(((activeIndex ?? 0) + 1) % images.length);
-      if (event.key === "ArrowLeft") onChange(((activeIndex ?? 0) - 1 + images.length) % images.length);
+      if (event.key === "ArrowRight") onChange((activeIndex + 1) % images.length);
+      if (event.key === "ArrowLeft") onChange((activeIndex - 1 + images.length) % images.length);
     };
-
     window.addEventListener("keydown", handleKeyDown);
     return () => {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [activeIndex, images.length, isOpen, onChange, onClose]);
+  }, [activeIndex, activeImage, images.length, onChange, onClose]);
 
-  if (!isOpen || !activeImage) return null;
+  if (!activeImage || typeof document === "undefined") return null;
 
-  return (
+  return createPortal(
     <div className={styles.backdrop} role="presentation" onMouseDown={(event) => {
       if (event.target === event.currentTarget) onClose();
     }}>
@@ -50,16 +44,17 @@ export default function PhotoLightbox({ images, activeIndex, onClose, onChange }
         <button className={styles.close} type="button" onClick={onClose} aria-label="Đóng ảnh" title="Đóng (Esc)">×</button>
         {images.length > 1 && (
           <>
-            <button className={styles.previous} type="button" onClick={() => onChange(((activeIndex ?? 0) - 1 + images.length) % images.length)} aria-label="Ảnh trước">‹</button>
-            <button className={styles.next} type="button" onClick={() => onChange(((activeIndex ?? 0) + 1) % images.length)} aria-label="Ảnh tiếp theo">›</button>
+            <button className={styles.previous} type="button" onClick={() => onChange((activeIndex! - 1 + images.length) % images.length)} aria-label="Ảnh trước">‹</button>
+            <button className={styles.next} type="button" onClick={() => onChange((activeIndex! + 1) % images.length)} aria-label="Ảnh tiếp theo">›</button>
           </>
         )}
         <img className={styles.image} src={activeImage.url} alt={activeImage.alt} />
         <div className={styles.caption}>
           <span>{activeImage.alt}</span>
-          <span>{(activeIndex ?? 0) + 1} / {images.length}</span>
+          <span>{activeIndex! + 1} / {images.length}</span>
         </div>
       </section>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type DragEvent } from "react";
 import Link from "next/link";
+import PhotoLightbox from "@/features/garden/components/PhotoLightbox";
 import { adminSupabase } from "@/lib/adminSupabase";
 import {
   FAIRYTALE_GARDEN_ADMIN_USER_ID,
@@ -72,6 +73,7 @@ export default function AdminDashboard() {
   const [selectedGardenId, setSelectedGardenId] = useState("");
   const [gardensLoading, setGardensLoading] = useState(false);
   const [photos, setPhotos] = useState<Photo[]>([]);
+  const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
   const [photosLoading, setPhotosLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [dragging, setDragging] = useState(false);
@@ -536,7 +538,16 @@ export default function AdminDashboard() {
                     <div className={styles.photoGrid}>
                       {photos.map((photo) => (
                         <figure className={styles.photoCard} key={photo.path}>
-                          <img src={photo.url} alt={"Ảnh trong " + selectedGarden.name} loading="lazy" />
+                          <button
+                            type="button"
+                            className={styles.photoOpenButton}
+                            onClick={() => setActivePhotoIndex(photos.findIndex((item) => item.path === photo.path))}
+                            aria-label="Phóng to ảnh trong kho"
+                            title="Bấm để xem ảnh lớn"
+                          >
+                            <img src={photo.url} alt={"Ảnh trong " + selectedGarden.name} loading="lazy" />
+                            <span aria-hidden="true">⌕</span>
+                          </button>
                           <figcaption>
                             <span>{photo.name.replace(/^[0-9a-f-]{36}-/i, "")}</span>
                             <button
@@ -567,6 +578,12 @@ export default function AdminDashboard() {
           </footer>
         </div>
       </div>
+      <PhotoLightbox
+        images={photos.map((photo) => ({ url: photo.url, alt: photo.name }))}
+        activeIndex={activePhotoIndex}
+        onClose={() => setActivePhotoIndex(null)}
+        onChange={setActivePhotoIndex}
+      />
     </main>
   );
 }
