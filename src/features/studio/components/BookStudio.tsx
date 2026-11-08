@@ -855,6 +855,7 @@ export default function BookStudio() {
                   {selectedGarden.approval_status === "pending" && <button type="button" className={styles.secondaryButton} onClick={() => void withdrawReview()} disabled={saving}>Rút yêu cầu duyệt</button>}
                 </div>
               )}
+              </section>
             </section>
         ) : (
           <section className={styles.emptyEditor}><span>✎</span><h2>Một trang giấy đang chờ bạn.</h2><p>Tạo bản thảo đầu tiên và chọn cách kể chuyện mình thích.</p><button type="button" onClick={createWork} disabled={saving}>＋ Bắt đầu viết</button></section>
