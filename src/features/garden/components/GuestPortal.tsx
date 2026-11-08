@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import styles from "./GuestPortal.module.css";
+import styles from "../styles/GuestPortal.module.css";
 
 function extractGardenSlug(value: string): string | null {
   const input = value.trim();
