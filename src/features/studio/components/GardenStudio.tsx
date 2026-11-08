@@ -145,6 +145,11 @@ export default function GardenStudio() {
   const [newChapterFlower, setNewChapterFlower] = useState<FlowerKind>("daisy");
   const [selectedChapterId, setSelectedChapterId] = useState("");
   const [selectedItemId, setSelectedItemId] = useState("");
+  const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
+  const [multiSelect, setMultiSelect] = useState(false);
+  const [showLayoutGrid, setShowLayoutGrid] = useState(true);
+  const [snapToGrid, setSnapToGrid] = useState(true);
+  const [gridStep, setGridStep] = useState(5);
   const [coverUrl, setCoverUrl] = useState("");
   const [coverLightboxOpen, setCoverLightboxOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -152,6 +157,7 @@ export default function GardenStudio() {
 
   const selectedGarden = gardens.find((garden) => garden.id === selectedId) ?? null;
   const selectedItem = items.find((item) => item.id === selectedItemId) ?? null;
+  const selectedItems = items.filter((item) => selectedItemIds.includes(item.id));
   const selectedChapter = chapters.find((chapter) => chapter.chapter_id === selectedChapterId) ?? null;
   const shareUrl = selectedGarden?.share_slug
     ? (typeof window !== "undefined" ? window.location.origin : "https://little-flower-world.vercel.app") + "/g/" + selectedGarden.share_slug
@@ -196,7 +202,13 @@ export default function GardenStudio() {
     if (secretResult.error) throw secretResult.error;
     if (guestbookResult.error) throw guestbookResult.error;
 
-    setItems((itemResult.data ?? []) as GardenItemRow[]);
+    const loadedItems = (itemResult.data ?? []) as GardenItemRow[];
+    setItems(loadedItems);
+    setSelectedItemId((current) => loadedItems.some((item) => item.id === current) ? current : loadedItems[0]?.id ?? "");
+    setSelectedItemIds((current) => {
+      const valid = current.filter((id) => loadedItems.some((item) => item.id === id));
+      return valid.length > 0 ? valid : loadedItems[0] ? [loadedItems[0].id] : [];
+    });
     setChapters((chapterResult.data ?? []).map((chapter) => ({
       ...chapter,
       paragraphs: toParagraphs(chapter.paragraphs),
@@ -588,21 +600,43 @@ export default function GardenStudio() {
     setNotice("Đã xóa chương truyện.");
   }
 
+  function snapCoordinate(value: number, step: number) {
+    return snapToGrid ? Math.round(value / step) * step : value;
+  }
+
+  function selectCanvasItem(itemId: string, additive: boolean) {
+    setSelectedItemId(itemId);
+    setSelectedItemIds((current) => {
+      if (!additive) return [itemId];
+      return current.includes(itemId) ? current : [...current, itemId];
+    });
+  }
+
   function handleDragStart(event: PointerEvent<HTMLButtonElement>, itemId: string) {
     if (event.button !== 0) return;
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
     draggingRef.current = { id: itemId, pointerId: event.pointerId };
-    setSelectedItemId(itemId);
+    selectCanvasItem(itemId, multiSelect || event.shiftKey);
   }
 
   function handleCanvasMove(event: PointerEvent<HTMLDivElement>) {
     const dragging = draggingRef.current;
     const canvas = canvasRef.current;
     if (!dragging || !canvas || dragging.pointerId !== event.pointerId) return;
+
     const rect = canvas.getBoundingClientRect();
-    const x = Math.max(2, Math.min(98, ((event.clientX - rect.left) / rect.width) * 100));
-    const depth = Math.max(0, Math.min(1, 1 - ((event.clientY - rect.top) / rect.height)));
+    if (rect.width <= 0 || rect.height <= 0) return;
+
+    const rawX = ((event.clientX - rect.left) / rect.width) * 100;
+    const bottomRatio = 1 - ((event.clientY - rect.top) / rect.height);
+    // Keep the placement plane within the real ground band of the visitor's garden scene.
+    const rawDepth = (bottomRatio - 0.08) / 0.27;
+    const xStep = gridStep;
+    const depthStep = gridStep / 100;
+    const x = Math.max(2, Math.min(98, snapCoordinate(rawX, xStep)));
+    const depth = Math.max(0, Math.min(1, snapCoordinate(rawDepth, depthStep)));
+
     setItems((current) => current.map((item) => item.id === dragging.id ? { ...item, x, depth } : item));
     setDirtyLayout(true);
   }
@@ -612,19 +646,107 @@ export default function GardenStudio() {
     if (dragging?.pointerId === event.pointerId) draggingRef.current = null;
   }
 
+  function moveSelection(horizontal: number, depthDirection: number) {
+    const ids = selectedItemIds.length > 0 ? selectedItemIds : selectedItemId ? [selectedItemId] : [];
+    if (ids.length === 0) return;
+    const step = snapToGrid ? gridStep : 1;
+    const depthStep = step / 100;
+
+    setItems((current) => current.map((item) => {
+      if (!ids.includes(item.id)) return item;
+      const x = Math.max(2, Math.min(98, snapCoordinate(item.x + horizontal * step, step)));
+      const depth = Math.max(0, Math.min(1, snapCoordinate(item.depth + depthDirection * depthStep, depthStep)));
+      return { ...item, x, depth };
+    }));
+    setDirtyLayout(true);
+  }
+
+  function handleCanvasKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key === "ArrowLeft" || event.key === "ArrowRight" || event.key === "ArrowUp" || event.key === "ArrowDown") {
+      event.preventDefault();
+      moveSelection(
+        event.key === "ArrowLeft" ? -1 : event.key === "ArrowRight" ? 1 : 0,
+        event.key === "ArrowUp" ? 1 : event.key === "ArrowDown" ? -1 : 0,
+      );
+    }
+  }
+
+  function alignSelection(mode: "center" | "row" | "column" | "distribute-x" | "distribute-depth") {
+    const ids = selectedItems.map((item) => item.id);
+    if (ids.length === 0) return;
+    if ((mode === "distribute-x" || mode === "distribute-depth") && ids.length < 3) return;
+
+    setItems((current) => {
+      const chosen = current.filter((item) => ids.includes(item.id));
+      if (chosen.length === 0) return current;
+      const nextPositions = new Map<string, { x: number; depth: number }>();
+
+      if (mode === "center") {
+        const minX = Math.min(...chosen.map((item) => item.x));
+        const maxX = Math.max(...chosen.map((item) => item.x));
+        const minDepth = Math.min(...chosen.map((item) => item.depth));
+        const maxDepth = Math.max(...chosen.map((item) => item.depth));
+        const shiftX = 50 - (minX + maxX) / 2;
+        const shiftDepth = 0.5 - (minDepth + maxDepth) / 2;
+        chosen.forEach((item) => nextPositions.set(item.id, {
+          x: Math.max(2, Math.min(98, snapCoordinate(item.x + shiftX, gridStep))),
+          depth: Math.max(0, Math.min(1, snapCoordinate(item.depth + shiftDepth, gridStep / 100))),
+        }));
+      } else if (mode === "row") {
+        const average = chosen.reduce((sum, item) => sum + item.depth, 0) / chosen.length;
+        const depth = Math.max(0, Math.min(1, snapCoordinate(average, gridStep / 100)));
+        chosen.forEach((item) => nextPositions.set(item.id, { x: item.x, depth }));
+      } else if (mode === "column") {
+        const average = chosen.reduce((sum, item) => sum + item.x, 0) / chosen.length;
+        const x = Math.max(2, Math.min(98, snapCoordinate(average, gridStep)));
+        chosen.forEach((item) => nextPositions.set(item.id, { x, depth: item.depth }));
+      } else {
+        const axis = mode === "distribute-x" ? "x" : "depth";
+        const sorted = [...chosen].sort((left, right) => left[axis] - right[axis]);
+        let first = sorted[0][axis];
+        let last = sorted[sorted.length - 1][axis];
+        if (last - first < (axis === "x" ? 12 : 0.12)) {
+          const middle = (first + last) / 2;
+          const spread = axis === "x" ? 24 : 0.24;
+          first = Math.max(axis === "x" ? 2 : 0, middle - spread / 2);
+          last = Math.min(axis === "x" ? 98 : 1, middle + spread / 2);
+        }
+        sorted.forEach((item, index) => {
+          const value = first + ((last - first) * index) / (sorted.length - 1);
+          nextPositions.set(item.id, axis === "x"
+            ? { x: snapCoordinate(value, gridStep), depth: item.depth }
+            : { x: item.x, depth: snapCoordinate(value, gridStep / 100) });
+        });
+      }
+
+      return current.map((item) => {
+        const position = nextPositions.get(item.id);
+        return position ? { ...item, ...position } : item;
+      });
+    });
+    setDirtyLayout(true);
+  }
+
+  async function discardLayout() {
+    if (!selectedGarden || !dirtyLayout) return;
+    await loadGardenDetails(selectedGarden);
+    setNotice("Đã khôi phục bố cục đã lưu gần nhất.");
+  }
+
   async function saveLayout() {
-    if (!selectedGarden || saving) return;
+    if (!selectedGarden || saving || !dirtyLayout) return;
     setSaving(true);
+    setError("");
     const results = await Promise.all(items.map((item) =>
       adminSupabase.from("garden_items").update({ x: item.x, depth: item.depth }).eq("id", item.id),
     ));
     const failed = results.find((result) => result.error);
     if (failed?.error) {
       console.error("Save garden layout failed:", failed.error);
-      setError("Chưa lưu được toàn bộ vị trí hoa. Anh thử lại nhé.");
+      setError("Một phần vị trí chưa lưu được. Anh giữ nguyên bản nháp trên màn hình và thử lưu lại nhé.");
     } else {
       setDirtyLayout(false);
-      setNotice("Đã lưu bố cục hoa trong khu vườn.");
+      setNotice("Đã lưu toàn bộ vị trí hoa trong khu vườn.");
     }
     setSaving(false);
   }
@@ -632,23 +754,27 @@ export default function GardenStudio() {
   async function addDecoration() {
     if (!selectedGarden || saving) return;
     const flower = FLOWERS.find((item) => item.value === newChapterFlower) ?? FLOWERS[0];
-    const { error: insertError } = await adminSupabase.from("garden_items").insert({
+    const { data: createdItem, error: insertError } = await adminSupabase.from("garden_items").insert({
       garden_id: selectedGarden.id,
       kind: flower.value,
       color: flower.color,
       x: 50,
-      depth: 0.2,
-      size: 0.62,
+      depth: 0.35,
+      size: 0.72,
       chapter_id: null,
       label: null,
       title: null,
       sort_order: items.length + 1,
-    });
-    if (insertError) {
+    }).select("id").single();
+    if (insertError || !createdItem) {
+      console.error("Add garden decoration failed:", insertError);
       setError("Chưa thêm được bông hoa trang trí.");
       return;
     }
     await loadGardenDetails(selectedGarden);
+    setSelectedItemId(createdItem.id);
+    setSelectedItemIds([createdItem.id]);
+    setNotice("Đã thêm hoa mới ở giữa khu vườn. Anh có thể kéo đến vị trí mong muốn.");
   }
 
   async function saveSelectedItem() {
@@ -810,32 +936,99 @@ export default function GardenStudio() {
 
             <section className={styles.section}>
               <div className={styles.sectionTitle}><span>03</span><div><h3>Bố cục khu vườn</h3><p>Kéo hoa trên khu vườn để sắp xếp. Thay đổi sẽ được lưu vào bản thiết kế.</p></div></div>
-              <div ref={canvasRef} className={styles.canvas} onPointerMove={handleCanvasMove} onPointerUp={handleCanvasEnd} onPointerCancel={handleCanvasEnd}>
+              <div className={styles.layoutTopbar}>
+                <div className={styles.layoutToggles}>
+                  <label className={styles.layoutToggle}><input type="checkbox" checked={showLayoutGrid} onChange={(event) => setShowLayoutGrid(event.target.checked)}/> Hiện lưới căn</label>
+                  <label className={styles.layoutToggle}><input type="checkbox" checked={snapToGrid} onChange={(event) => setSnapToGrid(event.target.checked)}/> Hút vào lưới</label>
+                  <label className={styles.gridStepControl}>Bước lưới<select value={gridStep} onChange={(event) => setGridStep(Number(event.target.value))}><option value={5}>5%</option><option value={10}>10%</option></select></label>
+                </div>
+                <div className={styles.selectionControls}>
+                  <label className={styles.layoutToggle}><input type="checkbox" checked={multiSelect} onChange={(event) => setMultiSelect(event.target.checked)}/> Chọn nhiều hoa</label>
+                  <button type="button" onClick={() => { setSelectedItemIds([]); setSelectedItemId(""); }}>Bỏ chọn</button>
+                  <span>{selectedItems.length} đang chọn</span>
+                </div>
+              </div>
+
+              <div
+                ref={canvasRef}
+                className={styles.canvas}
+                onPointerMove={handleCanvasMove}
+                onPointerUp={handleCanvasEnd}
+                onPointerCancel={handleCanvasEnd}
+                onKeyDown={handleCanvasKeyDown}
+                tabIndex={0}
+                role="group"
+                aria-label="Bản đồ bố cục khu vườn. Chọn hoa rồi dùng phím mũi tên để di chuyển."
+              >
+                <div className={styles.canvasRulerX} aria-hidden="true">
+                  {[0, 25, 50, 75, 100].map((value) => <span key={value} style={{ left: value + "%" }}>{value}</span>)}
+                </div>
+                <div className={styles.canvasDepthLabels} aria-hidden="true"><span>SAU</span><span>TRƯỚC</span></div>
+                <div className={styles.canvasDepthPlane} aria-hidden="true"/>
+                {showLayoutGrid && <div className={styles.canvasGrid} style={{ ["--grid-step" as string]: gridStep + "%", ["--grid-depth-step" as string]: (gridStep / 27 * 100) + "%" }} aria-hidden="true"/>}
                 <span className={styles.canvasSun}/><span className={styles.canvasPond}/><span className={styles.canvasPath}/>
-                {items.map((item) => (
-                  <button key={item.id} type="button" className={item.id === selectedItemId ? styles.flowerSelected : styles.flowerHandle}
-                    style={{ left: item.x + "%", bottom: (8 + item.depth * 16) + "%" }}
-                    onPointerDown={(event) => handleDragStart(event, item.id)}
-                    onClick={() => setSelectedItemId(item.id)}
-                    aria-label={"Di chuyển " + (FLOWERS.find((flower) => flower.value === item.kind)?.label ?? "bông hoa")}
-                    title={item.title || item.label || "Hoa trang trí"}>
-                    <Flower kind={item.kind} color={item.color} size={0.42}/>
-                    {item.chapter_id && <span>{item.label || "Chương"}</span>}
-                  </button>
-                ))}
+                {items.map((item) => {
+                  const isSelected = selectedItemIds.includes(item.id);
+                  const isFocused = item.id === selectedItemId;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      className={isFocused ? styles.flowerFocused : isSelected ? styles.flowerSelected : styles.flowerHandle}
+                      style={{
+                        left: item.x + "%",
+                        bottom: (8 + item.depth * 27) + "%",
+                        zIndex: 5 + Math.round((1 - item.depth) * 15),
+                        ["--flower-scale" as string]: Math.max(0.72, Math.min(1.28, item.size)),
+                      }}
+                      onPointerDown={(event) => handleDragStart(event, item.id)}
+                      onClick={(event) => selectCanvasItem(item.id, multiSelect || event.shiftKey)}
+                      aria-pressed={isSelected}
+                      aria-label={"Chọn " + (FLOWERS.find((flower) => flower.value === item.kind)?.label ?? "bông hoa") + (item.title ? ": " + item.title : "")}
+                      title={(item.title || item.label || "Hoa trang trí") + " · X " + Math.round(item.x) + "% · " + Math.round(item.depth * 100) + "% chiều sâu"}
+                    >
+                      <Flower kind={item.kind} color={item.color} size={0.42}/>
+                      {item.chapter_id && <span>{item.label || "Chương"}</span>}
+                    </button>
+                  );
+                })}
                 {items.length === 0 && <p className={styles.canvasHint}>Thêm hoa hoặc chương để bắt đầu bố trí.</p>}
               </div>
+
+              <div className={styles.layoutActionGroups}>
+                <div className={styles.layoutActionGroup}>
+                  <span className={styles.layoutGroupLabel}>Căn chỉnh</span>
+                  <button type="button" onClick={() => alignSelection("center")} disabled={selectedItems.length === 0}>Căn giữa khu vườn</button>
+                  <button type="button" onClick={() => alignSelection("row")} disabled={selectedItems.length < 2}>Cùng hàng</button>
+                  <button type="button" onClick={() => alignSelection("column")} disabled={selectedItems.length < 2}>Cùng cột</button>
+                </div>
+                <div className={styles.layoutActionGroup}>
+                  <span className={styles.layoutGroupLabel}>Phân bố đều</span>
+                  <button type="button" onClick={() => alignSelection("distribute-x")} disabled={selectedItems.length < 3}>Đều ngang</button>
+                  <button type="button" onClick={() => alignSelection("distribute-depth")} disabled={selectedItems.length < 3}>Đều chiều sâu</button>
+                </div>
+                <div className={styles.layoutActionGroup}>
+                  <span className={styles.layoutGroupLabel}>Di chuyển chính xác</span>
+                  <button type="button" onClick={() => moveSelection(-1, 0)} disabled={selectedItems.length === 0}>← Trái</button>
+                  <button type="button" onClick={() => moveSelection(1, 0)} disabled={selectedItems.length === 0}>Phải →</button>
+                  <button type="button" onClick={() => moveSelection(0, 1)} disabled={selectedItems.length === 0}>↑ Sau</button>
+                  <button type="button" onClick={() => moveSelection(0, -1)} disabled={selectedItems.length === 0}>↓ Trước</button>
+                </div>
+              </div>
+
               <div className={styles.canvasTools}>
                 <label>Loài hoa<select value={newChapterFlower} onChange={(event) => setNewChapterFlower(event.target.value as FlowerKind)}>{FLOWERS.map((flower) => <option key={flower.value} value={flower.value}>{flower.label}</option>)}</select></label>
-                <button type="button" onClick={addDecoration}>＋ Thêm hoa trang trí</button>
-                <button type="button" onClick={saveLayout} disabled={!dirtyLayout || saving}>Lưu vị trí hoa</button>
+                <button type="button" onClick={addDecoration} disabled={saving}>＋ Thêm hoa trang trí</button>
+                <button type="button" onClick={discardLayout} disabled={!dirtyLayout || saving}>Hoàn tác</button>
+                <button type="button" onClick={saveLayout} disabled={!dirtyLayout || saving}>{saving ? "Đang lưu..." : "Lưu bố cục"}</button>
               </div>
+              <p className={styles.layoutHint}>Mẹo: kéo hoa để đổi vị trí; giữ Shift hoặc bật “Chọn nhiều” để chọn nhóm. Dùng phím mũi tên khi vùng vườn đang được chọn để dịch chính xác theo bước lưới.</p>
               {selectedItem && <div className={styles.itemEditor}>
-                <strong>{selectedItem.title || selectedItem.label || "Hoa trang trí"}</strong>
+                <strong>{selectedItems.length > 1 ? selectedItems.length + " hoa đang chọn · đang chỉnh " : "Đang chỉnh "}{selectedItem.title || selectedItem.label || "Hoa trang trí"}</strong>
                 <label>Kích thước<input type="range" min="0.3" max="1.3" step="0.05" value={selectedItem.size} onChange={(event) => setItems((current) => current.map((item) => item.id === selectedItem.id ? { ...item, size: Number(event.target.value) } : item))}/></label>
                 <label>Màu hoa<input type="color" value={selectedItem.color} onChange={(event) => setItems((current) => current.map((item) => item.id === selectedItem.id ? { ...item, color: event.target.value } : item))}/></label>
-                <button type="button" onClick={saveSelectedItem}>Lưu hoa</button>
-                {!selectedItem.chapter_id && <button type="button" className={styles.dangerButton} onClick={removeSelectedItem}>Xóa hoa</button>}
+                <button type="button" onClick={saveSelectedItem} disabled={saving}>Lưu hoa đang chỉnh</button>
+                {!selectedItem.chapter_id && <button type="button" className={styles.dangerButton} onClick={removeSelectedItem} disabled={saving}>Xóa hoa</button>}
               </div>}
             </section>
 
