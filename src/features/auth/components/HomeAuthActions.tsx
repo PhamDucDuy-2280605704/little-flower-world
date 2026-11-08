@@ -26,7 +26,6 @@ export default function HomeAuthActions({
   useEffect(() => {
     let active = true;
 
-    // Theo dõi khi người dùng đăng nhập hoặc đăng xuất.
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -37,7 +36,6 @@ export default function HomeAuthActions({
       setError("");
     });
 
-    // Kiểm tra phiên đăng nhập hiện tại.
     void supabase.auth
       .getSession()
       .then(({ data, error }) => {
@@ -64,7 +62,6 @@ export default function HomeAuthActions({
     };
   }, []);
 
-  // Đăng xuất tài khoản hiện tại.
   async function handleLogout() {
     if (loggingOut) return;
 
@@ -72,7 +69,8 @@ export default function HomeAuthActions({
     setError("");
 
     try {
-      const { error } = await supabase.auth.signOut();
+      // Do not revoke other sessions for the same account (e.g. the separate admin portal).
+      const { error } = await supabase.auth.signOut({ scope: "local" });
 
       if (error) {
         throw error;

@@ -1,43 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Little Flower World
 
-## Getting Started
+Một món quà số nhỏ: mỗi tài khoản có khu vườn, câu chuyện và tiến độ đọc riêng.
 
-First, run the development server:
+## Công nghệ
+
+- Next.js App Router, React và TypeScript
+- CSS Modules và Tailwind CSS
+- Motion cho chuyển động/hiệu ứng
+- Supabase Auth, Postgres Row Level Security (RLS) và Storage
+
+## Các trang chính
+
+| Đường dẫn | Chức năng |
+| --- | --- |
+| `/` | Trang chủ và tủ hoa |
+| `/login` | Đăng nhập tài khoản khách |
+| `/gift` | Hộp quà, khu vườn và câu chuyện cá nhân |
+| `/admin/login` | Cổng đăng nhập quản trị |
+| `/admin` | Quản lý khu vườn và album ảnh |
+
+## Chạy trên máy
+
+1. Cài Node.js tương thích với phiên bản Next.js trong `package.json`.
+2. Cài dependencies:
+
+   ```bash
+   npm ci
+   ```
+
+3. Tạo file môi trường cục bộ:
+
+   ```bash
+   cp .env.example .env.local
+   ```
+
+4. Điền hai biến Supabase trong `.env.local`:
+
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
+   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<publishable-key>
+   ```
+
+5. Khởi động:
+
+   ```bash
+   npm run dev
+   ```
+
+Mở [http://localhost:3000](http://localhost:3000).
+
+## Kiểm tra chất lượng
+
+Chạy trước khi đưa thay đổi lên nhánh chính:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run lint
+npm run typecheck
+npm run build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Dữ liệu và quyền truy cập
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `gardens` lưu một khu vườn theo chủ sở hữu.
+- `garden_items` lưu vị trí, loại và màu hoa.
+- `garden_chapters` lưu nội dung từng chương.
+- `story_progress` lưu tiến độ đọc của từng tài khoản.
+- `garden-photos` là bucket private; ảnh được xem qua signed URL.
+- RLS giới hạn người dùng ở dữ liệu của mình. Tài khoản quản trị được cấp quyền riêng trên database; giao diện admin không thay thế RLS.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Các migration được lưu trong [`supabase/migrations/`](supabase/migrations/). Hướng dẫn cấu trúc và dữ liệu nằm trong [`supabase/README.md`](supabase/README.md).
 
-## Learn More
+**Bảo mật:** chỉ dùng publishable key ở trình duyệt. Không đưa Supabase service-role key, secret key hoặc thông tin đăng nhập vào mã nguồn hay biến `NEXT_PUBLIC_*`.
 
-To learn more about Next.js, take a look at the following resources:
+## Triển khai
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-
-## Vườn hoa riêng cho từng tài khoản
-
-Hướng dẫn tạo database, bật RLS và tạo khu vườn/câu chuyện riêng cho từng tài khoản nằm tại [supabase/README.md](supabase/README.md).
-
-Các thành phần khu vườn hiện tại vẫn dùng chung renderer và animation. Nội dung riêng của từng người được tải từ các bảng Supabase `gardens`, `garden_items` và `garden_chapters`; tiến độ đọc tiếp tục được lưu ở `story_progress` theo `user_id`.
+Repository được kết nối với Vercel. Push lên `main` sẽ kích hoạt quy trình production của dự án.
