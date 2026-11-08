@@ -685,3 +685,135 @@
 .topbar nav button{min-height:34px;padding:7px 12px;border:1px solid rgba(143,113,74,.24);border-radius:999px;background:rgba(255,251,242,.75);color:#775a3a;font:inherit;font-size:11px;font-weight:750;cursor:pointer}
 .topbar nav button:hover{border-color:rgba(143,113,74,.45);background:#f1e8d8}
 @media(max-width:760px){.topbar{align-items:flex-start;flex-direction:column}.topbar nav{width:100%;gap:8px 13px}}
+
+
+/* Clear seven-step editor navigation. */
+.stepNav{
+  position:sticky;top:8px;z-index:30;
+  display:flex;align-items:center;gap:6px;
+  width:100%;margin:14px 0 4px;padding:8px;
+  overflow-x:auto;overscroll-behavior-inline:contain;
+  border:1px solid rgba(143,113,74,.16);border-radius:14px;
+  background:rgba(250,245,234,.94);
+  box-shadow:0 8px 20px rgba(78,58,37,.06);
+  scrollbar-width:thin;
+}
+.stepNav a{
+  display:inline-flex;align-items:center;gap:7px;flex:0 0 auto;
+  min-height:34px;padding:6px 10px;border:1px solid transparent;border-radius:9px;
+  color:#755a3d;text-decoration:none;font-size:10px;font-weight:800;white-space:nowrap;
+}
+.stepNav a:hover{border-color:rgba(143,113,74,.2);background:#f0e6d4}
+.stepNav a:first-child{background:#e9e1cf;border-color:rgba(143,113,74,.16)}
+.stepNav a span{font-weight:650}
+
+/* Section headers keep titles readable and all Vietnamese marks on the same line. */
+.sectionTitle>div{flex:1;min-width:0}
+.sectionTitle h3,.editorHeading h2,.sideHeader h2,.intro h1,.chapterEditor label,.addChapter label{
+  font-family:var(--font-geist-sans),"Noto Sans",Arial,sans-serif;
+  font-kerning:normal;letter-spacing:0;word-spacing:normal;
+}
+.sectionTitle h3{line-height:1.35}
+.sectionTitle p{line-height:1.65;overflow-wrap:anywhere}
+.section{scroll-margin-top:78px}
+.section label{line-height:1.45}
+.section input,.section select,.section textarea{font-family:var(--font-geist-sans),"Noto Sans",Arial,sans-serif;letter-spacing:0;line-height:1.45}
+.section button{font-family:var(--font-geist-sans),"Noto Sans",Arial,sans-serif;letter-spacing:0;line-height:1.35}
+
+/* Chapter collection supports a growing story, with a visible count and predictable spacing. */
+.chapterCount{
+  flex:0 0 auto;align-self:center;padding:6px 10px;border:1px solid rgba(113,131,82,.2);
+  border-radius:999px;background:#edf0df;color:#68774f;font-size:10px;font-weight:800;white-space:nowrap
+}
+.addChapterHeading{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.addChapterHeading h4{margin:0;color:#705638;font-size:13px;line-height:1.4}
+.addChapterHeading span{padding:5px 9px;border-radius:999px;background:#f0e5d2;color:#8d6a45;font-size:10px;font-weight:800;white-space:nowrap}
+.chapterHelp{margin:0;color:#8d7c65;font-size:10px;line-height:1.6}
+.chapterList{max-height:320px;overflow:auto;padding-right:3px;overscroll-behavior:contain}
+.chapterEntry{min-width:0}
+.chapterButton,.chapterActive{min-width:0}
+.chapterButton strong,.chapterActive strong{overflow-wrap:anywhere}
+
+/* Publish is a 3-step process; remove the duplicate all-purpose save button at the bottom. */
+.previewButton{
+  flex:0 0 auto;min-height:38px;padding:8px 13px;border:1px solid rgba(118,91,58,.28);
+  border-radius:11px;background:#f4ead9;color:#775937;font:inherit;font-size:11px;font-weight:800;white-space:nowrap;cursor:pointer
+}
+.previewButton:hover{border-color:#a47a4b;background:#fff8ea}
+.previewButton:disabled{opacity:.5;cursor:not-allowed}
+.publishSteps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}
+.publishStep{
+  display:grid;align-content:start;gap:11px;min-width:0;padding:14px;
+  border:1px solid rgba(143,113,74,.17);border-radius:14px 17px 14px 16px;background:#faf5eb
+}
+.publishStepNumber{display:grid;place-items:center;width:28px;height:28px;border:1px solid rgba(143,113,74,.2);border-radius:9px;background:#efe6d6;color:#8d6a45;font-size:10px;font-weight:850}
+.publishStepCopy{display:grid;gap:5px;min-width:0}
+.publishStepCopy strong{color:#604a33;font-size:12px;line-height:1.4}
+.publishStepCopy p{margin:0;color:#8b7c66;font-size:10px;line-height:1.6}
+.publishStep>button{width:100%;min-height:40px;padding:9px 12px;border:1px solid #86633f;border-radius:10px;background:linear-gradient(135deg,#a87c4c,#775639);color:#fff8e9;font:inherit;font-size:11px;font-weight:800;line-height:1.35;cursor:pointer}
+.publishStep>button.publishButton{background:linear-gradient(135deg,#76875c,#596f48);border-color:#596f48}
+.publishStep>button.unpublishButton{background:#f0e6d6;color:#795c3e;border-color:#c4ad8b}
+.publishStep>button:disabled{opacity:.55;cursor:wait}
+.pinToggle{display:flex!important;align-items:flex-start;gap:8px;margin:4px 0 0!important;color:#6f604d;font-size:10px!important;line-height:1.5}
+.pinToggle input{flex:0 0 auto;margin-top:2px;accent-color:#76875c}
+.pinInput{display:grid!important;gap:6px;margin-top:4px!important;font-size:10px!important}
+.pinInput input{width:100%;min-width:0;padding:9px 10px;border:1px solid rgba(139,109,70,.24);border-radius:9px;background:#fffdf7;color:#4e4031;font:inherit;font-size:11px}
+.sectionSaveNote{margin:13px 0 0;color:#93836d;font-size:10px;line-height:1.65}
+.saveFooter{display:none}
+
+/* Visitor preview dialog is deliberately distinct from the editor and cannot publish anything. */
+.previewDialog{
+  width:min(1120px,calc(100vw - 28px));max-width:none;max-height:calc(100dvh - 28px);
+  margin:auto;padding:0;overflow:hidden;border:1px solid rgba(143,113,74,.22);
+  border-radius:22px;background:#f8f2e7;color:#49382b;
+  box-shadow:0 32px 100px rgba(42,34,24,.3)
+}
+.previewDialog::backdrop{background:rgba(38,33,25,.58);backdrop-filter:blur(5px)}
+.previewHeader{
+  position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:15px;
+  padding:16px 20px;border-bottom:1px solid rgba(143,113,74,.16);background:rgba(255,251,242,.97)
+}
+.previewHeader .eyebrow{margin:0 0 4px;font-size:9px;letter-spacing:.12em}
+.previewHeader h2{margin:0;color:#4d3929;font-size:19px;font-weight:750;line-height:1.35;letter-spacing:0}
+.previewStatus{display:block;margin-top:4px;color:#8b7d66;font-size:10px}
+.previewHeader>button{flex:0 0 auto;min-height:36px;padding:7px 12px;border:1px solid rgba(143,113,74,.24);border-radius:999px;background:#f3ead9;color:#735638;font:inherit;font-size:11px;font-weight:750;cursor:pointer}
+.previewBody{max-height:calc(100dvh - 100px);overflow:auto;padding:clamp(14px,2.5vw,26px);overscroll-behavior:contain}
+.previewHero{width:min(100%,980px);margin:0 auto 16px;text-align:center}
+.previewHero>img{display:block;width:min(100%,720px);max-height:230px;margin:0 auto 17px;object-fit:cover;border-radius:16px}
+.previewHero .eyebrow{margin:0 0 5px;font-size:9px}
+.previewHero h3{margin:0;color:#4d3929;font-size:clamp(22px,3vw,30px);font-weight:700;line-height:1.35;letter-spacing:0}
+.previewHero>p:last-child{max-width:60ch;margin:7px auto 0;color:#827563;font-size:12px;line-height:1.7}
+.previewScene{width:min(100%,980px);margin:0 auto}
+.previewStoryList,.previewGuestbook{
+  width:min(100%,980px);display:grid;gap:9px;margin:16px auto 0;padding:16px;
+  border:1px solid rgba(143,113,74,.17);border-radius:15px;background:rgba(255,251,242,.83)
+}
+.previewStoryList>div{margin-bottom:4px}
+.previewStoryList .eyebrow{margin:0 0 3px}
+.previewStoryList h3,.previewGuestbook h3{margin:0;color:#5c4630;font-size:16px;line-height:1.4}
+.previewStoryList>button{
+  display:grid;grid-template-columns:32px minmax(0,1fr) auto;align-items:center;gap:10px;
+  padding:10px;border:1px solid rgba(143,113,74,.15);border-radius:10px;background:#f8f2e7;color:#68513a;text-align:left;cursor:pointer
+}
+.previewStoryList>button span{color:#a17b50;font-size:11px;font-weight:850}
+.previewStoryList>button strong{min-width:0;font-size:11px;overflow-wrap:anywhere}
+.previewStoryList>button small{color:#8e805f;font-size:10px}
+.previewStoryList>p,.previewGuestbook p,.previewGuestbook span{margin:0;color:#827563;font-size:11px;line-height:1.65}
+.previewGuestbook{margin-bottom:6px}
+@media(max-width:900px){.publishSteps{grid-template-columns:1fr}.publishStep{grid-template-columns:32px minmax(0,1fr);align-items:start}.publishStepNumber{grid-row:1 / span 2}.publishStepCopy{grid-column:2}.publishStep>button{grid-column:2;width:max-content;max-width:100%}}
+@media(max-width:620px){
+  .stepNav{top:4px;padding:6px}
+  .stepNav a{min-height:32px;padding:6px 8px;font-size:9px}
+  .sectionTitle{flex-wrap:wrap}
+  .sectionTitle>div{flex:1 1 calc(100% - 50px)}
+  .previewButton{margin-left:42px}
+  .publishStep{padding:12px}
+  .publishStep>button{width:100%}
+  .previewDialog{width:calc(100vw - 14px);max-height:calc(100dvh - 14px);border-radius:16px}
+  .previewHeader{align-items:flex-start;padding:12px}
+  .previewHeader h2{font-size:16px}
+  .previewBody{max-height:calc(100dvh - 78px);padding:10px}
+  .previewHero>img{max-height:150px}
+  .previewStoryList>button{grid-template-columns:26px minmax(0,1fr);gap:7px}
+  .previewStoryList>button small{grid-column:2}
+}
