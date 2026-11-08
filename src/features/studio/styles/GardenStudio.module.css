@@ -597,3 +597,82 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+
+/* Garden editor interaction and legibility pass. */
+.flowerHandle,
+.flowerSelected,
+.flowerFocused {
+  transform: translate(-50%, 0) scale(var(--flower-scale, 1));
+  transform-origin: center bottom;
+  isolation: isolate;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.flowerHandle {
+  border-color: transparent;
+  background: transparent;
+}
+.flowerSelected {
+  z-index: 110 !important;
+  border: 2px solid rgba(255, 250, 225, .95);
+  background: transparent;
+  box-shadow: 0 0 0 4px rgba(91, 112, 67, .32), 0 6px 14px rgba(38, 53, 31, .24);
+}
+.flowerFocused {
+  z-index: 120 !important;
+  border: 2px solid #fff2c5;
+  background: transparent;
+  box-shadow: 0 0 0 4px rgba(133, 105, 61, .36), 0 8px 18px rgba(44, 59, 35, .28);
+}
+.flowerCollision {
+  border: 2px dashed #b05d43 !important;
+  outline: 2px solid rgba(176, 93, 67, .2);
+  outline-offset: 2px;
+  background: rgba(255, 242, 230, .12);
+}
+.canvas {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.canvas:active {
+  cursor: grabbing;
+}
+.canvasTools {
+  align-items: end;
+  gap: 8px;
+}
+.canvasTools label {
+  min-width: min(100%, 220px);
+}
+.canvasTools button {
+  min-height: 40px;
+}
+.layoutActionGroup button:focus-visible,
+.selectionControls button:focus-visible,
+.canvasTools button:focus-visible {
+  outline: 3px solid rgba(126, 145, 93, .38);
+  outline-offset: 2px;
+}
+.layoutHint {
+  padding: 8px 10px;
+  border-left: 3px solid rgba(126, 145, 93, .42);
+  border-radius: 0 9px 9px 0;
+  background: rgba(239, 235, 216, .56);
+}
+@media (max-width: 620px) {
+  .canvasTools {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: end;
+  }
+  .canvasTools label {
+    grid-column: 1 / -1;
+    min-width: 0;
+  }
+  .canvasTools button {
+    width: 100%;
+  }
+}

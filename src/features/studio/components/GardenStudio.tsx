@@ -84,6 +84,41 @@ function toParagraphs(value: unknown): string[] {
     : [];
 }
 
+function clampValue(value: number, minimum: number, maximum: number): number {
+  return Math.max(minimum, Math.min(maximum, value));
+}
+
+function findOverlappingItems(items: GardenItemRow[], canvasWidth: number, canvasHeight: number): Set<string> {
+  const bounds = items.map((item) => {
+    const scale = clampValue(item.size, 0.72, 1.28);
+    const width = 100.8 * scale;
+    const height = 142.8 * scale;
+    const centerX = canvasWidth * item.x / 100;
+    const bottom = canvasHeight * (8 + item.depth * 27) / 100;
+    return {
+      id: item.id,
+      left: centerX - width / 2,
+      right: centerX + width / 2,
+      bottom,
+      top: bottom + height,
+    };
+  });
+  const collisions = new Set<string>();
+  for (let leftIndex = 0; leftIndex < bounds.length; leftIndex += 1) {
+    for (let rightIndex = leftIndex + 1; rightIndex < bounds.length; rightIndex += 1) {
+      const left = bounds[leftIndex];
+      const right = bounds[rightIndex];
+      const overlapsX = left.left < right.right + 5 && left.right + 5 > right.left;
+      const overlapsY = left.bottom < right.top + 4 && left.top + 4 > right.bottom;
+      if (overlapsX && overlapsY) {
+        collisions.add(left.id);
+        collisions.add(right.id);
+      }
+    }
+  }
+  return collisions;
+}
+
 function makeShareSlug(name: string): string {
   const base = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
     .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 34) || "little-garden";
@@ -158,6 +193,12 @@ export default function GardenStudio() {
   const selectedGarden = gardens.find((garden) => garden.id === selectedId) ?? null;
   const selectedItem = items.find((item) => item.id === selectedItemId) ?? null;
   const selectedItems = items.filter((item) => selectedItemIds.includes(item.id));
+  const canvasWidth = canvasRef.current?.clientWidth || 860;
+  const canvasHeight = canvasRef.current?.clientHeight || 410;
+  const overlappingItemIds = useMemo(
+    () => findOverlappingItems(items, canvasWidth, canvasHeight),
+    [items, canvasWidth, canvasHeight],
+  );
   const selectedChapter = chapters.find((chapter) => chapter.chapter_id === selectedChapterId) ?? null;
   const shareUrl = selectedGarden?.share_slug
     ? (typeof window !== "undefined" ? window.location.origin : "https://little-flower-world.vercel.app") + "/g/" + selectedGarden.share_slug
@@ -614,8 +655,6 @@ export default function GardenStudio() {
 
   function handleDragStart(event: PointerEvent<HTMLButtonElement>, itemId: string) {
     if (event.button !== 0) return;
-    event.preventDefault();
-    event.currentTarget.setPointerCapture(event.pointerId);
 
     const additive = multiSelect || event.shiftKey;
     const movingIds = additive
@@ -624,6 +663,13 @@ export default function GardenStudio() {
     const origins = items
       .filter((item) => movingIds.includes(item.id))
       .map((item) => ({ id: item.id, x: item.x, depth: item.depth }));
+
+    // Capture on the canvas, which owns pointer-move/up handlers.
+    try {
+      canvasRef.current?.setPointerCapture(event.pointerId);
+    } catch {
+      // Pointer events remain usable without capture on older/embedded browsers.
+    }
 
     draggingRef.current = {
       id: itemId,
@@ -652,7 +698,7 @@ export default function GardenStudio() {
     setItems((current) => current.map((item) => {
       const origin = originMap.get(item.id);
       if (!origin) return item;
-      const x = Math.max(2, Math.min(98, snapCoordinate(origin.x + deltaX, xStep)));
+      const x = Math.max(6, Math.min(94, snapCoordinate(origin.x + deltaX, xStep)));
       const depth = Math.max(0, Math.min(1, snapCoordinate(origin.depth + deltaDepth, depthStep)));
       return { ...item, x, depth };
     }));
@@ -665,23 +711,63 @@ export default function GardenStudio() {
   }
 
   function moveSelection(horizontal: number, depthDirection: number, targetIds: string[] = selectedItems.map((item) => item.id)) {
-    // Use the exact selection rendered beside the controls, with a focused-item fallback.
     const ids = targetIds.length > 0 ? targetIds : selectedItemId ? [selectedItemId] : [];
-    if (ids.length === 0) return;
+    if (ids.length === 0) {
+      setNotice("Anh chọn một bông hoa trước khi di chuyển nhé.");
+      return;
+    }
 
     const step = snapToGrid ? gridStep : 1;
     const depthStep = step / 27;
     const selectedIdSet = new Set(ids);
-
-    setItems((current) => current.map((item) => {
+    let changed = false;
+    const nextItems = items.map((item) => {
       if (!selectedIdSet.has(item.id)) return item;
       const rawX = item.x + horizontal * step;
       const rawDepth = item.depth + depthDirection * depthStep;
-      const x = Math.max(2, Math.min(98, snapToGrid ? Math.round(rawX / step) * step : rawX));
-      const depth = Math.max(0, Math.min(1, snapToGrid ? Math.round(rawDepth / depthStep) * depthStep : rawDepth));
+      const x = clampValue(snapToGrid ? Math.round(rawX / step) * step : rawX, 6, 94);
+      const depth = clampValue(snapToGrid ? Math.round(rawDepth / depthStep) * depthStep : rawDepth, 0, 1);
+      if (Math.abs(x - item.x) > 0.001 || Math.abs(depth - item.depth) > 0.00001) changed = true;
       return { ...item, x, depth };
+    });
+
+    if (!changed) {
+      setNotice("Hoa đã ở giới hạn của khu vườn theo hướng đó.");
+      return;
+    }
+    setItems(nextItems);
+    setDirtyLayout(true);
+    const direction = horizontal < 0 ? "sang trái" : horizontal > 0 ? "sang phải" : depthDirection > 0 ? "ra phía sau" : "ra phía trước";
+    setNotice("Đã dịch " + ids.length + " hoa " + direction + ".");
+  }
+
+  function autoArrangeGarden() {
+    if (items.length === 0) return;
+    const columns = items.length <= 6 ? items.length : Math.min(8, Math.ceil(items.length / 2));
+    const rows = Math.ceil(items.length / columns);
+    const spacing = columns > 1 ? 80 / (columns - 1) : 0;
+    const rowOffset = Math.min(8, spacing / 2);
+    const ordered = [...items].sort((left, right) => left.sort_order - right.sort_order);
+    const positions = new Map<string, { x: number; depth: number }>();
+
+    ordered.forEach((item, index) => {
+      const row = Math.floor(index / columns);
+      const column = index % columns;
+      const offset = row % 2 === 1 ? rowOffset : 0;
+      const x = clampValue(10 + column * spacing + offset, 6, 94);
+      const depth = rows === 1 ? 0.5 : 0.94 - (row * 0.9) / (rows - 1);
+      positions.set(item.id, { x, depth: clampValue(depth, 0.04, 0.96) });
+    });
+
+    setItems((current) => current.map((item) => {
+      const position = positions.get(item.id);
+      return position ? { ...item, ...position } : item;
     }));
     setDirtyLayout(true);
+    const first = ordered[0];
+    setSelectedItemId(first.id);
+    setSelectedItemIds([first.id]);
+    setNotice("Đã tự dàn " + items.length + " hoa thành " + rows + " hàng thoáng, giữ nguyên nội dung và loài hoa. Bấm “Lưu bố cục” để áp dụng.");
   }
 
   function updateSelectedPosition(axis: "x" | "depth", value: number) {
@@ -689,7 +775,7 @@ export default function GardenStudio() {
     setItems((current) => current.map((item) => {
       if (item.id !== selectedItemId) return item;
       return axis === "x"
-        ? { ...item, x: Math.max(2, Math.min(98, value)) }
+        ? { ...item, x: Math.max(6, Math.min(94, value)) }
         : { ...item, depth: Math.max(0, Math.min(1, value / 100)) };
     }));
     setDirtyLayout(true);
@@ -723,7 +809,7 @@ export default function GardenStudio() {
         const shiftX = 50 - (minX + maxX) / 2;
         const shiftDepth = 0.5 - (minDepth + maxDepth) / 2;
         chosen.forEach((item) => nextPositions.set(item.id, {
-          x: Math.max(2, Math.min(98, snapCoordinate(item.x + shiftX, gridStep))),
+          x: Math.max(6, Math.min(94, snapCoordinate(item.x + shiftX, gridStep))),
           depth: Math.max(0, Math.min(1, snapCoordinate(item.depth + shiftDepth, gridStep / 27))),
         }));
       } else if (mode === "row") {
@@ -732,7 +818,7 @@ export default function GardenStudio() {
         chosen.forEach((item) => nextPositions.set(item.id, { x: item.x, depth }));
       } else if (mode === "column") {
         const average = chosen.reduce((sum, item) => sum + item.x, 0) / chosen.length;
-        const x = Math.max(2, Math.min(98, snapCoordinate(average, gridStep)));
+        const x = Math.max(6, Math.min(94, snapCoordinate(average, gridStep)));
         chosen.forEach((item) => nextPositions.set(item.id, { x, depth: item.depth }));
       } else {
         const axis = mode === "distribute-x" ? "x" : "depth";
@@ -742,8 +828,8 @@ export default function GardenStudio() {
         if (last - first < (axis === "x" ? 12 : 0.12)) {
           const middle = (first + last) / 2;
           const spread = axis === "x" ? 24 : 0.24;
-          first = Math.max(axis === "x" ? 2 : 0, middle - spread / 2);
-          last = Math.min(axis === "x" ? 98 : 1, middle + spread / 2);
+          first = Math.max(axis === "x" ? 6 : 0, middle - spread / 2);
+          last = Math.min(axis === "x" ? 94 : 1, middle + spread / 2);
         }
         sorted.forEach((item, index) => {
           const value = first + ((last - first) * index) / (sorted.length - 1);
@@ -989,6 +1075,7 @@ export default function GardenStudio() {
                 onPointerMove={handleCanvasMove}
                 onPointerUp={handleCanvasEnd}
                 onPointerCancel={handleCanvasEnd}
+                onLostPointerCapture={() => { draggingRef.current = null; }}
                 onKeyDown={handleCanvasKeyDown}
                 tabIndex={0}
                 role="group"
@@ -1004,15 +1091,22 @@ export default function GardenStudio() {
                 {items.map((item) => {
                   const isSelected = selectedItemIds.includes(item.id);
                   const isFocused = item.id === selectedItemId;
+                  const isOverlapping = overlappingItemIds.has(item.id);
+                  const flowerClasses = [
+                    styles.flowerHandle,
+                    isSelected ? styles.flowerSelected : "",
+                    isFocused ? styles.flowerFocused : "",
+                    isOverlapping ? styles.flowerCollision : "",
+                  ].filter(Boolean).join(" ");
                   return (
                     <button
                       key={item.id}
                       type="button"
-                      className={isFocused ? styles.flowerFocused : isSelected ? styles.flowerSelected : styles.flowerHandle}
+                      className={flowerClasses}
                       style={{
-                        left: item.x + "%",
+                        left: clampValue(item.x, 6, 94) + "%",
                         bottom: (8 + item.depth * 27) + "%",
-                        zIndex: 5 + Math.round((1 - item.depth) * 15),
+                        zIndex: isFocused ? 120 : isSelected ? 110 : 20 + Math.round((1 - item.depth) * 40),
                         ["--flower-scale" as string]: Math.max(0.72, Math.min(1.28, item.size)),
                       }}
                       onPointerDown={(event) => handleDragStart(event, item.id)}
@@ -1043,23 +1137,28 @@ export default function GardenStudio() {
                 </div>
                 <div className={styles.layoutActionGroup}>
                   <span className={styles.layoutGroupLabel}>Di chuyển chính xác</span>
-                  <button type="button" onClick={() => moveSelection(-1, 0, selectedItems.map((item) => item.id))} disabled={selectedItems.length === 0} aria-label="Dịch hoa sang trái">← Trái</button>
-                  <button type="button" onClick={() => moveSelection(1, 0, selectedItems.map((item) => item.id))} disabled={selectedItems.length === 0} aria-label="Dịch hoa sang phải">Phải →</button>
-                  <button type="button" onClick={() => moveSelection(0, 1, selectedItems.map((item) => item.id))} disabled={selectedItems.length === 0} aria-label="Đưa hoa ra phía sau">↑ Sau</button>
-                  <button type="button" onClick={() => moveSelection(0, -1, selectedItems.map((item) => item.id))} disabled={selectedItems.length === 0} aria-label="Đưa hoa ra phía trước">↓ Trước</button>
+                  <button type="button" onClick={() => moveSelection(-1, 0)} disabled={selectedItems.length === 0 && !selectedItemId} aria-label="Dịch hoa sang trái">← Trái</button>
+                  <button type="button" onClick={() => moveSelection(1, 0)} disabled={selectedItems.length === 0 && !selectedItemId} aria-label="Dịch hoa sang phải">Phải →</button>
+                  <button type="button" onClick={() => moveSelection(0, 1)} disabled={selectedItems.length === 0 && !selectedItemId} aria-label="Đưa hoa ra phía sau">↑ Sau</button>
+                  <button type="button" onClick={() => moveSelection(0, -1)} disabled={selectedItems.length === 0 && !selectedItemId} aria-label="Đưa hoa ra phía trước">↓ Trước</button>
                 </div>
               </div>
 
               <div className={styles.canvasTools}>
                 <label>Loài hoa<select value={newChapterFlower} onChange={(event) => setNewChapterFlower(event.target.value as FlowerKind)}>{FLOWERS.map((flower) => <option key={flower.value} value={flower.value}>{flower.label}</option>)}</select></label>
+                <button type="button" onClick={autoArrangeGarden} disabled={items.length < 2 || saving}>✧ Tự dàn hoa</button>
                 <button type="button" onClick={addDecoration} disabled={saving}>＋ Thêm hoa trang trí</button>
                 <button type="button" onClick={discardLayout} disabled={!dirtyLayout || saving}>Hoàn tác</button>
                 <button type="button" onClick={saveLayout} disabled={!dirtyLayout || saving}>{saving ? "Đang lưu..." : "Lưu bố cục"}</button>
               </div>
-              <p className={styles.layoutHint}>Mẹo: kéo hoa để đổi vị trí; giữ Shift hoặc bật “Chọn nhiều” để chọn nhóm. Dùng phím mũi tên khi vùng vườn đang được chọn để dịch chính xác theo bước lưới.</p>
+              <p className={styles.layoutHint}>
+                {overlappingItemIds.size > 0
+                  ? "Đang có " + overlappingItemIds.size + " hoa chồng vùng hiển thị. Bấm “Tự dàn hoa” để tách các hàng, sau đó lưu bố cục."
+                  : "Kéo hoa để đổi vị trí; giữ Shift hoặc bật “Chọn nhiều” để chọn nhóm. Mũi tên dịch theo bước lưới. Hoa được giữ trong mép sân để không bị cắt."}
+              </p>
               {selectedItem && <div className={styles.itemEditor}>
                 <strong>{selectedItems.length > 1 ? selectedItems.length + " hoa đang chọn · đang chỉnh " : "Đang chỉnh "}{selectedItem.title || selectedItem.label || "Hoa trang trí"}</strong>
-                <label>Vị trí ngang X (%)<input type="number" min="2" max="98" step="1" value={Math.round(selectedItem.x)} onChange={(event) => updateSelectedPosition("x", Number(event.target.value))}/></label>
+                <label>Vị trí ngang X (%)<input type="number" min="6" max="94" step="1" value={Math.round(selectedItem.x)} onChange={(event) => updateSelectedPosition("x", Number(event.target.value))}/></label>
                 <label>Chiều sâu (%)<input type="number" min="0" max="100" step="1" value={Math.round(selectedItem.depth * 100)} onChange={(event) => updateSelectedPosition("depth", Number(event.target.value))}/></label>
                 <label>Kích thước<input type="range" min="0.3" max="1.3" step="0.05" value={selectedItem.size} onChange={(event) => setItems((current) => current.map((item) => item.id === selectedItem.id ? { ...item, size: Number(event.target.value) } : item))}/></label>
                 <label>Màu hoa<input type="color" value={selectedItem.color} onChange={(event) => setItems((current) => current.map((item) => item.id === selectedItem.id ? { ...item, color: event.target.value } : item))}/></label>
