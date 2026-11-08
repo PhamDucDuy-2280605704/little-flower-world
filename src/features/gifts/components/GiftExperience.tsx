@@ -9,6 +9,7 @@ import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import GardenView from "@/features/garden/components/GardenView";
 import FairytaleGardenView from "@/features/garden/components/FairytaleGardenView";
+import FairytalePhotoGallery from "@/features/garden/components/FairytalePhotoGallery";
 import { FAIRYTALE_TEST_GARDEN_ID } from "@/features/garden/data/gardenThemes";
 import { mapPersonalGarden } from "@/features/garden/data/mapPersonalGarden";
 import ChapterReader from "@/features/stories/components/ChapterReader";
@@ -494,6 +495,8 @@ function PersonalGardenExperience({
                   onOpenChapter={openChapterById}
                 />
               )}
+
+              {isFairytaleGarden && <FairytalePhotoGallery userId={user.id} />}
 
               <p className={styles.progress} role="status">
                 {progressLoading
