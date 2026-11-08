@@ -73,6 +73,7 @@ const DEFAULT_SETTINGS = {
   cinematicLighting: true,
   ecologyEnabled: true,
   musicVolume: 0.55,
+  musicMood: "bells",
 };
 
 function toParagraphs(value: unknown): string[] {
