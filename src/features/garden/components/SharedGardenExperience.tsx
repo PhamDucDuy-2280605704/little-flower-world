@@ -141,10 +141,10 @@ export default function SharedGardenExperience({ slug }: { slug: string }) {
       title: item.title ?? undefined,
     })), [payload]);
 
-  const lightboxImages = useMemo(() => [
+  const lightboxImages = [
     ...(garden?.cover_url ? [{ url: garden.cover_url, alt: "Ảnh bìa " + garden.name }] : []),
     ...(payload?.photos ?? []).map((photo) => ({ url: photo.url, alt: photo.alt })),
-  ], [garden?.cover_url, garden?.name, payload?.photos]);
+  ];
   const photoLightboxOffset = garden?.cover_url ? 1 : 0;
 
   const chapters: StoryChapter[] = useMemo(() => (payload?.chapters ?? []).map((chapter) => {
