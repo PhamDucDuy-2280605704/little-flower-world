@@ -162,3 +162,21 @@
 @media (prefers-reduced-motion: reduce) {
   .readButton, .headerAction, .heroPhotoButton img, .photoGrid img, .pageControls button { transition: none; }
 }
+
+
+.openBook{position:relative;isolation:isolate;overflow:hidden}
+.themeMeadow{--story-accent:#557b58;--story-paper:#fffdf4}
+.themeSunset{--story-accent:#a85f4c;--story-paper:#fff5e8}
+.themeStarlight{--story-accent:#596b9c;--story-paper:#f5f5ff}
+.themeSunset .leftPage,.themeSunset .rightPage{background:linear-gradient(145deg,#fff7ec,#f5e3d3)}
+.themeStarlight .leftPage,.themeStarlight .rightPage{background:linear-gradient(145deg,#fbfbff,#e9ecf8)}
+.paperIvory .leftPage,.paperIvory .rightPage{background-color:#fffdf4}
+.paperLinen .leftPage,.paperLinen .rightPage{background-color:#f5f0e4;background-image:repeating-linear-gradient(0deg,rgba(130,112,82,.035) 0 1px,transparent 1px 5px)}
+.paperRose .leftPage,.paperRose .rightPage{background-color:#fff4f1}
+.effectGlow{filter:drop-shadow(0 14px 35px rgba(111,139,96,.16))}
+.effectSparkles{filter:drop-shadow(0 12px 28px rgba(185,151,85,.2))}
+.effectNone{animation:none!important;transition:none!important}
+.effectPageTurn{transition:transform .42s cubic-bezier(.22,1,.36,1)}
+.stickerLayer{position:absolute;inset:0;z-index:4;pointer-events:none;overflow:hidden}
+.sticker{position:absolute;display:block;font-size:clamp(22px,3vw,36px);filter:drop-shadow(0 3px 5px rgba(0,0,0,.12));opacity:.88}
+.stickerTopLeft{top:16px;left:18px}.stickerTopRight{top:16px;right:18px}.stickerBottomLeft{bottom:16px;left:18px}.stickerBottomRight{bottom:16px;right:18px}.stickerMidLeft{top:48%;left:12px}.stickerMidRight{top:48%;right:12px}

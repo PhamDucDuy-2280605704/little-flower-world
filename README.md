@@ -1,69 +1,82 @@
 # Little Story World
 
-Không gian sáng tác riêng tư để mỗi người viết thông điệp, bức thư hoặc sách nhiều chương; Admin kiểm duyệt trước khi tác phẩm được chia sẻ.
+A private writing and story-reading space. Writers create messages, letters, and illustrated multi-chapter books; Admin reviews each story before it can be shared.
 
 Website: https://little-story-world.vercel.app/
 
-## Các khu vực chính
+## Main routes
 
-| Đường dẫn | Chức năng |
+| Route | Purpose |
 | --- | --- |
-| `/` | Giới thiệu và bắt đầu sáng tác |
-| `/login` | Đăng nhập tài khoản người viết |
-| `/studio` | Tạo, viết, lưu bản nháp và gửi tác phẩm cho Admin duyệt |
-| `/guest` | Cổng dành cho người nhận lời mời |
-| `/g/[slug]` | Đọc tác phẩm được chia sẻ |
-| `/gift` | Mở các tác phẩm được gửi tặng |
-| `/admin/login`, `/admin` | Đăng nhập và quản trị |
-| `/studio?mode=admin` | Không gian Admin để duyệt và xuất bản |
+| `/` | Main homepage and starting point |
+| `/login` | Separate sign-in for writer accounts |
+| `/studio` | Create and edit private drafts, add chapters and decorations, submit for review |
+| `/guest` | Reader invitation portal |
+| `/g/[slug]` | Public reader page for an approved and published story |
+| `/gift` | Read stories saved to the signed-in account |
+| `/admin` | Protected Admin center; requires the dedicated Admin account |
+| `/studio?mode=admin` | Admin writing, review, and publishing workspace |
+| `/little-story-backstage-7f4c` | Private Admin sign-in entry |
 
-## Hai cấp quyền sáng tác
+The Admin sign-in route is not linked from the homepage or public navigation and is marked `noindex`. The protected `/admin` route still checks the Admin account; knowing a URL does not grant access. The old `/admin/login` path redirects to the private sign-in entry.
 
-**Tài khoản người viết** có thể tạo nhiều tác phẩm riêng, chọn thông điệp/thư/sách, thêm tối đa 8 chương và 5 ảnh cho mỗi tác phẩm, lưu bản nháp và gửi Admin kiểm duyệt. Tài khoản người viết không thể tự xuất bản, tạo link công khai, đặt PIN hay duyệt lưu bút. Trong lúc chờ duyệt, nội dung được khóa; người viết có thể rút yêu cầu để tiếp tục chỉnh sửa.
+## Language
 
-**Admin** xem được tất cả tác phẩm, duyệt hoặc từ chối, quyết định xuất bản/gỡ xuất bản, đặt PIN, quản lý lưu bút và quản lý ảnh. Tài khoản người viết hiện được cấp riêng bởi Admin; đăng ký công khai không mở.
+A persistent **VI / EN** switch is available on every page. It remembers the selected language in the browser. The interface labels, forms, status messages, Admin workspace, guest portal, and reader controls switch language. Writer-authored story text is intentionally preserved as written rather than machine-translated.
 
-Phân quyền được thực thi tại Supabase RLS, trigger và Storage, không chỉ dựa trên các nút bị ẩn trong giao diện.
+## Writing, decoration, and review
 
-## Công nghệ
+- Every writer account can create multiple private stories.
+- Story formats: message, letter, and multi-chapter book.
+- Chapter count is **unlimited** for both writers and Admin.
+- Writer accounts can add up to 5 photos per story (5 MB per photo) and choose up to 4 stickers.
+- Admin has expanded photo and sticker management, full story reading preview, moderation, PIN, and publishing controls.
+- Decorations are saved with each story: 3 color themes, 3 paper finishes, page-turn / soft-glow / sparkles / no-extra-motion effects, and a sticker collection.
+- A story must be approved by Admin before it can be published. Writers can withdraw a pending review or edit a rejected story and resubmit it.
 
-- Next.js App Router, React và TypeScript
-- CSS Modules và Tailwind CSS
-- Motion cho chuyển động/hiệu ứng lật trang
-- Supabase Auth, Postgres Row Level Security (RLS) và Storage
-- Noto Sans và Noto Serif hỗ trợ tiếng Việt
+## Security model
 
-## Chạy trên máy
+Publishing, share links, PIN storage, guestbook moderation, story ownership, and private photo access are enforced by Supabase RLS, database triggers, and Storage policies, not only by hiding buttons in the client. Writer accounts are provisioned by Admin; public sign-up is not enabled.
 
-1. Cài phiên bản Node.js tương thích với `package.json`.
-2. Cài dependencies:
+## Technology
+
+- Next.js App Router, React, and TypeScript
+- CSS Modules and Tailwind CSS
+- Motion for page-turn transitions and decorative effects
+- Supabase Auth, Postgres RLS, Edge Functions, and private Storage
+- Noto Sans and Noto Serif with Vietnamese glyph support
+
+## Local development
+
+1. Use a Node.js version compatible with `package.json`.
+2. Install dependencies:
 
    ```bash
    npm ci
    ```
 
-3. Tạo file môi trường cục bộ:
+3. Create local environment variables:
 
    ```bash
    cp .env.example .env.local
    ```
 
-4. Điền Supabase URL và Publishable Key vào `.env.local`:
+4. Set the Supabase URL and Publishable Key:
 
    ```env
    NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<publishable-key>
    ```
 
-5. Khởi động:
+5. Run the app:
 
    ```bash
    npm run dev
    ```
 
-Mở [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000).
 
-## Kiểm tra chất lượng
+## Quality checks
 
 ```bash
 npm run lint
@@ -71,17 +84,16 @@ npm run typecheck
 npm run build
 ```
 
-## Dữ liệu và bảo mật
+## Data
 
-- `gardens` lưu bản thảo và trạng thái kiểm duyệt của từng tác phẩm.
-- `garden_chapters` lưu nội dung từng chương.
-- `story_progress` lưu tiến độ đọc theo tài khoản.
-- `garden-photos` là bucket private; ảnh được xem qua signed URL.
-- RLS giới hạn người viết ở tác phẩm của mình; các hành động xuất bản và kiểm duyệt dành cho Admin.
-- Chỉ dùng Publishable Key ở trình duyệt. Không đưa Supabase Service Role Key, Secret Key hoặc thông tin đăng nhập vào mã nguồn hay biến `NEXT_PUBLIC_*`.
+- `gardens`: story drafts, publishing, approval, and decoration settings.
+- `garden_chapters`: chapters for each story.
+- `story_progress`: reading progress per account.
+- `garden_guestbook`: reader notes and moderation state.
+- `garden-photos`: private photo storage served using signed URLs.
 
-Các migration và hướng dẫn database nằm trong [`supabase/`](supabase/).
+Migration history and database guidance are in [`supabase/`](supabase/).
 
-## Triển khai
+## Deployment
 
-Nhánh `main` được kết nối với Vercel. Push lên `main` sẽ kích hoạt quy trình kiểm tra và triển khai production.
+The `main` branch is connected to Vercel. Pushes to `main` run CI checks and trigger production deployment.

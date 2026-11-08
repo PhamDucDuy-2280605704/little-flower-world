@@ -79,6 +79,7 @@ export function mapPersonalGarden(
     introduction: row.introduction ?? "",
     items,
     chapters,
+    experienceSettings: row.experience_settings ?? {},
     letter: {
       title: row.letter_title,
       paragraphs: readParagraphs(row.letter_paragraphs),

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
+import { useLanguage } from "@/features/i18n/LanguageProvider";
 
 type HomeAuthActionsProps = {
   actionsClassName: string;
@@ -18,6 +19,7 @@ export default function HomeAuthActions({
   giftClassName,
   messageClassName,
 }: HomeAuthActionsProps) {
+  const { t } = useLanguage();
   const [user, setUser] = useState<User | null>(null);
   const [authReady, setAuthReady] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
@@ -81,7 +83,7 @@ export default function HomeAuthActions({
       const message =
         err instanceof Error
           ? err.message
-          : "Đăng xuất chưa thành công. Anh thử lại nhé.";
+          : t("Đăng xuất chưa thành công. Hãy thử lại nhé.", "Could not sign out. Please try again.");
 
       setError(message);
     } finally {
@@ -93,7 +95,7 @@ export default function HomeAuthActions({
     <div className={actionsClassName}>
       {!authReady ? (
         <span className={loginClassName} role="status">
-          Đang kiểm tra tài khoản...
+          {t("Đang kiểm tra tài khoản...", "Checking account...")}
         </span>
       ) : user ? (
         <button
@@ -108,17 +110,17 @@ export default function HomeAuthActions({
             border: "none",
           }}
         >
-          {loggingOut ? "Đang đăng xuất..." : "Đăng xuất"}
+          {loggingOut ? t("Đang đăng xuất...", "Signing out...") : t("Đăng xuất", "Sign out")}
         </button>
       ) : (
         <Link href="/login" className={loginClassName}>
-          Đăng nhập để sáng tác
+          {t("Đăng nhập để sáng tác", "Sign in to write")}
         </Link>
       )}
 
-      {user && <Link href="/studio" className={giftClassName}>Viết câu chuyện của tôi</Link>}
+      {user && <Link href="/studio" className={giftClassName}>{t("Viết câu chuyện của tôi", "Write my story")}</Link>}
       <Link href="/gift" className={giftClassName}>
-        Mở tác phẩm của tôi
+        {t("Mở tác phẩm của tôi", "Open my stories")}
       </Link>
 
       {error && (

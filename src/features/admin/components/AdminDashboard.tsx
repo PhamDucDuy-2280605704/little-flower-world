@@ -5,12 +5,20 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import PhotoLightbox from "@/features/garden/components/PhotoLightbox";
+import GardenJournal, {
+  normalizeStoryDecorations,
+  type GardenJournalPhoto,
+  type JournalChapter,
+  type StoryFormat,
+  type StoryDecorations,
+} from "@/features/garden/components/GardenJournal";
 import { adminSupabase } from "@/lib/adminSupabase";
 import {
   FAIRYTALE_GARDEN_ADMIN_USER_ID,
   FAIRYTALE_TEST_GARDEN_ID,
 } from "@/features/garden/data/gardenThemes";
 import styles from "../styles/AdminDashboard.module.css";
+import { useLanguage } from "@/features/i18n/LanguageProvider";
 
 const BUCKET = "garden-photos";
 const LEGACY_TEST_FOLDER = "be6c9d98-2b4e-46a9-a6a0-30b4bbadc6b0";
@@ -51,6 +59,20 @@ type Photo = {
   name: string;
   createdAt: string;
 };
+type AdminStoryPreview = {
+  id: string;
+  name: string;
+  introduction: string;
+  format: StoryFormat;
+  decorations: StoryDecorations;
+  coverUrl: string | null;
+  coverPath: string | null;
+  photos: GardenJournalPhoto[];
+  chapters: JournalChapter[];
+  letterTitle: string;
+  letterParagraphs: string[];
+  letterSignature: string;
+};
 
 function photoFolders(gardenId: string): string[] {
   return gardenId === FAIRYTALE_TEST_GARDEN_ID
@@ -60,7 +82,11 @@ function photoFolders(gardenId: string): string[] {
 
 export default function AdminDashboard() {
   const router = useRouter();
+  const { t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const storyPreviewRef = useRef<HTMLDialogElement>(null);
+  const [storyPreview, setStoryPreview] = useState<AdminStoryPreview | null>(null);
+  const [storyPreviewLoading, setStoryPreviewLoading] = useState(false);
   const [authState, setAuthState] = useState<"checking" | "admin" | "denied">("checking");
   const [userEmail, setUserEmail] = useState("");
   const [gardens, setGardens] = useState<Garden[]>([]);
@@ -110,7 +136,7 @@ export default function AdminDashboard() {
 
     if (gardenError) {
       console.error("Load all gardens failed:", gardenError);
-      setError("Chưa tải được danh sách tác phẩm. Anh thử tải lại trang nhé.");
+      setError(t("Chưa tải được danh sách tác phẩm. Anh thử tải lại trang nhé.", "Could not load stories. Please reload the page."));
       setGardensLoading(false);
       return;
     }
@@ -177,7 +203,7 @@ export default function AdminDashboard() {
     const failed = listings.find((listing) => listing.error);
     if (failed?.error) {
       console.error("Load garden album failed:", failed.error);
-      setError("Không tải được kho ảnh của tác phẩm này.");
+      setError(t("Không tải được kho ảnh của tác phẩm này.", "Could not load this story's photo library."));
       setPhotos([]);
       setPhotosLoading(false);
       return;
@@ -212,6 +238,85 @@ export default function AdminDashboard() {
     setPhotosLoading(false);
   }, []);
 
+  async function openStoryPreview(garden: Garden) {
+    setSelectedGardenId(garden.id);
+    setStoryPreviewLoading(true);
+    setError("");
+    try {
+      const [gardenResult, chapterResult] = await Promise.all([
+        adminSupabase.from("gardens")
+          .select("id,name,introduction,letter_title,letter_paragraphs,letter_signature,experience_settings,cover_path")
+          .eq("id", garden.id).single(),
+        adminSupabase.from("garden_chapters")
+          .select("chapter_id,sort_order,title,paragraphs")
+          .eq("garden_id", garden.id).order("sort_order", { ascending: true }),
+      ]);
+      if (gardenResult.error) throw gardenResult.error;
+      if (chapterResult.error) throw chapterResult.error;
+
+      const row = gardenResult.data;
+      const settings = (row.experience_settings ?? {}) as Record<string, unknown>;
+      const formatSetting = settings.storyFormat;
+      const format: StoryFormat = formatSetting === "message" || formatSetting === "letter" ? formatSetting : "book";
+      const photosFolders = await Promise.all(photoFolders(garden.id).map(async (folder) => {
+        const { data, error: listError } = await adminSupabase.storage.from(BUCKET).list(folder, {
+          limit: MAX_PHOTOS, sortBy: { column: "created_at", order: "desc" },
+        });
+        if (listError) throw listError;
+        return (data ?? [])
+          .filter((file) => file.name && file.id && ALLOWED_TYPES.has(file.metadata?.mimetype ?? ""))
+          .map((file) => ({ path: folder + "/" + file.name, name: file.name, createdAt: file.created_at ?? "" }));
+      }));
+      const photoRecords = photosFolders.flat().sort((a, b) =>
+        (Date.parse(b.createdAt) || 0) - (Date.parse(a.createdAt) || 0),
+      ).slice(0, MAX_PHOTOS);
+      const [signedPhotos, coverResult] = await Promise.all([
+        Promise.all(photoRecords.map(async (photo) => {
+          const { data, error: signedError } = await adminSupabase.storage.from(BUCKET).createSignedUrl(photo.path, 60 * 60);
+          return signedError || !data?.signedUrl ? null : { path: photo.path, url: data.signedUrl, alt: t("Ảnh trong ", "Photo in ") + row.name };
+        })),
+        row.cover_path
+          ? adminSupabase.storage.from(BUCKET).createSignedUrl(row.cover_path, 60 * 60)
+          : Promise.resolve({ data: null, error: null }),
+      ]);
+      const chapterRows = chapterResult.data ?? [];
+      const letterParagraphs = Array.isArray(row.letter_paragraphs)
+        ? row.letter_paragraphs.filter((item): item is string => typeof item === "string") : [];
+      setStoryPreview({
+        id: row.id,
+        name: row.name,
+        introduction: row.introduction ?? "",
+        format,
+        decorations: normalizeStoryDecorations(settings.storyDecorations),
+        coverUrl: coverResult.data?.signedUrl ?? null,
+        coverPath: row.cover_path ?? null,
+        photos: signedPhotos.filter((photo): photo is GardenJournalPhoto => photo !== null),
+        chapters: chapterRows.map((chapter) => ({
+          id: chapter.chapter_id,
+          title: chapter.title,
+          paragraphs: Array.isArray(chapter.paragraphs)
+            ? chapter.paragraphs.filter((item): item is string => typeof item === "string") : [],
+        })),
+        letterTitle: row.letter_title ?? t("Một lá thư dành riêng cho bạn", "A letter just for you"),
+        letterParagraphs,
+        letterSignature: row.letter_signature ?? "",
+      });
+    } catch (previewError) {
+      console.error("Load full story preview failed:", previewError);
+      setError(t("Chưa mở được toàn bộ tác phẩm. Anh thử lại nhé.", "Could not open the full story. Please try again."));
+      setStoryPreview(null);
+    } finally {
+      setStoryPreviewLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    const dialog = storyPreviewRef.current;
+    if (!dialog) return;
+    if (storyPreview && !dialog.open) dialog.showModal();
+    if (!storyPreview && dialog.open) dialog.close();
+  }, [storyPreview]);
+
   useEffect(() => {
     if (authState !== "admin" || !selectedGardenId) return;
     const garden = gardens.find((item) => item.id === selectedGardenId);
@@ -241,7 +346,7 @@ export default function AdminDashboard() {
     setNotice("");
 
     if (photos.length + files.length > MAX_PHOTOS) {
-      setError("Mỗi tác phẩm lưu tối đa " + MAX_PHOTOS + " ảnh nhé anh.");
+      setError(t("Mỗi tác phẩm lưu tối đa ", "A story can hold up to ") + MAX_PHOTOS + t(" ảnh nhé anh.", " photos."));
       return;
     }
 
@@ -249,7 +354,7 @@ export default function AdminDashboard() {
       !ALLOWED_TYPES.has(file.type) || file.size > MAX_FILE_SIZE
     );
     if (invalid) {
-      setError("Ảnh cần là JPG, PNG, WEBP, GIF hoặc AVIF và không quá 10 MB mỗi ảnh.");
+      setError(t("Ảnh cần là JPG, PNG, WEBP, GIF hoặc AVIF và không quá 10 MB mỗi ảnh.", "Photos must be JPG, PNG, WEBP, GIF, or AVIF and no larger than 10 MB each."));
       return;
     }
 
@@ -271,7 +376,7 @@ export default function AdminDashboard() {
 
       if (uploadError) {
         console.error("Upload garden photo failed:", uploadError);
-        setError('Không tải được ảnh "' + file.name + '". Anh thử lại nhé.');
+        setError(t("Không tải được ảnh", "Could not upload photo") + ' "' + file.name + '". ' + t("Bạn thử lại nhé.", "Please try again."));
         setUploading(false);
         await loadAlbum(selectedGarden);
         return;
@@ -279,7 +384,7 @@ export default function AdminDashboard() {
     }
 
     setUploading(false);
-    setNotice(files.length === 1 ? "Đã thêm ảnh vào kho của tác phẩm 🌷" : "Đã thêm " + files.length + " ảnh vào kho 🌷");
+    setNotice(files.length === 1 ? t("Đã thêm ảnh vào kho của tác phẩm 🌷", "Photo added to the story library 🌷") : t("Đã thêm ", "Added ") + files.length + t(" ảnh vào kho 🌷", " photos to the library 🌷"));
     await loadAlbum(selectedGarden);
     await loadGardens();
   }
@@ -299,7 +404,7 @@ export default function AdminDashboard() {
   }
 
   async function deletePhoto(photo: Photo) {
-    if (!window.confirm("Xoá ảnh này khỏi kho của tác phẩm?")) return;
+    if (!window.confirm(t("Xoá ảnh này khỏi kho của tác phẩm?", "Delete this photo from the story library?"))) return;
 
     setError("");
     setNotice("");
@@ -309,29 +414,29 @@ export default function AdminDashboard() {
 
     if (deleteError) {
       console.error("Delete garden photo failed:", deleteError);
-      setError("Chưa xoá được ảnh. Anh thử lại nhé.");
+      setError(t("Chưa xoá được ảnh. Bạn thử lại nhé.", "Could not delete the photo. Please try again."));
       return;
     }
 
     setPhotos((current) => current.filter((item) => item.path !== photo.path));
-    setNotice("Đã xoá ảnh khỏi kho của tác phẩm.");
+    setNotice(t("Đã xoá ảnh khỏi kho của tác phẩm.", "Photo deleted from the story library."));
     await loadGardens();
   }
 
   async function handleLogout() {
     const { error: logoutError } = await adminSupabase.auth.signOut({ scope: "local" });
     if (logoutError) {
-      setError("Đăng xuất chưa thành công. Anh thử lại nhé.");
+      setError(t("Đăng xuất chưa thành công. Anh thử lại nhé.", "Sign out failed. Please try again."));
       return;
     }
-    router.replace("/admin/login");
+    router.replace("/little-story-backstage-7f4c");
   }
 
   if (authState === "checking") {
     return (
       <main className={styles.loadingPage}>
         <div className={styles.loadingMark}>▤</div>
-        <p>Đang mở không gian quản lý...</p>
+        <p>{t("Đang mở không gian quản lý...", "Opening the management workspace...")}</p>
       </main>
     );
   }
@@ -342,10 +447,10 @@ export default function AdminDashboard() {
         <div className={styles.deniedCard}>
           <span className={styles.deniedMark}>▤</span>
           <p className={styles.eyebrow}>LITTLE STORY WORLD</p>
-          <h1>Khu vực dành riêng cho Admin</h1>
-          <p>Anh cần đăng nhập bằng tài khoản quản trị để mở trung tâm này.</p>
-          <Link href="/admin/login" className={styles.primaryLink}>Đăng nhập Admin</Link>
-          <Link href="/" className={styles.backLink}>Về trang chủ</Link>
+          <h1>{t("Khu vực dành riêng cho Admin", "Private Admin area")}</h1>
+          <p>{t("Anh cần đăng nhập bằng tài khoản quản trị để mở trung tâm này.", "Sign in with an administrator account to open this center.")}</p>
+          <Link href="/little-story-backstage-7f4c" className={styles.primaryLink}>{t("Đăng nhập quản trị", "Admin sign-in")}</Link>
+          <Link href="/" className={styles.backLink}>{t("Về trang chủ", "Back to home")}</Link>
         </div>
       </main>
     );
@@ -366,12 +471,12 @@ export default function AdminDashboard() {
           </Link>
 
           <div className={styles.sidebarSection}>
-            <p className={styles.sidebarLabel}>KHU VỰC QUẢN TRỊ</p>
-            <a href="#overview" className={styles.sideLinkActive}>⌂ <span>Tổng quan</span></a>
-            <a href="#garden-list" className={styles.sideLink}>▤ <span>Quản lý tác phẩm</span></a>
-            <a href="#photo-library" className={styles.sideLink}>▧ <span>Kho ảnh riêng</span></a>
-            <Link href="/studio?mode=admin" className={styles.sideLink}>✎ <span>Viết & kiểm duyệt</span></Link>
-            <Link href="/" className={styles.sideLink}>⌂ <span>Trang chủ</span></Link>
+            <p className={styles.sidebarLabel}>{t("KHU VỰC QUẢN TRỊ", "ADMIN AREA")}</p>
+            <a href="#overview" className={styles.sideLinkActive}>⌂ <span>{t("Tổng quan", "Overview")}</span></a>
+            <a href="#garden-list" className={styles.sideLink}>▤ <span>{t("Quản lý tác phẩm", "Story management")}</span></a>
+            <a href="#photo-library" className={styles.sideLink}>▧ <span>{t("Kho ảnh riêng", "Photo library")}</span></a>
+            <Link href="/studio?mode=admin" className={styles.sideLink}>✎ <span>{t("Viết & kiểm duyệt", "Writing & review")}</span></Link>
+            <Link href="/" className={styles.sideLink}>⌂ <span>{t("Trang chủ", "Home")}</span></Link>
           </div>
 
           <div className={styles.sidebarBottom}>
@@ -380,48 +485,48 @@ export default function AdminDashboard() {
               <strong>Story Admin</strong>
               <span>{userEmail}</span>
             </div>
-            <span className={styles.adminDot} title="Admin đang hoạt động" />
+            <span className={styles.adminDot} title={t("Admin đang hoạt động", "Admin is active")} />
           </div>
         </aside>
 
         <div className={styles.main}>
           <header className={styles.topbar}>
             <div>
-              <p className={styles.eyebrow}>KHU VỰC QUẢN TRỊ <span>·</span> ADMIN CENTER</p>
-              <h1>Trung tâm quản lý</h1>
-              <p className={styles.subtitle}>Mỗi tác phẩm có một album riêng, mọi kỷ niệm đều ở đúng nơi.</p>
+              <p className={styles.eyebrow}>{t("KHU VỰC QUẢN TRỊ", "ADMIN AREA")} <span>·</span> ADMIN CENTER</p>
+              <h1>{t("Trung tâm quản lý", "Admin center")}</h1>
+              <p className={styles.subtitle}>{t("Mỗi tác phẩm có một album riêng, mọi kỷ niệm đều ở đúng nơi.", "Every story has its own album, keeping each memory in the right place.")}</p>
             </div>
             <div className={styles.topActions}>
-              <Link href="/studio?mode=admin" className={styles.secondaryLink}>Mở không gian viết & kiểm duyệt</Link>
-              <button type="button" className={styles.logoutButton} onClick={() => void handleLogout()}>Đăng xuất</button>
+              <Link href="/studio?mode=admin" className={styles.secondaryLink}>{t("Mở không gian viết & kiểm duyệt", "Open writing & review")}</Link>
+              <button type="button" className={styles.logoutButton} onClick={() => void handleLogout()}>{t("Đăng xuất", "Sign out")}</button>
             </div>
           </header>
 
           <section className={styles.hero} id="overview">
             <div className={styles.heroCopy}>
               <span className={styles.heroTag}>✦ YOUR PRIVATE WORKSPACE</span>
-              <h2>Quản lý những câu chuyện,<br /><em>lưu giữ từng khoảnh khắc.</em></h2>
-              <p>Chọn một tác phẩm bên dưới để quản lý kho ảnh và nội dung đã lưu.</p>
+              <h2>{t("Quản lý những câu chuyện,", "Manage every story,")}<br /><em>{t("lưu giữ từng khoảnh khắc.", "keep every moment.")}</em></h2>
+              <p>{t("Chọn một tác phẩm bên dưới để quản lý kho ảnh và nội dung đã lưu.", "Select a story below to review its content and photo library.")}</p>
             </div>
-            <div className={styles.heroArt} role="img" aria-label="Ảnh một cuốn sách mở trên bàn dưới ánh sáng tự nhiên" />
+            <div className={styles.heroArt} role="img" aria-label={t("Ảnh một cuốn sách mở trên bàn dưới ánh sáng tự nhiên", "An open book on a desk in natural light")} />
           </section>
 
-          <section className={styles.stats} aria-label="Thống kê">
+          <section className={styles.stats} aria-label={t("Thống kê", "Statistics")}>
             <article className={styles.statCard}>
               <span className={styles.statIcon}>▤</span>
-              <div><strong>{gardens.length}</strong><span>Tác phẩm</span></div>
+              <div><strong>{gardens.length}</strong><span>{t("Tác phẩm", "Stories")}</span></div>
             </article>
             <article className={styles.statCard}>
               <span className={styles.statIcon}>▧</span>
-              <div><strong>{totalPhotos}</strong><span>Ảnh đã lưu</span></div>
+              <div><strong>{totalPhotos}</strong><span>{t("Ảnh đã lưu", "Photos saved")}</span></div>
             </article>
             <article className={styles.statCard}>
               <span className={styles.statIcon}>✧</span>
-              <div><strong>{totalChapters}</strong><span>Chương truyện</span></div>
+              <div><strong>{totalChapters}</strong><span>{t("Chương truyện", "Chapters")}</span></div>
             </article>
             <article className={styles.statCard}>
               <span className={styles.statIcon}>◷</span>
-              <div><strong>{pendingApprovalCount}</strong><span>Chờ Admin duyệt</span></div>
+              <div><strong>{pendingApprovalCount}</strong><span>{t("Chờ Admin duyệt", "Awaiting review")}</span></div>
             </article>
           </section>
 
@@ -432,11 +537,11 @@ export default function AdminDashboard() {
             <div className={styles.gardenPanel}>
               <div className={styles.panelHeader}>
                 <div>
-                  <p className={styles.panelEyebrow}>STORY COLLECTION</p>
-                  <h2>Các tác phẩm</h2>
-                  <p>Chọn tác phẩm anh muốn quản lý.</p>
+                  <p className={styles.panelEyebrow}>{t("BỘ SƯU TẬP TÁC PHẨM", "STORY COLLECTION")}</p>
+                  <h2>{t("Các tác phẩm", "Stories")}</h2>
+                  <p>{t("Chọn tác phẩm anh muốn quản lý.", "Choose a story to manage.")}</p>
                 </div>
-                <span className={styles.countPill}>{gardens.length} tác phẩm</span>
+                <span className={styles.countPill}>{gardens.length} {t("tác phẩm", "stories")}</span>
               </div>
 
               <label className={styles.searchBox}>
@@ -444,15 +549,15 @@ export default function AdminDashboard() {
                 <input
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Tìm tác phẩm..."
-                  aria-label="Tìm tác phẩm"
+                  placeholder={t("Tìm tác phẩm...", "Search stories...")}
+                  aria-label={t("Tìm tác phẩm", "Search stories")}
                 />
               </label>
 
               {gardensLoading ? (
-                <div className={styles.panelEmpty}>Đang tải danh sách tác phẩm...</div>
+                <div className={styles.panelEmpty}>{t("Đang tải danh sách tác phẩm...", "Loading stories...")}</div>
               ) : filteredGardens.length === 0 ? (
-                <div className={styles.panelEmpty}>Không tìm thấy tác phẩm phù hợp.</div>
+                <div className={styles.panelEmpty}>{t("Không tìm thấy tác phẩm phù hợp.", "No matching stories found.")}</div>
               ) : (
                 <div className={styles.gardenList}>
                   {filteredGardens.map((garden, index) => {
@@ -463,7 +568,7 @@ export default function AdminDashboard() {
                         key={garden.id}
                         type="button"
                         className={selected ? styles.gardenCardActive : styles.gardenCard}
-                        onClick={() => setSelectedGardenId(garden.id)}
+                        onClick={() => void openStoryPreview(garden)}
                       >
                         <span className={styles.gardenThumb}>
                           {isTestGarden ? "▤" : "▤"}
@@ -471,8 +576,8 @@ export default function AdminDashboard() {
                         </span>
                         <span className={styles.gardenInfo}>
                           <strong>{garden.name}</strong>
-                          <small>{garden.ownerId === FAIRYTALE_GARDEN_ADMIN_USER_ID ? "Tác phẩm của Admin" : "Tác phẩm khách"} · {garden.approvalStatus === "pending" ? "Chờ duyệt" : garden.approvalStatus === "approved" ? "Đã duyệt" : garden.approvalStatus === "rejected" ? "Cần chỉnh sửa" : "Bản nháp"}</small>
-                          <span>{garden.photoCount} ảnh <b>·</b> {garden.chapterCount} chương</span>
+                          <small>{garden.ownerId === FAIRYTALE_GARDEN_ADMIN_USER_ID ? t("Tác phẩm của Admin", "Admin story") : t("Tác phẩm khách", "Writer story")} · {garden.approvalStatus === "pending" ? t("Chờ duyệt", "Pending") : garden.approvalStatus === "approved" ? t("Đã duyệt", "Approved") : garden.approvalStatus === "rejected" ? t("Cần chỉnh sửa", "Needs changes") : t("Bản nháp", "Draft")}</small>
+                          <span>{garden.photoCount} {t("ảnh", "photos")} <b>·</b> {garden.chapterCount} {t("chương", "chapters")}</span>
                         </span>
                         <span className={styles.gardenArrow}>›</span>
                       </button>
@@ -487,11 +592,17 @@ export default function AdminDashboard() {
                 <>
                   <div className={styles.albumHeader}>
                     <div>
-                      <p className={styles.panelEyebrow}>PHOTO LIBRARY</p>
+                      <p className={styles.panelEyebrow}>{t("THƯ VIỆN ẢNH", "PHOTO LIBRARY")}</p>
                       <h2>{selectedGarden.name}</h2>
-                      <p>{selectedGarden.introduction || "Khoảnh khắc của tác phẩm này."}</p>
+                      <p>{selectedGarden.introduction || t("Khoảnh khắc của tác phẩm này.", "Moments from this story.")}</p>
                     </div>
-                    <span className={styles.albumCount}>{photos.length} / {MAX_PHOTOS} ảnh</span>
+                    <div className={styles.storyActions}>
+                      <button type="button" onClick={() => void openStoryPreview(selectedGarden)} disabled={storyPreviewLoading}>
+                        {storyPreviewLoading ? t("Đang mở tác phẩm...", "Opening story...") : t("Đọc toàn bộ tác phẩm ↗", "Read full story ↗")}
+                      </button>
+                      <Link href={"/studio?mode=admin&garden=" + encodeURIComponent(selectedGarden.id)}>Mở trình chỉnh sửa</Link>
+                      <span className={styles.albumCount}>{photos.length} / {MAX_PHOTOS} {t("ảnh", "photos")}</span>
+                    </div>
                   </div>
 
                   <div
@@ -503,10 +614,10 @@ export default function AdminDashboard() {
                     onDrop={handleDrop}
                   >
                     <span className={styles.uploadMark}>↑</span>
-                    <strong>{uploading ? "Đang đưa ảnh vào tác phẩm..." : "Thêm kỷ niệm vào tác phẩm"}</strong>
-                    <p>Kéo ảnh thả vào đây hoặc chọn trực tiếp từ máy tính.</p>
+                    <strong>{uploading ? t("Đang đưa ảnh vào tác phẩm...", "Uploading photos to the story...") : t("Thêm kỷ niệm vào tác phẩm", "Add memories to this story")}</strong>
+                    <p>{t("Kéo ảnh thả vào đây hoặc chọn trực tiếp từ máy tính.", "Drop photos here or choose them from your computer.")}</p>
                     <label className={styles.uploadButton}>
-                      Chọn ảnh từ máy
+                      {t("Chọn ảnh từ máy", "Choose photos")}
                       <input
                         ref={fileInputRef}
                         type="file"
@@ -516,24 +627,24 @@ export default function AdminDashboard() {
                         disabled={uploading || photos.length >= MAX_PHOTOS}
                       />
                     </label>
-                    <small>JPG · PNG · WEBP · GIF · AVIF · tối đa 10 MB/ảnh</small>
+                    <small>{t("JPG · PNG · WEBP · GIF · AVIF · tối đa 10 MB/ảnh", "JPG · PNG · WEBP · GIF · AVIF · up to 10 MB/photo")}</small>
                   </div>
 
                   <div className={styles.photoToolbar}>
                     <div>
-                      <h3>Ảnh trong tác phẩm</h3>
-                      <p>Chỉ những ảnh thuộc tác phẩm đang chọn được hiển thị ở đây.</p>
+                      <h3>{t("Ảnh trong tác phẩm", "Story photos")}</h3>
+                      <p>{t("Chỉ những ảnh thuộc tác phẩm đang chọn được hiển thị ở đây.", "Only photos belonging to the selected story appear here.")}</p>
                     </div>
-                    <span>{photos.length} tệp</span>
+                    <span>{photos.length} {t("tệp", "files")}</span>
                   </div>
 
                   {photosLoading ? (
-                    <div className={styles.photoEmpty}>Đang mở kho ảnh...</div>
+                    <div className={styles.photoEmpty}>{t("Đang mở kho ảnh...", "Opening photo library...")}</div>
                   ) : photos.length === 0 ? (
                     <div className={styles.photoEmpty}>
                       <span>▤</span>
-                      <strong>Kho ảnh còn trống</strong>
-                      <p>Thêm bức ảnh đầu tiên để lưu giữ kỷ niệm ở tác phẩm này.</p>
+                      <strong>{t("Kho ảnh còn trống", "Photo library is empty")}</strong>
+                      <p>{t("Thêm bức ảnh đầu tiên để lưu giữ kỷ niệm ở tác phẩm này.", "Add the first photo to keep a memory in this story.")}</p>
                     </div>
                   ) : (
                     <div className={styles.photoGrid}>
@@ -543,10 +654,10 @@ export default function AdminDashboard() {
                             type="button"
                             className={styles.photoOpenButton}
                             onClick={() => setActivePhotoIndex(photos.findIndex((item) => item.path === photo.path))}
-                            aria-label="Phóng to ảnh trong kho"
-                            title="Bấm để xem ảnh lớn"
+                            aria-label={t("Phóng to ảnh trong kho", "Enlarge library photo")}
+                            title={t("Bấm để xem ảnh lớn", "Click to enlarge photo")}
                           >
-                            <Image src={photo.url} alt={"Ảnh trong " + selectedGarden.name} width={960} height={720} sizes="(max-width: 600px) 50vw, 25vw" unoptimized loading="lazy" />
+                            <Image src={photo.url} alt={t("Ảnh trong ", "Photo in ") + selectedGarden.name} width={960} height={720} sizes="(max-width: 600px) 50vw, 25vw" unoptimized loading="lazy" />
                             <span aria-hidden="true">⌕</span>
                           </button>
                           <figcaption>
@@ -554,8 +665,8 @@ export default function AdminDashboard() {
                             <button
                               type="button"
                               onClick={() => void deletePhoto(photo)}
-                              aria-label="Xoá ảnh"
-                              title="Xoá ảnh"
+                              aria-label={t("Xoá ảnh", "Delete photo")}
+                              title={t("Xoá ảnh", "Delete photo")}
                             >×</button>
                           </figcaption>
                         </figure>
@@ -566,8 +677,8 @@ export default function AdminDashboard() {
               ) : (
                 <div className={styles.photoEmpty}>
                   <span>▤</span>
-                  <strong>Chọn một tác phẩm</strong>
-                  <p>Kho ảnh riêng sẽ mở ở đây.</p>
+                  <strong>{t("Chọn một tác phẩm", "Choose a story")}</strong>
+                  <p>{t("Kho ảnh riêng sẽ mở ở đây.", "The story's private photo library will appear here.")}</p>
                 </div>
               )}
             </section>
@@ -575,10 +686,45 @@ export default function AdminDashboard() {
 
           <footer className={styles.footer}>
             <span>▤ Little Story World</span>
-            <span>Quản lý riêng tư · Mỗi tác phẩm một album</span>
+            <span>{t("Quản lý riêng tư · Mỗi tác phẩm một album", "Private management · One album per story")}</span>
           </footer>
         </div>
       </div>
+      <dialog ref={storyPreviewRef} className={styles.storyPreviewDialog} aria-label={t("Xem toàn bộ tác phẩm", "Read complete story")}
+        onClose={() => setStoryPreview(null)}
+        onClick={(event) => { if (event.target === event.currentTarget) event.currentTarget.close(); }}>
+        {storyPreview && <>
+          <div className={styles.storyPreviewToolbar}>
+            <div><strong>{storyPreview.name}</strong><span>{selectedGarden?.approvalStatus === "pending" ? "Đang chờ duyệt" : selectedGarden?.approvalStatus === "approved" ? t("Đã duyệt", "Approved") : selectedGarden?.approvalStatus === "rejected" ? t("Cần chỉnh sửa", "Needs changes") : t("Bản nháp", "Draft")}</span></div>
+            <div>
+              <Link href={"/studio?mode=admin&garden=" + encodeURIComponent(storyPreview.id)}>{t("Mở chỉnh sửa & kiểm duyệt ↗", "Edit & review ↗")}</Link>
+              <button type="button" onClick={() => setStoryPreview(null)}>{t("Đóng ✕", "Close ✕")}</button>
+            </div>
+          </div>
+          <div className={styles.storyPreviewBody}>
+            <GardenJournal
+              key={storyPreview.id}
+              name={storyPreview.name}
+              introduction={storyPreview.introduction}
+              format={storyPreview.format}
+              decorations={storyPreview.decorations}
+              coverUrl={storyPreview.coverUrl}
+              coverPath={storyPreview.coverPath}
+              photos={storyPreview.photos}
+              chapters={storyPreview.chapters}
+              readIds={[]}
+              letterTitle={storyPreview.letterTitle}
+              letterParagraphs={storyPreview.letterParagraphs}
+              letterSignature={storyPreview.letterSignature}
+              letterReady={storyPreview.letterParagraphs.length > 0}
+              returnHref="/admin"
+              returnLabel={t("Quay lại trung tâm Admin", "Back to Admin center")}
+              actionHref="#the-book"
+              actionLabel={t("ĐỌC TÁC PHẨM", "READ STORY")}
+            />
+          </div>
+        </>}
+      </dialog>
       <PhotoLightbox
         images={photos.map((photo) => ({ url: photo.url, alt: photo.name }))}
         activeIndex={activePhotoIndex}

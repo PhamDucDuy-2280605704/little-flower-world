@@ -9,6 +9,7 @@ export type PersonalGarden = {
   items: GardenItem[];
   chapters: StoryChapter[];
   letter: FinalLetter;
+  experienceSettings: Record<string, unknown>;
 };
 
 export type PersonalGardenRow = {
@@ -18,6 +19,7 @@ export type PersonalGardenRow = {
   letter_title: string;
   letter_paragraphs: unknown;
   letter_signature: string;
+  experience_settings?: Record<string, unknown> | null;
 
   garden_items: Array<{
     id: string;

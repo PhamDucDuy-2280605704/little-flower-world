@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import Link from "next/link";
-import GardenJournal, { type JournalChapter, type StoryFormat } from "./GardenJournal";
+import GardenJournal, { normalizeStoryDecorations, type JournalChapter, type StoryFormat } from "./GardenJournal";
 import styles from "../styles/SharedGardenExperience.module.css";
+import { useLanguage } from "@/features/i18n/LanguageProvider";
 
 type SharedGardenPayload = {
   garden: {
@@ -32,7 +33,7 @@ type RequestState = "loading" | "pin" | "ready" | "missing" | "error";
 async function callShareFunction(payload: Record<string, unknown>): Promise<{ response: Response; data: Record<string, unknown> }> {
   const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-  if (!baseUrl || !publishableKey) throw new Error("Thiếu cấu hình kết nối tác phẩm.");
+  if (!baseUrl || !publishableKey) throw new Error("STORY_CONNECTION_CONFIG_MISSING");
   const response = await fetch(baseUrl.replace(/\/$/, "") + "/functions/v1/garden-share", {
     method: "POST",
     headers: {
@@ -47,6 +48,7 @@ async function callShareFunction(payload: Record<string, unknown>): Promise<{ re
 }
 
 export default function SharedGardenExperience({ slug }: { slug: string }) {
+  const { t } = useLanguage();
   const [state, setState] = useState<RequestState>("loading");
   const [payload, setPayload] = useState<SharedGardenPayload | null>(null);
   const [pin, setPin] = useState("");
@@ -71,17 +73,17 @@ export default function SharedGardenExperience({ slug }: { slug: string }) {
       }
       if (data.error === "PIN_REQUIRED" || data.error === "PIN_INVALID") {
         setState("pin");
-        setPinError(data.error === "PIN_INVALID" ? "Mã PIN chưa chính xác. Anh/chị thử lại nhé." : "");
+        setPinError(data.error === "PIN_INVALID" ? t("Mã PIN chưa chính xác. Anh/chị thử lại nhé.", "The PIN is incorrect. Please try again.") : "");
         return;
       }
       if (response.status === 429 || data.error === "RATE_LIMITED") {
         setState("pin");
-        setPinError("Đã thử mã quá nhiều lần. Vui lòng quay lại sau 15 phút.");
+        setPinError(t("Đã thử mã quá nhiều lần. Vui lòng quay lại sau 15 phút.", "Too many attempts. Please try again in 15 minutes."));
         return;
       }
       if (!response.ok || typeof data.garden !== "object" || !data.garden) {
         setState("error");
-        setFatalError("Không thể tải tác phẩm lúc này. Vui lòng thử lại sau.");
+        setFatalError(t("Không thể tải tác phẩm lúc này. Vui lòng thử lại sau.", "This story cannot be loaded right now. Please try again later."));
         return;
       }
       setPayload(data as unknown as SharedGardenPayload);
@@ -92,7 +94,9 @@ export default function SharedGardenExperience({ slug }: { slug: string }) {
     } catch (error) {
       console.error("Load shared story failed:", error);
       setState("error");
-      setFatalError(error instanceof Error ? error.message : "Không thể kết nối đến tác phẩm.");
+      setFatalError(error instanceof Error && error.message === "STORY_CONNECTION_CONFIG_MISSING"
+        ? t("Thiếu cấu hình kết nối tác phẩm.", "Story connection settings are missing.")
+        : t("Không thể kết nối đến tác phẩm.", "Could not connect to this story."));
     }
   }, [slug]);
 
@@ -127,48 +131,48 @@ export default function SharedGardenExperience({ slug }: { slug: string }) {
       });
       if (!response.ok || data.ok !== true) {
         setGuestNotice(data.error === "RATE_LIMITED"
-          ? "Anh/chị đã gửi khá nhiều lời nhắn. Vui lòng quay lại sau."
-          : "Chưa gửi được lời nhắn. Anh/chị thử lại nhé.");
+          ? t("Anh/chị đã gửi khá nhiều lời nhắn. Vui lòng quay lại sau.", "You have sent many notes. Please try again later.")
+          : t("Chưa gửi được lời nhắn. Anh/chị thử lại nhé.", "Your note could not be sent. Please try again."));
       } else {
         setGuestName("");
         setGuestMessage("");
-        setGuestNotice(typeof data.message === "string" ? data.message : "Lời nhắn đã được gửi.");
+        setGuestNotice(typeof data.message === "string" ? data.message : t("Lời nhắn đã được gửi.", "Your note has been sent."));
       }
     } catch (error) {
       console.error("Guestbook submit failed:", error);
-      setGuestNotice("Mạng đang bận, chưa gửi được lời nhắn.");
+      setGuestNotice(t("Mạng đang bận, chưa gửi được lời nhắn.", "The network is busy. Your note could not be sent."));
     } finally {
       setGuestSending(false);
     }
   }
 
   if (state === "loading") {
-    return <main className={styles.loading}><span>▤</span><p>Đang mở cuốn sách...</p></main>;
+    return <main className={styles.loading}><span>▤</span><p>{t("Đang mở cuốn sách...", "Opening your story...")}</p></main>;
   }
   if (state === "pin") {
     return (
       <main className={styles.gatePage}>
         <section className={styles.gateCard}>
           <span className={styles.mark}>✉</span>
-          <p className={styles.kicker}>A PRIVATE STORY FOR YOU</p>
-          <h1>Một tác phẩm có khóa riêng</h1>
-          <p>Người gửi đã đặt mã PIN cho tác phẩm này. Hãy nhập mã được gửi cùng đường link.</p>
+          <p className={styles.kicker}>{t("A PRIVATE STORY FOR YOU", "A PRIVATE STORY FOR YOU")}</p>
+          <h1>{t("Một tác phẩm có khóa riêng", "This story is private")}</h1>
+          <p>{t("Người gửi đã đặt mã PIN cho tác phẩm này. Hãy nhập mã được gửi cùng đường link.", "The sender protected this story with a PIN. Enter the code shared with your link.")}</p>
           <form onSubmit={(event) => { event.preventDefault(); void requestWork(pin.trim()); }}>
-            <label htmlFor="story-pin">Mã PIN</label>
+            <label htmlFor="story-pin">{t("Mã PIN", "PIN")}</label>
             <input id="story-pin" type="password" value={pin} onChange={(event) => setPin(event.target.value)} autoComplete="off" inputMode="numeric" maxLength={40} autoFocus/>
             {pinError && <p className={styles.pinError} role="alert">{pinError}</p>}
-            <button type="submit" disabled={!pin.trim()}>Mở tác phẩm</button>
+            <button type="submit" disabled={!pin.trim()}>{t("Mở tác phẩm", "Open story")}</button>
           </form>
-          <Link href="/guest">Quay về cổng khách</Link>
+          <Link href="/guest">{t("Quay về cổng khách", "Back to reader portal")}</Link>
         </section>
       </main>
     );
   }
   if (state === "missing") {
-    return <main className={styles.gatePage}><section className={styles.gateCard}><span className={styles.mark}>▤</span><h1>Tác phẩm chưa được chia sẻ</h1><p>Đường link không còn hoạt động hoặc người viết đã chuyển tác phẩm về bản nháp.</p><Link href="/guest">Quay về cổng khách</Link></section></main>;
+    return <main className={styles.gatePage}><section className={styles.gateCard}><span className={styles.mark}>▤</span><h1>{t("Tác phẩm chưa được chia sẻ", "This story has not been shared")}</h1><p>{t("Đường link không còn hoạt động hoặc người viết đã chuyển tác phẩm về bản nháp.", "This link is no longer active, or the writer moved the story back to draft.")}</p><Link href="/guest">{t("Quay về cổng khách", "Back to reader portal")}</Link></section></main>;
   }
   if (state === "error" || !garden || !payload) {
-    return <main className={styles.gatePage}><section className={styles.gateCard}><span className={styles.mark}>✉</span><h1>Chưa thể mở tác phẩm</h1><p>{fatalError || "Có lỗi khi tải tác phẩm."}</p><button type="button" onClick={() => void requestWork()}>Thử lại</button><Link href="/guest">Quay về cổng khách</Link></section></main>;
+    return <main className={styles.gatePage}><section className={styles.gateCard}><span className={styles.mark}>✉</span><h1>{t("Chưa thể mở tác phẩm", "Unable to open this story")}</h1><p>{fatalError || t("Có lỗi khi tải tác phẩm.", "Something went wrong while loading the story.")}</p><button type="button" onClick={() => void requestWork()}>{t("Thử lại", "Try again")}</button><Link href="/guest">{t("Quay về cổng khách", "Back to reader portal")}</Link></section></main>;
   }
 
   return (
@@ -176,6 +180,7 @@ export default function SharedGardenExperience({ slug }: { slug: string }) {
       name={garden.name}
       introduction={garden.introduction}
       format={format}
+      decorations={normalizeStoryDecorations(garden.experience_settings?.storyDecorations)}
       coverUrl={garden.cover_url}
       photos={payload.photos}
       chapters={chapters}
@@ -186,7 +191,7 @@ export default function SharedGardenExperience({ slug }: { slug: string }) {
       letterSignature={garden.letter_signature}
       letterReady={allRead}
       returnHref="/guest"
-      returnLabel="Quay về cổng khách"
+      returnLabel=t("Quay về cổng khách", "Back to reader portal")
       actionHref={garden.guestbook_enabled ? "#guestbook" : "#the-book"}
       actionLabel={garden.guestbook_enabled ? "ĐỂ LẠI LỜI NHẮN" : "MỞ CUỐN SÁCH"}
     >
@@ -195,15 +200,15 @@ export default function SharedGardenExperience({ slug }: { slug: string }) {
           <div className={styles.sectionHeading}>
             <span>✎</span>
             <div>
-              <p className={styles.eyebrow}>A NOTE FROM THE READER</p>
-              <h2>Để lại một lời nhắn</h2>
-              <p>Lời nhắn sẽ được người viết xem trước khi xuất hiện công khai.</p>
+              <p className={styles.eyebrow}>{t("A NOTE FROM THE READER", "A NOTE FROM THE READER")}</p>
+              <h2>{t("Để lại một lời nhắn", "Leave a note")}</h2>
+              <p>{t("Lời nhắn sẽ được người viết xem trước khi xuất hiện công khai.", "The writer reviews notes before they appear publicly.")}</p>
             </div>
           </div>
           <form onSubmit={submitGuestbook}>
-            <label>Tên của bạn<input value={guestName} onChange={(event) => setGuestName(event.target.value)} maxLength={50} required placeholder="Tên hoặc biệt danh"/></label>
-            <label>Lời nhắn<textarea value={guestMessage} onChange={(event) => setGuestMessage(event.target.value)} maxLength={1000} rows={4} required placeholder="Gửi lại một điều dễ thương..."/></label>
-            <button type="submit" disabled={guestSending || !guestName.trim() || !guestMessage.trim()}>{guestSending ? "Đang gửi..." : "Gửi lời nhắn"}</button>
+            <label>{t("Tên của bạn", "Your name")}<input value={guestName} onChange={(event) => setGuestName(event.target.value)} maxLength={50} required placeholder=t("Tên hoặc biệt danh", "Name or nickname")/></label>
+            <label>{t("Lời nhắn", "Your note")}<textarea value={guestMessage} onChange={(event) => setGuestMessage(event.target.value)} maxLength={1000} rows={4} required placeholder=t("Gửi lại một điều dễ thương...", "Leave a kind note...")/></label>
+            <button type="submit" disabled={guestSending || !guestName.trim() || !guestMessage.trim()}>{guestSending ? t("Đang gửi...", "Sending...") : t("Gửi lời nhắn", "Send note")}</button>
             {guestNotice && <p role="status">{guestNotice}</p>}
           </form>
           {payload.guestbook.length > 0 && (

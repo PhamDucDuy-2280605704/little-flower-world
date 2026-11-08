@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
+import { useLanguage } from "@/features/i18n/LanguageProvider";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { adminSupabase } from "@/lib/adminSupabase";
@@ -9,6 +10,7 @@ import styles from "../styles/AdminLoginForm.module.css";
 
 export default function AdminLoginForm() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -23,7 +25,7 @@ export default function AdminLoginForm() {
       if (!active) return;
 
       if (sessionError) {
-        setError("Chưa kiểm tra được phiên Admin. Anh thử tải lại trang nhé.");
+        setError(t("Chưa kiểm tra được phiên Admin. Hãy thử tải lại trang nhé.", "Could not verify the Admin session. Please reload the page."));
         setChecking(false);
         return;
       }
@@ -160,11 +162,11 @@ export default function AdminLoginForm() {
 
       <div className={styles.separation}>
         <span />
-        <p>Phiên quản trị được lưu riêng, không ghi đè phiên khách</p>
+        <p>{t("Phiên quản trị được lưu riêng, không ghi đè phiên khách", "The Admin session is kept separate and does not replace the writer session.")}</p>
         <span />
       </div>
 
-      <Link href="/login" className={styles.guestLink}>← Đăng nhập thành viên</Link>
+      <Link href="/login" className={styles.guestLink}>← {t("Đăng nhập thành viên", "Writer sign-in")}</Link>
     </div>
   );
 }

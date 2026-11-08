@@ -1,64 +1,73 @@
 # Little Story World · Supabase
 
-Supabase lưu tài khoản, bản thảo, chương truyện, ảnh riêng tư, tiến độ đọc và trạng thái kiểm duyệt của Little Story World.
+Supabase stores writer accounts, private story drafts, chapters, decorations, reader progress, guestbook messages, and private photos.
 
-## Tạo tài khoản người viết
+## Writer accounts
 
-Tài khoản người viết hiện do Admin cấp, không mở đăng ký công khai.
+Writer accounts are provisioned by Admin; public sign-up is disabled.
 
-1. Mở **Supabase Dashboard → Authentication → Users**.
-2. Tạo tài khoản và gửi thông tin đăng nhập cho người viết qua kênh an toàn.
-3. Không chia sẻ Service Role Key hoặc quyền Admin cho tài khoản khách.
+1. Open **Supabase Dashboard → Authentication → Users**.
+2. Create the writer account and share its credentials using a secure channel.
+3. Never share a Service Role Key or Admin credentials with writers.
 
-Mỗi tài khoản có thể tạo nhiều tác phẩm riêng. Mỗi tác phẩm là một dòng trong `public.gardens`, các chương nằm ở `public.garden_chapters` và ảnh nằm trong bucket private `garden-photos`.
+Each writer may create multiple stories. A story is stored in `public.gardens`, with its chapters in `public.garden_chapters` and private photos in the `garden-photos` bucket.
 
-## Quy trình sáng tác và kiểm duyệt
+## Writing and moderation workflow
 
-| Trạng thái | Tài khoản người viết | Admin |
+| Status | Writer | Admin |
 | --- | --- | --- |
-| `draft` | Tạo, sửa, xem trước và lưu riêng tư | Xem, sửa, quản lý |
-| `pending` | Nội dung tạm khóa; có thể rút yêu cầu duyệt | Xem xét và duyệt/từ chối |
-| `approved` | Chỉ xem; không tự xuất bản | Có thể bật PIN và xuất bản |
-| `rejected` | Chỉnh sửa và gửi duyệt lại | Có thể xem, chỉnh sửa hoặc xóa |
+| `draft` | Create, edit, preview, and save privately | View and manage |
+| `pending` | Content is locked; may withdraw the review request | Review, approve, or reject |
+| `approved` | Read-only; cannot publish | Configure PIN and publish |
+| `rejected` | Edit and resubmit | Review, edit, or delete |
 
-Tài khoản người viết có giới hạn tối đa **8 chương** và **5 ảnh mỗi tác phẩm** (tối đa 5 MB/ảnh). Admin không bị giới hạn số chương bởi trigger và có thể quản lý album rộng hơn, đặt/gỡ PIN, quản lý lưu bút, xuất bản hoặc gỡ xuất bản.
+**Chapter count is unlimited** for writer and Admin accounts. The former chapter-limit trigger and function were removed from production. Writer accounts may upload up to **5 photos per story** (up to 5 MB each) and choose up to **4 stickers** in the editor. Admin retains expanded photo and sticker management.
 
-Các quyền quan trọng được kiểm tra ở database, không chỉ ẩn nút trên giao diện:
-- Trigger ép mọi tác phẩm mới của người viết ở trạng thái riêng tư, không có share slug.
-- Chỉ Admin được duyệt/từ chối, xuất bản, cấu hình PIN và kiểm duyệt lưu bút.
-- Tác phẩm đang chờ duyệt không thể bị người viết sửa nội dung.
-- Nếu nội dung của tác phẩm đã duyệt bị thay đổi bởi chủ sở hữu, hệ thống chuyển về bản nháp và gỡ liên kết công khai để phải duyệt lại.
-- RLS giới hạn người viết vào tác phẩm của chính họ; chương/ảnh chỉ được thêm hoặc sửa khi tác phẩm là bản nháp hoặc đã bị từ chối.
-- Quota chương và ảnh được áp dụng cả ở database/storage để không thể vượt giới hạn bằng cách gọi API trực tiếp.
+A story's decoration settings are saved in `gardens.experience_settings.storyDecorations`:
+- `theme`: meadow, sunset, or starlight
+- `paper`: ivory, linen, or rose
+- `effect`: page-turn, soft-glow, sparkles, or none
+- `stickers`: selected sticker IDs
 
-## Migration đã triển khai
+## Database-enforced controls
 
-Các migration story-authoring được áp dụng cho project production theo thứ tự:
+- New writer stories are forced to `draft`, unpublished, without a share slug.
+- Only Admin may approve/reject, publish/unpublish, manage PIN secrets, or moderate guestbook messages.
+- Writers can only access their own stories.
+- Stories awaiting review cannot be edited by their writer.
+- Editing an approved story removes its public share state and requires a fresh review.
+- Chapter inserts are owner-scoped but have no chapter-count limit.
+- Writer photo upload quotas are enforced by Storage trigger and RLS; photo quota function execution is revoked from `anon` and `authenticated`.
+
+## Production migrations
+
+The story-authoring migrations already applied to production and committed in this repository are:
 
 1. `20261108064414_guest_story_authoring_and_admin_approval.sql`
 2. `20261108065344_tighten_creator_review_and_media_controls.sql`
 3. `20261108065415_allow_rejected_story_resubmission.sql`
 4. `20261108065433_guard_creator_story_cover_and_resubmission.sql`
 5. `20261108070427_restrict_creator_photo_quota_trigger_function.sql`
+6. `20261108141000_allow_unlimited_story_chapters.sql`
 
-Các migration trước đó vẫn nằm trong `supabase/migrations/`. Không sửa/xóa migration lịch sử đã áp dụng; hãy tạo migration mới cho thay đổi tiếp theo.
+Do not edit migration files that have already been applied. Add a new timestamped migration for future schema changes.
 
-## Kiểm tra quyền sau khi thay đổi
+## Suggested access checks
 
-Dùng một tài khoản người viết thử nghiệm và một tài khoản Admin riêng.
+Use one test writer account and the separate Admin account:
 
-1. Người viết đăng nhập và tạo một tác phẩm; kiểm tra `approval_status = 'draft'`, `is_published = false`, `share_slug IS NULL`.
-2. Người viết thêm chương và ảnh trong giới hạn; thử vượt 8 chương/5 ảnh để xác nhận database từ chối.
-3. Người viết gửi duyệt; trạng thái chuyển sang `pending` và nội dung không thể sửa cho tới khi rút yêu cầu hoặc Admin xử lý.
-4. Admin duyệt; thử bật PIN và xuất bản. Admin từ chối phải tự động gỡ publication và share slug.
-5. Tài khoản người viết không thể đọc `garden_share_secrets` hoặc danh sách kiểm duyệt `garden_guestbook`, cũng không thể tự xuất bản.
-6. Đăng nhập bằng tài khoản người viết khác và xác nhận không thể đọc/sửa tác phẩm của tài khoản đầu tiên.
+1. Writer creates a story. Confirm `approval_status = 'draft'`, `is_published = false`, and `share_slug IS NULL`.
+2. Writer adds many chapters. Confirm there is no database chapter-count ceiling.
+3. Writer submits for review. Confirm status becomes `pending` and the content is locked until the request is withdrawn or Admin processes it.
+4. Admin approves and publishes; test PIN protection. Rejecting a published story must remove its public share state.
+5. Writer cannot read `garden_share_secrets` or moderation data in `garden_guestbook`, and cannot publish directly.
+6. A second writer cannot read or modify the first writer's stories.
 
-Không dùng tài khoản thật để thử các thao tác xóa hoặc thay đổi trạng thái nếu chưa bọc trong transaction và rollback.
+Run destructive tests only inside a transaction that is rolled back.
 
-## Bảo mật
+## Security
 
-- Trình duyệt chỉ dùng Supabase Publishable Key.
-- Không đưa Secret / Service Role Key vào mã nguồn, file `.env` được commit, hoặc biến `NEXT_PUBLIC_*`.
-- Hàm trigger quota ảnh chỉ được PostgreSQL gọi qua trigger; quyền `EXECUTE` đã bị thu hồi khỏi `anon` và `authenticated`.
-- Bật **Leaked Password Protection** trong Supabase Auth để cảnh báo và chặn mật khẩu đã bị lộ.
+- The browser uses only the Supabase Publishable Key.
+- Never commit a Secret/Service Role Key or expose it through a `NEXT_PUBLIC_*` variable.
+- The definer-rights photo quota function is callable only by PostgreSQL through its trigger; direct `EXECUTE` has been revoked from `anon` and `authenticated`.
+- Enable **Leaked Password Protection** in Supabase Auth to block compromised passwords.

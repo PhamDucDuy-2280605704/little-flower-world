@@ -4,11 +4,23 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } f
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import GardenJournal, { type GardenJournalPhoto, type JournalChapter, type StoryFormat } from "@/features/garden/components/GardenJournal";
+import GardenJournal, {
+  normalizeStoryDecorations,
+  STORY_STICKERS,
+  type GardenJournalPhoto,
+  type JournalChapter,
+  type StoryDecorations,
+  type StoryFormat,
+  type StoryStickerId,
+  type StoryTheme,
+  type StoryPaper,
+  type StoryEffect,
+} from "@/features/garden/components/GardenJournal";
 import { adminSupabase } from "@/lib/adminSupabase";
 import { supabase } from "@/lib/supabase";
 import { FAIRYTALE_GARDEN_ADMIN_USER_ID } from "@/features/garden/data/gardenThemes";
 import styles from "../styles/BookStudio.module.css";
+import { useLanguage } from "@/features/i18n/LanguageProvider";
 
 type GardenRow = {
   id: string;
@@ -29,14 +41,30 @@ type GardenRow = {
 };
 type ChapterRow = { chapter_id: string; sort_order: number; title: string; paragraphs: string[] };
 type GuestbookRow = { id: string; guest_name: string; message: string; status: "pending" | "approved" | "rejected"; created_at: string };
-const FORMATS: Array<{ value: StoryFormat; title: string; description: string; symbol: string }> = [
-  { value: "message", title: "Thông điệp", description: "Một trang ngắn để gửi điều bạn đang nghĩ.", symbol: "✎" },
-  { value: "letter", title: "Bức thư", description: "Một lá thư riêng với lời mở đầu và chữ ký.", symbol: "✉" },
-  { value: "book", title: "Cuốn sách", description: "Nhiều chương, mục lục và trải nghiệm lật trang.", symbol: "▤" },
+const FORMATS: Array<{ value: StoryFormat; title: string; titleEn: string; description: string; descriptionEn: string; symbol: string }> = [
+  { value: "message", title: "Thông điệp", titleEn: "Message", description: "Một trang ngắn để gửi điều bạn đang nghĩ.", descriptionEn: "A short page for the words on your mind.", symbol: "✎" },
+  { value: "letter", title: "Bức thư", titleEn: "Letter", description: "Một lá thư riêng với lời mở đầu và chữ ký.", descriptionEn: "A personal letter with an opening and signature.", symbol: "✉" },
+  { value: "book", title: "Cuốn sách", titleEn: "Book", description: "Nhiều chương, mục lục và trải nghiệm lật trang.", descriptionEn: "Chapters, a table of contents, and page-turning.", symbol: "▤" },
 ];
 const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/avif", "image/gif"]);
-const CREATOR_MAX_CHAPTERS = 8;
 const CREATOR_MAX_PHOTOS = 5;
+const CREATOR_MAX_STICKERS = 4;
+const DECORATION_THEMES: Array<{ value: StoryTheme; title: string; titleEn: string; detail: string; detailEn: string }> = [
+  { value: "meadow", title: "Khu vườn dịu dàng", titleEn: "Gentle meadow", detail: "Xanh sage và hoa cỏ", detailEn: "Sage greens and wildflowers" },
+  { value: "sunset", title: "Hoàng hôn ấm áp", titleEn: "Warm sunset", detail: "Đào, kem và nắng vàng", detailEn: "Peach, cream, and golden light" },
+  { value: "starlight", title: "Đêm đầy sao", titleEn: "Starlit night", detail: "Xanh đêm và ánh trăng", detailEn: "Midnight blue and moonlight" },
+];
+const PAPER_FINISHES: Array<{ value: StoryPaper; title: string; titleEn: string; detail: string; detailEn: string }> = [
+  { value: "ivory", title: "Giấy ngà", titleEn: "Ivory paper", detail: "Sạch và thanh lịch", detailEn: "Clean and elegant" },
+  { value: "linen", title: "Giấy linen", titleEn: "Linen paper", detail: "Vân giấy nhẹ", detailEn: "Subtle paper texture" },
+  { value: "rose", title: "Giấy hồng", titleEn: "Blush paper", detail: "Ấm áp và mềm mại", detailEn: "Warm and gentle" },
+];
+const PAGE_EFFECTS: Array<{ value: StoryEffect; title: string; titleEn: string; detail: string; detailEn: string }> = [
+  { value: "page-turn", title: "Lật trang", titleEn: "Page turn", detail: "Chuyển trang như sách thật", detailEn: "Turn pages like a real book" },
+  { value: "soft-glow", title: "Ánh sáng dịu", titleEn: "Soft glow", detail: "Trang giấy có độ sáng nhẹ", detailEn: "A gentle glow on each page" },
+  { value: "sparkles", title: "Lấp lánh", titleEn: "Sparkles", detail: "Ánh sáng nhỏ quanh cuốn sách", detailEn: "Tiny lights around the book" },
+  { value: "none", title: "Tĩnh lặng", titleEn: "Still", detail: "Không thêm hiệu ứng chuyển động", detailEn: "No additional motion" },
+];
 
 function paragraphs(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
@@ -61,6 +89,7 @@ async function makePinHash(pin: string) {
 
 export default function BookStudio() {
   const router = useRouter();
+  const { t } = useLanguage();
   const previewRef = useRef<HTMLDialogElement>(null);
   const [authReady, setAuthReady] = useState(false);
   const [userId, setUserId] = useState("");
@@ -80,9 +109,10 @@ export default function BookStudio() {
   const [notice, setNotice] = useState("");
 
   const [format, setFormat] = useState<StoryFormat>("book");
+  const [decorations, setDecorations] = useState<StoryDecorations>(() => normalizeStoryDecorations(null));
   const [name, setName] = useState("");
   const [introduction, setIntroduction] = useState("");
-  const [letterTitle, setLetterTitle] = useState("Một lá thư dành riêng cho bạn");
+  const [letterTitle, setLetterTitle] = useState(t("Một lá thư dành riêng cho bạn", "A letter just for you"));
   const [letterText, setLetterText] = useState("");
   const [signature, setSignature] = useState("");
   const [coverUrl, setCoverUrl] = useState("");
@@ -160,9 +190,10 @@ export default function BookStudio() {
     const settings = garden.experience_settings ?? {};
     const savedFormat = settings.storyFormat;
     setFormat(savedFormat === "message" || savedFormat === "letter" ? savedFormat : "book");
+    setDecorations(normalizeStoryDecorations(settings.storyDecorations));
     setName(garden.name);
     setIntroduction(garden.introduction ?? "");
-    setLetterTitle(garden.letter_title || "Một lá thư dành riêng cho bạn");
+    setLetterTitle(garden.letter_title || t("Một lá thư dành riêng cho bạn", "A letter just for you"));
     setLetterText(paragraphs(garden.letter_paragraphs).join("\n\n"));
     setSignature(garden.letter_signature ?? "");
     setGuestbookEnabled(isAdmin && garden.guestbook_enabled === true);
@@ -190,7 +221,7 @@ export default function BookStudio() {
     const signed = await Promise.all(imageFiles.map(async (file) => {
       const path = garden.id + "/" + file.name;
       const { data } = await activeClientRef.current.storage.from("garden-photos").createSignedUrl(path, 60 * 60);
-      return data?.signedUrl ? { path, url: data.signedUrl, alt: "Ảnh trong tác phẩm" } : null;
+      return data?.signedUrl ? { path, url: data.signedUrl, alt: t("Ảnh trong tác phẩm", "Photo in this story") } : null;
     }));
     setPhotos(signed.filter((photo): photo is GardenJournalPhoto => photo !== null));
   }, [isAdmin]);
@@ -215,17 +246,19 @@ export default function BookStudio() {
       setIsAdmin(adminMode);
       setUserId(user.id);
       try {
-        await loadGardens(user.id, adminMode);
+        const loadedGardens = await loadGardens(user.id, adminMode);
+        const requestedGardenId = new URLSearchParams(window.location.search).get("garden");
+        if (adminMode && requestedGardenId && loadedGardens.some((garden) => garden.id === requestedGardenId)) setSelectedId(requestedGardenId);
       } catch (loadError) {
         console.error("Load writing desk failed:", loadError);
-        if (active) setError("Chưa tải được dbạn sách bản thảo. Bạn thử tải lại nhé.");
+        if (active) setError(t("Chưa tải được danh sách bản thảo. Bạn thử tải lại nhé.", "Could not load the draft list. Please reload."));
       } finally {
         if (active) { setAuthReady(true); setLoading(false); }
       }
     }).catch((sessionError: unknown) => {
       console.error("Writing desk auth failed:", sessionError);
       if (active) {
-        setError("Không thể xác minh phiên đăng nhập.");
+        setError(t("Không thể xác minh phiên đăng nhập.", "Could not verify your sign-in session."));
         setAuthReady(true);
         setLoading(false);
       }
@@ -240,7 +273,7 @@ export default function BookStudio() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadWork(selectedGarden).catch((loadError) => {
       console.error("Load selected writing failed:", loadError);
-      if (active) setError("Chưa tải được nội dung tác phẩm.");
+      if (active) setError(t("Chưa tải được nội dung tác phẩm.", "Could not load the story content."));
     });
     return () => { active = false; };
   }, [selectedGarden, loadWork]);
@@ -258,14 +291,27 @@ export default function BookStudio() {
 
   function draftPayload() {
     const content = {
-      name: name.trim() || "Tác phẩm chưa đặt tên",
+      name: name.trim() || t("Tác phẩm chưa đặt tên", "Untitled story"),
       introduction: introduction.trim(),
-      letter_title: letterTitle.trim() || "Một lá thư dành riêng cho bạn",
+      letter_title: letterTitle.trim() || t("Một lá thư dành riêng cho bạn", "A letter just for you"),
       letter_paragraphs: splitText(letterText),
       letter_signature: signature.trim(),
-      experience_settings: { ...(selectedGarden?.experience_settings ?? {}), storyFormat: format },
+      experience_settings: { ...(selectedGarden?.experience_settings ?? {}), storyFormat: format, storyDecorations: decorations },
     };
     return isAdmin ? { ...content, guestbook_enabled: guestbookEnabled } : content;
+  }
+
+  function toggleSticker(stickerId: StoryStickerId) {
+    const active = decorations.stickers.includes(stickerId);
+    if (!active && decorations.stickers.length >= (isAdmin ? STORY_STICKERS.length : CREATOR_MAX_STICKERS)) {
+      setError(isAdmin ? t("Bộ sticker đã đạt giới hạn 10 hình.", "The sticker limit of 10 has been reached.") : t("Tài khoản sáng tác có thể dùng tối đa 4 sticker cho mỗi tác phẩm.", "Writer accounts can use up to 4 stickers per story."));
+      return;
+    }
+    setError("");
+    setDecorations((current) => ({
+      ...current,
+      stickers: active ? current.stickers.filter((item) => item !== stickerId) : [...current.stickers, stickerId],
+    }));
   }
 
   function contentReady() {
@@ -281,7 +327,7 @@ export default function BookStudio() {
     if (!pinEnabled && pinExists) {
       const { error: deleteError } = await activeClientRef.current.from("garden_share_secrets").delete().eq("garden_id", selectedGarden.id);
       if (deleteError) {
-        setError("Nội dung đã lưu nhưng chưa gỡ được mã PIN cũ.");
+        setError(t("Nội dung đã lưu nhưng chưa gỡ được mã PIN cũ.", "Your work was saved, but the previous PIN could not be removed."));
         return false;
       }
       setPinExists(false);
@@ -292,7 +338,7 @@ export default function BookStudio() {
         garden_id: selectedGarden.id, pin_salt: salt, pin_hash: hash, iterations: 180000, updated_at: new Date().toISOString(),
       });
       if (pinError) {
-        setError("Nội dung đã lưu nhưng chưa cập nhật được mã PIN.");
+        setError(t("Nội dung đã lưu nhưng chưa cập nhật được mã PIN.", "Your work was saved, but the PIN could not be updated."));
         return false;
       }
       setPinExists(true);
@@ -304,15 +350,15 @@ export default function BookStudio() {
   async function saveDraft() {
     if (!selectedGarden || saving) return;
     if (isCreatorReviewLocked) {
-      setNotice(selectedGarden.approval_status === "pending" ? "Tác phẩm đang chờ Admin duyệt nên tạm khóa chỉnh sửa." : "Tác phẩm đã được duyệt. Hãy liên hệ Admin nếu cần chỉnh sửa.");
+      setNotice(selectedGarden.approval_status === "pending" ? t("Tác phẩm đang chờ Admin duyệt nên tạm khóa chỉnh sửa.", "This story is locked while awaiting Admin review.") : t("Tác phẩm đã được duyệt. Hãy liên hệ Admin nếu cần chỉnh sửa.", "This story has been approved. Contact Admin if changes are needed."));
       return;
     }
     if (pinEnabled && !pinExists && pinDraft.trim().length < 6) {
-      setError("Mã PIN cần ít nhất 6 ký tự.");
+      setError(t("Mã PIN cần ít nhất 6 ký tự.", "The PIN must contain at least 6 characters."));
       return;
     }
     if (pinEnabled && pinDraft.trim() && pinDraft.trim().length < 6) {
-      setError("Mã PIN cần ít nhất 6 ký tự.");
+      setError(t("Mã PIN cần ít nhất 6 ký tự.", "The PIN must contain at least 6 characters."));
       return;
     }
     setSaving(true);
@@ -321,41 +367,41 @@ export default function BookStudio() {
     const { error: saveError } = await activeClientRef.current.from("gardens").update(savePayload).eq("id", selectedGarden.id).eq("owner_id", isAdmin ? selectedGarden.owner_id : userId);
     if (saveError) {
       console.error("Save draft failed:", saveError);
-      setError("Chưa lưu được bản thảo.");
+      setError(t("Chưa lưu được bản thảo.", "Could not save the draft."));
       setSaving(false);
       return;
     }
     if (!(await syncPin())) { setSaving(false); return; }
     await loadGardens(userId, isAdmin);
-    setNotice("Đã lưu bản thảo.");
+    setNotice(t("Đã lưu bản thảo.", "Draft saved."));
     setSaving(false);
   }
 
   async function publishWork(publish: boolean) {
     if (!isAdmin || !selectedGarden || saving) return;
     if (publish && selectedGarden.approval_status !== "approved") {
-      setError("Admin cần duyệt tác phẩm trước khi xuất bản.");
+      setError(t("Admin cần duyệt tác phẩm trước khi xuất bản.", "Admin must approve the story before publishing."));
       return;
     }
     if (publish && !contentReady()) {
-      setError(format === "message" ? "Bạn cần viết nội dung thông điệp trước khi xuất bản."
-        : format === "letter" ? "Bạn cần viết nội dung bức thư trước khi xuất bản."
-        : "Bạn cần tạo ít nhất một chương có nội dung trước khi xuất bản.");
+      setError(format === "message" ? t("Bạn cần viết nội dung thông điệp trước khi xuất bản.", "Write the message before publishing.")
+        : format === "letter" ? t("Bạn cần viết nội dung bức thư trước khi xuất bản.", "Write the letter before publishing.")
+        : t("Bạn cần tạo ít nhất một chương có nội dung trước khi xuất bản.", "Add at least one chapter with content before publishing."));
       return;
     }
     if (pinEnabled && !pinExists && pinDraft.trim().length < 6) {
-      setError("Mã PIN cần ít nhất 6 ký tự trước khi xuất bản.");
+      setError(t("Mã PIN cần ít nhất 6 ký tự trước khi xuất bản.", "The PIN must contain at least 6 characters before publishing."));
       return;
     }
     if (pinEnabled && pinDraft.trim() && pinDraft.trim().length < 6) {
-      setError("Mã PIN cần ít nhất 6 ký tự.");
+      setError(t("Mã PIN cần ít nhất 6 ký tự.", "The PIN must contain at least 6 characters."));
       return;
     }
     setSaving(true);
     setError("");
     const { error: saveError } = await activeClientRef.current.from("gardens").update(draftPayload()).eq("id", selectedGarden.id);
     if (saveError) {
-      setError("Chưa lưu được nội dung trước khi xuất bản.");
+      setError(t("Chưa lưu được nội dung trước khi xuất bản.", "Could not save the content before publishing."));
       setSaving(false);
       return;
     }
@@ -368,22 +414,22 @@ export default function BookStudio() {
     }).eq("id", selectedGarden.id);
     if (publishError) {
       console.error("Publish work failed:", publishError);
-      setError("Đã lưu nội dung nhưng chưa thay đổi được trạng thái xuất bản.");
+      setError(t("Đã lưu nội dung nhưng chưa thay đổi được trạng thái xuất bản.", "The content was saved, but the publishing status could not be changed."));
       setSaving(false);
       return;
     }
     await loadGardens(userId);
-    setNotice(publish ? "Tác phẩm đã xuất bản. Bạn có thể gửi liên kết cho người nhận." : "Tác phẩm đã chuyển về bản nháp.");
+    setNotice(publish ? t("Tác phẩm đã xuất bản. Bạn có thể gửi liên kết cho người nhận.", "Story published. You can share the link with the reader.") : t("Tác phẩm đã chuyển về bản nháp.", "Story moved back to draft."));
     setSaving(false);
   }
 
   async function handleLogout() {
     const { error: logoutError } = await activeClientRef.current.auth.signOut({ scope: "local" });
     if (logoutError) {
-      setError("Đăng xuất chưa thành công. Bạn thử lại nhé.");
+      setError(t("Đăng xuất chưa thành công. Bạn thử lại nhé.", "Sign out failed. Please try again."));
       return;
     }
-    router.replace(isAdmin ? "/admin/login" : "/login");
+    router.replace(isAdmin ? "/little-story-backstage-7f4c" : "/login");
     router.refresh();
   }
 
@@ -393,9 +439,9 @@ export default function BookStudio() {
     setError("");
     const { data, error: createError } = await activeClientRef.current.from("gardens").insert({
       owner_id: userId,
-      name: "Tác phẩm mới",
+      name: t("Tác phẩm mới", "New story"),
       introduction: "",
-      letter_title: "Một lá thư dành riêng cho bạn",
+      letter_title: t("Một lá thư dành riêng cho bạn", "A letter just for you"),
       letter_paragraphs: [],
       letter_signature: "",
       experience_settings: { storyFormat: "book" },
@@ -403,25 +449,21 @@ export default function BookStudio() {
     }).select("id").single();
     if (createError || !data) {
       console.error("Create writing failed:", createError);
-      setError("Chưa tạo được bản thảo mới.");
+      setError(t("Chưa tạo được bản thảo mới.", "Could not create a new draft."));
       setSaving(false);
       return;
     }
     await loadGardens(userId, isAdmin);
     setSelectedId(data.id);
-    setNotice("Đã tạo bản thảo mới. Chọn kiểu tác phẩm rồi bắt đầu viết nhé.");
+    setNotice(t("Đã tạo bản thảo mới. Chọn kiểu tác phẩm rồi bắt đầu viết nhé.", "New draft created. Choose a format and start writing."));
     setSaving(false);
   }
 
   async function addChapter() {
     if (!selectedGarden || saving || !newChapterTitle.trim()) return;
-    if (!isAdmin && chapters.length >= CREATOR_MAX_CHAPTERS) {
-      setError("Tài khoản sáng tác có thể thêm tối đa 8 chương cho mỗi cuốn sách.");
-      return;
-    }
     const content = splitText(newChapterText);
     if (content.length === 0) {
-      setError("Bạn hãy viết nội dung chương trước khi thêm nhé.");
+      setError(t("Bạn hãy viết nội dung chương trước khi thêm nhé.", "Write the chapter content before adding it."));
       return;
     }
     setSaving(true);
@@ -433,7 +475,7 @@ export default function BookStudio() {
     });
     if (insertError) {
       console.error("Add chapter failed:", insertError);
-      setError("Chưa thêm được chương. Nội dung trong biểu mẫu vẫn được giữ.");
+      setError(t("Chưa thêm được chương. Nội dung trong biểu mẫu vẫn được giữ.", "Could not add the chapter. Your form content has been kept."));
       setSaving(false);
       return;
     }
@@ -444,7 +486,7 @@ export default function BookStudio() {
     setChapterTextDraft(created.paragraphs.join("\n\n"));
     setNewChapterTitle("");
     setNewChapterText("");
-    setNotice("Đã thêm chương " + order + ".");
+    setNotice(t("Đã thêm chương ", "Added chapter ") + order + ".");
     setSaving(false);
   }
 
@@ -458,7 +500,7 @@ export default function BookStudio() {
     if (!selectedGarden || !selectedChapter || saving || !chapterTitleDraft.trim()) return;
     const content = splitText(chapterTextDraft);
     if (content.length === 0) {
-      setError("Chương cần có nội dung trước khi lưu.");
+      setError(t("Chương cần có nội dung trước khi lưu.", "A chapter needs content before it can be saved."));
       return;
     }
     setSaving(true);
@@ -467,25 +509,25 @@ export default function BookStudio() {
     }).eq("garden_id", selectedGarden.id).eq("chapter_id", selectedChapter.chapter_id);
     if (updateError) {
       console.error("Save chapter failed:", updateError);
-      setError("Chưa lưu được chương.");
+      setError(t("Chưa lưu được chương.", "Could not save the chapter."));
       setSaving(false);
       return;
     }
     setChapters((current) => current.map((chapter) => chapter.chapter_id === selectedChapter.chapter_id
       ? { ...chapter, title: chapterTitleDraft.trim(), paragraphs: content }
       : chapter));
-    setNotice("Đã lưu nội dung chương.");
+    setNotice(t("Đã lưu nội dung chương.", "Chapter content saved."));
     setSaving(false);
   }
 
   async function deleteChapter(id: string) {
     if (!selectedGarden || saving) return;
     const chapter = chapters.find((item) => item.chapter_id === id);
-    if (!window.confirm("Xóa chương “" + (chapter?.title ?? "") + "”? Nội dung sẽ không thể khôi phục.")) return;
+    if (!window.confirm(t("Xóa chương “", "Delete chapter “") + (chapter?.title ?? "") + t("”? Nội dung sẽ không thể khôi phục.", "”? This content cannot be restored."))) return;
     const { error: deleteError } = await activeClientRef.current.from("garden_chapters").delete()
       .eq("garden_id", selectedGarden.id).eq("chapter_id", id);
     if (deleteError) {
-      setError("Chưa xóa được chương.");
+      setError(t("Chưa xóa được chương.", "Could not delete the chapter."));
       return;
     }
     const remaining = chapters.filter((item) => item.chapter_id !== id).map((item, index) => ({ ...item, sort_order: index + 1 }));
@@ -496,7 +538,7 @@ export default function BookStudio() {
     setSelectedChapterId(next?.chapter_id ?? "");
     setChapterTitleDraft(next?.title ?? "");
     setChapterTextDraft(next?.paragraphs.join("\n\n") ?? "");
-    setNotice("Đã xóa chương. Các chương còn lại đã được đánh lại số.");
+    setNotice(t("Đã xóa chương. Các chương còn lại đã được đánh lại số.", "Chapter deleted. The remaining chapters have been renumbered."));
   }
 
   async function uploadPhoto(event: ChangeEvent<HTMLInputElement>, asCover: boolean) {
@@ -504,12 +546,12 @@ export default function BookStudio() {
     event.target.value = "";
     if (!file || !selectedGarden || uploading) return;
     if (!isAdmin && photos.length >= CREATOR_MAX_PHOTOS) {
-      setError("Tài khoản sáng tác có thể thêm tối đa 5 ảnh cho mỗi tác phẩm.");
+      setError(t("Tài khoản sáng tác có thể thêm tối đa 5 ảnh cho mỗi tác phẩm.", "Writer accounts can add up to 5 photos per story."));
       return;
     }
     const maxFileSize = (isAdmin ? 10 : 5) * 1024 * 1024;
     if (!IMAGE_TYPES.has(file.type) || file.size > maxFileSize) {
-      setError(isAdmin ? "Chọn ảnh JPG, PNG, WEBP, AVIF hoặc GIF tối đa 10 MB nhé." : "Ảnh dành cho tài khoản sáng tác có dung lượng tối đa 5 MB.");
+      setError(isAdmin ? t("Chọn ảnh JPG, PNG, WEBP, AVIF hoặc GIF tối đa 10 MB nhé.", "Choose a JPG, PNG, WEBP, AVIF, or GIF image up to 10 MB.") : t("Ảnh dành cho tài khoản sáng tác có dung lượng tối đa 5 MB.", "Photos for writer accounts must be 5 MB or smaller."));
       return;
     }
     setUploading(true);
@@ -521,7 +563,7 @@ export default function BookStudio() {
     });
     if (uploadError) {
       console.error("Upload writing photo failed:", uploadError);
-      setError("Chưa tải được ảnh. Bạn thử lại nhé.");
+      setError(t("Chưa tải được ảnh. Bạn thử lại nhé.", "Could not upload the photo. Please try again."));
       setUploading(false);
       return;
     }
@@ -529,7 +571,7 @@ export default function BookStudio() {
       const { error: coverError } = await activeClientRef.current.from("gardens").update({ cover_path: path }).eq("id", selectedGarden.id);
       if (coverError) {
         console.error("Set book cover failed:", coverError);
-        setError("Ảnh đã tải lên nhưng chưa đặt được làm ảnh bìa.");
+        setError(t("Ảnh đã tải lên nhưng chưa đặt được làm ảnh bìa.", "The photo uploaded, but could not be set as the cover."));
         setUploading(false);
         return;
       }
@@ -547,11 +589,11 @@ export default function BookStudio() {
       const signed = await Promise.all(imageFiles.map(async (item) => {
         const imagePath = selectedGarden.id + "/" + item.name;
         const { data } = await activeClientRef.current.storage.from("garden-photos").createSignedUrl(imagePath, 60 * 60);
-        return data?.signedUrl ? { path: imagePath, url: data.signedUrl, alt: "Ảnh trong tác phẩm" } : null;
+        return data?.signedUrl ? { path: imagePath, url: data.signedUrl, alt: t("Ảnh trong tác phẩm", "Photo in this story") } : null;
       }));
       setPhotos(signed.filter((photo): photo is GardenJournalPhoto => photo !== null));
     }
-    setNotice(asCover ? "Đã cập nhật ảnh bìa." : "Đã thêm ảnh vào bộ sưu tập.");
+    setNotice(asCover ? t("Đã cập nhật ảnh bìa.", "Cover photo updated.") : t("Đã thêm ảnh vào bộ sưu tập.", "Photo added to the collection."));
     setUploading(false);
   }
 
@@ -559,7 +601,7 @@ export default function BookStudio() {
     if (!isAdmin) return;
     const { error: updateError } = await activeClientRef.current.from("garden_guestbook").update({ status }).eq("id", entry.id);
     if (updateError) {
-      setError("Chưa cập nhật được lời nhắn.");
+      setError(t("Chưa cập nhật được lời nhắn.", "Could not update the reader note."));
       return;
     }
     if (selectedGarden) {
@@ -568,7 +610,7 @@ export default function BookStudio() {
         .eq("garden_id", selectedGarden.id)
         .order("created_at", { ascending: false })
         .limit(60);
-      if (error) setError("Đã cập nhật trạng thái nhưng chưa tải lại được dbạn sách lời nhắn.");
+      if (error) setError(t("Đã cập nhật trạng thái nhưng chưa tải lại được danh sách lời nhắn.", "Status updated, but the reader notes could not be reloaded."));
       else setGuestbook((data ?? []) as GuestbookRow[]);
     }
   }
@@ -577,18 +619,18 @@ export default function BookStudio() {
     if (!shareUrl) return;
     try {
       await navigator.clipboard.writeText(shareUrl);
-      setNotice("Đã sao chép liên kết.");
+      setNotice(t("Đã sao chép liên kết.", "Link copied."));
     } catch {
-      setError("Trình duyệt không cho sao chép tự động. Bạn hãy chọn và sao chép đường link.");
+      setError(t("Trình duyệt không cho sao chép tự động. Bạn hãy chọn và sao chép đường link.", "Your browser blocked automatic copying. Select and copy the link manually."));
     }
   }
 
   async function submitForReview() {
     if (isAdmin || !selectedGarden || saving) return;
     if (!contentReady()) {
-      setError(format === "message" ? "Hãy viết nội dung thông điệp trước khi gửi duyệt."
-        : format === "letter" ? "Hãy viết nội dung bức thư trước khi gửi duyệt."
-        : "Hãy thêm ít nhất một chương có nội dung trước khi gửi duyệt.");
+      setError(format === "message" ? t("Hãy viết nội dung thông điệp trước khi gửi duyệt.", "Write the message before submitting for review.")
+        : format === "letter" ? t("Hãy viết nội dung bức thư trước khi gửi duyệt.", "Write the letter before submitting for review.")
+        : t("Hãy thêm ít nhất một chương có nội dung trước khi gửi duyệt.", "Add at least one chapter with content before submitting for review."));
       return;
     }
     setSaving(true);
@@ -598,12 +640,12 @@ export default function BookStudio() {
       .eq("id", selectedGarden.id).eq("owner_id", userId);
     if (submitError) {
       console.error("Submit story for review failed:", submitError);
-      setError("Chưa gửi được tác phẩm cho Admin. Nội dung của bạn vẫn được giữ lại.");
+      setError(t("Chưa gửi được tác phẩm cho Admin. Nội dung của bạn vẫn được giữ lại.", "Could not submit the story to Admin. Your work has been kept."));
       setSaving(false);
       return;
     }
     await loadGardens(userId, false);
-    setNotice("Đã gửi tác phẩm cho Admin kiểm duyệt. Nội dung sẽ tạm khóa trong thời gian xem xét.");
+    setNotice(t("Đã gửi tác phẩm cho Admin kiểm duyệt. Nội dung sẽ tạm khóa trong thời gian xem xét.", "Story submitted for Admin review. Editing is paused during review."));
     setSaving(false);
   }
 
@@ -616,19 +658,19 @@ export default function BookStudio() {
       .eq("id", selectedGarden.id).eq("owner_id", userId);
     if (withdrawError) {
       console.error("Withdraw story review failed:", withdrawError);
-      setError("Chưa rút được yêu cầu duyệt. Bạn thử lại nhé.");
+      setError(t("Chưa rút được yêu cầu duyệt. Bạn thử lại nhé.", "Could not withdraw the review request. Please try again."));
       setSaving(false);
       return;
     }
     await loadGardens(userId, false);
-    setNotice("Đã rút yêu cầu duyệt. Bạn có thể tiếp tục chỉnh sửa bản thảo.");
+    setNotice(t("Đã rút yêu cầu duyệt. Bạn có thể tiếp tục chỉnh sửa bản thảo.", "Review request withdrawn. You can continue editing your draft."));
     setSaving(false);
   }
 
   async function setApprovalStatus(status: "approved" | "rejected") {
     if (!isAdmin || !selectedGarden || saving) return;
     if (status === "approved" && !contentReady()) {
-      setError("Tác phẩm cần có tên và nội dung hoàn chỉnh trước khi duyệt.");
+      setError(t("Tác phẩm cần có tên và nội dung hoàn chỉnh trước khi duyệt.", "The story needs a title and complete content before approval."));
       return;
     }
     setSaving(true);
@@ -637,12 +679,12 @@ export default function BookStudio() {
       .update({ approval_status: status }).eq("id", selectedGarden.id);
     if (reviewError) {
       console.error("Story moderation failed:", reviewError);
-      setError("Chưa cập nhật được trạng thái kiểm duyệt.");
+      setError(t("Chưa cập nhật được trạng thái kiểm duyệt.", "Could not update the review status."));
       setSaving(false);
       return;
     }
     await loadGardens(userId, true);
-    setNotice(status === "approved" ? "Đã duyệt tác phẩm. Admin có thể xuất bản khi sẵn sàng." : "Đã từ chối tác phẩm này.");
+    setNotice(status === "approved" ? t("Đã duyệt tác phẩm. Admin có thể xuất bản khi sẵn sàng.", "Story approved. Admin can publish it when ready.") : t("Đã từ chối tác phẩm này.", "This story was rejected."));
     setSaving(false);
   }
 
@@ -651,31 +693,31 @@ export default function BookStudio() {
   }
 
   if (loading || !authReady) {
-    return <main className={styles.loading}><span>✎</span><p>Đang mở không gian sáng tác...</p></main>;
+    return <main className={styles.loading}><span>✎</span><p>{t("Đang mở không gian sáng tác...", "Opening your writing studio...")}</p></main>;
   }
   if (!userId) {
-    return <main className={styles.loading}><p>{error || "Bạn cần đăng nhập để bắt đầu sáng tác."}</p><Link href="/login?next=%2Fstudio">Đăng nhập để sáng tác</Link><Link href="/">Về trang chủ</Link></main>;
+    return <main className={styles.loading}><p>{error || t("Bạn cần đăng nhập để bắt đầu sáng tác.", "Sign in to start writing.")}</p><Link href="/login?next=%2Fstudio">{t("Đăng nhập để sáng tác", "Sign in to write")}</Link><Link href="/">{t("Về trang chủ", "Back to home")}</Link></main>;
   }
 
   return (
     <main className={styles.shell}>
       <header className={styles.topbar}>
-        <Link href="/" className={styles.brand}><span>✎</span><strong>Little Story World <small>WRITING STUDIO · KHÔNG GIAN SÁNG TÁC</small></strong></Link>
-        <nav aria-label="Điều hướng không gian sáng tác">
-          {isAdmin && <Link href="/admin">Trung tâm Admin</Link>}
-          {selectedGarden?.is_published && shareUrl && <a href={shareUrl} target="_blank" rel="noreferrer">Mở bản người đọc ↗</a>}
-          <Link href="/">Trang chủ</Link>
-          <button type="button" onClick={() => void handleLogout()}>{isAdmin ? "Thoát Admin" : "Đăng xuất"}</button>
+        <Link href="/" className={styles.brand}><span>✎</span><strong>Little Story World <small>WRITING STUDIO</small></strong></Link>
+        <nav aria-label={t("Điều hướng không gian sáng tác", "Writing studio navigation")}>
+          {isAdmin && <Link href="/admin">{t("Trung tâm Admin", "Admin center")}</Link>}
+          {selectedGarden?.is_published && shareUrl && <a href={shareUrl} target="_blank" rel="noreferrer">{t("Mở bản người đọc", "Open reader view")} ↗</a>}
+          <Link href="/">{t("Trang chủ", "Home")}</Link>
+          <button type="button" onClick={() => void handleLogout()}>{isAdmin ? t("Thoát Admin", "Sign out Admin") : t("Đăng xuất", "Sign out")}</button>
         </nav>
       </header>
 
       <section className={styles.welcome}>
         <div className={styles.welcomeCopy}>
           <p className={styles.eyebrow}>WRITE SOMETHING MEANINGFUL</p>
-          <h1>{isAdmin ? "Không gian sáng tác và kiểm duyệt." : "Câu chuyện của bạn bắt đầu từ đây."}</h1>
-          <p>{isAdmin ? "Quản lý bản thảo của mọi tài khoản, kiểm duyệt nội dung và quyết định tác phẩm nào được xuất bản." : "Viết một thông điệp, một bức thư hoặc cả cuốn sách. Lưu bản nháp riêng tư rồi gửi Admin kiểm duyệt trước khi chia sẻ."}</p>
+          <h1>{isAdmin ? t("Không gian sáng tác và kiểm duyệt.", "Writing and review workspace.") : t("Câu chuyện của bạn bắt đầu từ đây.", "Your story starts here.")}</h1>
+          <p>{isAdmin ? t("Quản lý bản thảo của mọi tài khoản, kiểm duyệt nội dung và quyết định tác phẩm nào được xuất bản.", "Manage every writer's drafts, review content, and decide which stories can be published.") : t("Viết một thông điệp, một bức thư hoặc cả cuốn sách. Lưu bản nháp riêng tư rồi gửi Admin kiểm duyệt trước khi chia sẻ.", "Write a message, a letter, or a book. Save a private draft and submit it for Admin review before sharing.")}</p>
         </div>
-        <div className={styles.welcomePhoto} role="img" aria-label="Cuốn sách mở dưới ánh sáng tự nhiên">
+        <div className={styles.welcomePhoto} role="img" aria-label={t("Cuốn sách mở dưới ánh sáng tự nhiên", "An open book in natural light")}>
           <span>YOUR WORDS, YOUR PAGES</span>
         </div>
       </section>
@@ -686,193 +728,239 @@ export default function BookStudio() {
       <div className={styles.workspace}>
         <aside className={styles.sidebar}>
           <div className={styles.sideHeader}>
-            <div><span className={styles.eyebrow}>MY WRITING DESK</span><h2>Bản thảo của bạn</h2></div>
-            <button type="button" onClick={createWork} disabled={saving}>＋ Tạo mới</button>
+            <div><span className={styles.eyebrow}>MY WRITING DESK</span><h2>{t("Bản thảo của bạn", "Your drafts")}</h2></div>
+            <button type="button" onClick={createWork} disabled={saving}>{t("＋ Tạo mới", "＋ New story")}</button>
           </div>
-          {gardens.length === 0 ? <p className={styles.empty}>Chưa có bản thảo nào. Bắt đầu bằng một tác phẩm mới nhé.</p> : gardens.map((garden) => (
+          {gardens.length === 0 ? <p className={styles.empty}>{t("Chưa có bản thảo nào. Bắt đầu bằng một tác phẩm mới nhé.", "No drafts yet. Start with a new story.")}</p> : gardens.map((garden) => (
             <button key={garden.id} type="button" className={garden.id === selectedId ? styles.workActive : styles.workButton} onClick={() => setSelectedId(garden.id)}>
               <span className={styles.workMark}>{garden.experience_settings?.storyFormat === "message" ? "✎" : garden.experience_settings?.storyFormat === "letter" ? "✉" : "▤"}</span>
-              <span><strong>{garden.name}</strong><small>{garden.is_published ? "Đã xuất bản" : garden.approval_status === "pending" ? "Chờ Admin duyệt" : garden.approval_status === "approved" ? "Đã duyệt · Chưa xuất bản" : garden.approval_status === "rejected" ? "Cần chỉnh sửa" : "Bản nháp riêng tư"}</small></span>
+              <span><strong>{garden.name}</strong><small>{garden.is_published ? t("Đã xuất bản", "Published") : garden.approval_status === "pending" ? t("Chờ Admin duyệt", "Awaiting Admin review") : garden.approval_status === "approved" ? t("Đã duyệt · Chưa xuất bản", "Approved · Not published") : garden.approval_status === "rejected" ? t("Cần chỉnh sửa", "Needs changes") : t("Bản nháp riêng tư", "Private draft")}</small></span>
             </button>
           ))}
-          <div className={styles.sidebarNote}><strong>Gợi ý nhỏ</strong><p>Một câu thật lòng luôn đáng nhớ hơn rất nhiều dòng chữ viết cho đủ.</p></div>
+          <div className={styles.sidebarNote}><strong>{t("Gợi ý nhỏ", "A small reminder")}</strong><p>{t("Một câu thật lòng luôn đáng nhớ hơn rất nhiều dòng chữ viết cho đủ.", "One sincere sentence is worth more than many empty words.")}</p></div>
         </aside>
 
         {selectedGarden ? (
           <section className={styles.editor}>
             <div className={styles.editorHeading}>
               <div><p className={styles.eyebrow}>YOUR WRITING DESK</p><h2>{name || selectedGarden.name}</h2></div>
-              <span className={selectedGarden.is_published ? styles.published : styles.draft}>{selectedGarden.is_published ? "Đang chia sẻ" : selectedGarden.approval_status === "pending" ? "Đang chờ Admin duyệt" : selectedGarden.approval_status === "approved" ? "Đã duyệt · Chưa xuất bản" : selectedGarden.approval_status === "rejected" ? "Cần chỉnh sửa và gửi lại" : "Bản nháp riêng tư"}</span>
+              <span className={selectedGarden.is_published ? styles.published : styles.draft}>{selectedGarden.is_published ? "Đang chia sẻ" : selectedGarden.approval_status === "pending" ? t("Đang chờ Admin duyệt", "Awaiting Admin review") : selectedGarden.approval_status === "approved" ? t("Đã duyệt · Chưa xuất bản", "Approved · Not published") : selectedGarden.approval_status === "rejected" ? "Cần chỉnh sửa và gửi lại" : t("Bản nháp riêng tư", "Private draft")}</span>
             </div>
-            <nav className={styles.stepNav} aria-label="Các bước sáng tác">
-              <a href="#write-01">01 <span>Chọn dạng</span></a>
-              <a href="#write-02">02 <span>Viết nội dung</span></a>
-              <a href="#write-03">03 <span>Hình ảnh</span></a>
-              {isAdmin && <a href="#write-04">04 <span>Lưu bút</span></a>}
-              <a href="#write-05">{isAdmin ? "05" : "04"} <span>{isAdmin ? "Xem & gửi" : "Xem & gửi duyệt"}</span></a>
+            <nav className={styles.stepNav} aria-label={t("Các bước sáng tác", "Writing steps")}>
+              <a href="#write-01">01 <span>{t("Chọn dạng", "Choose format")}</span></a>
+              <a href="#write-02">02 <span>{t("Viết nội dung", "Write content")}</span></a>
+              <a href="#write-03">03 <span>{t("Hình ảnh", "Photos")}</span></a>
+              <a href="#write-04">04 <span>{t("Trang trí", "Decorate")}</span></a>
+              {isAdmin && <a href="#write-05">05 <span>{t("Lưu bút", "Reader notes")}</span></a>}
+              <a href="#write-06">{isAdmin ? "06" : "05"} <span>{isAdmin ? t("Xem & gửi", "Preview & publish") : t("Xem & gửi duyệt", "Preview & submit")}</span></a>
             </nav>
 
-            {!isAdmin && selectedGarden.approval_status === "pending" && <p className={styles.notice} role="status">Bản thảo đã được gửi Admin kiểm duyệt. Nội dung tạm khóa trong thời gian xem xét.</p>}
-            {!isAdmin && selectedGarden.approval_status === "approved" && <p className={styles.notice} role="status">Tác phẩm đã được Admin duyệt. Bạn có thể chờ xuất bản hoặc liên hệ Admin nếu cần chỉnh sửa.</p>}
+            {!isAdmin && selectedGarden.approval_status === "pending" && <p className={styles.notice} role="status">{t("Bản thảo đã được gửi Admin kiểm duyệt. Nội dung tạm khóa trong thời gian xem xét.", "Your draft was submitted for review. Editing is locked while Admin reviews it.")}</p>}
+            {!isAdmin && selectedGarden.approval_status === "approved" && <p className={styles.notice} role="status">{t("Tác phẩm đã được Admin duyệt. Bạn có thể chờ xuất bản hoặc liên hệ Admin nếu cần chỉnh sửa.", "Your story has been approved. Wait for publishing or contact Admin if changes are needed.")}</p>}
             <fieldset className={styles.creatorFieldset} disabled={isCreatorReviewLocked}>
             <section className={styles.section} id="write-01">
-              <div className={styles.sectionTitle}><span>01</span><div><h3>Bạn muốn tạo điều gì?</h3><p>Chọn một kiểu phù hợp với điều bạn muốn gửi gắm. Nội dung cũ vẫn được giữ khi bạn đổi kiểu.</p></div></div>
+              <div className={styles.sectionTitle}><span>01</span><div><h3>{t("Bạn muốn tạo điều gì?", "What would you like to create?")}</h3><p>{t("Chọn một kiểu phù hợp với điều bạn muốn gửi gắm. Nội dung cũ vẫn được giữ khi bạn đổi kiểu.", "Choose the format that suits your story. Your existing content stays when you switch formats.")}</p></div></div>
               <div className={styles.formatGrid}>
                 {FORMATS.map((item) => (
                   <button key={item.value} type="button" className={format === item.value ? styles.formatActive : styles.formatCard}
                     aria-pressed={format === item.value} onClick={() => setFormat(item.value)}>
-                    <span className={styles.formatMark}>{item.symbol}</span><strong>{item.title}</strong><small>{item.description}</small>
-                    <span className={styles.formatCheck}>{format === item.value ? "✓ Đang chọn" : "Chọn kiểu này"}</span>
+                    <span className={styles.formatMark}>{item.symbol}</span><strong>{t(item.title, item.titleEn)}</strong><small>{t(item.description, item.descriptionEn)}</small>
+                    <span className={styles.formatCheck}>{format === item.value ? t("✓ Đang chọn", "✓ Selected") : t("Chọn kiểu này", "Choose this format")}</span>
                   </button>
                 ))}
               </div>
             </section>
 
             <section className={styles.section} id="write-02">
-              <div className={styles.sectionTitle}><span>02</span><div><h3>Viết nội dung của bạn</h3><p>Không cần căn chỉnh trang. Hệ thống tự trình bày thành trải nghiệm đọc sách.</p></div></div>
-              <label className={styles.field}>Tên tác phẩm<input value={name} maxLength={80} onChange={(event) => setName(event.target.value)} placeholder="Ví dụ: Gửi người mình thương..."/></label>
+              <div className={styles.sectionTitle}><span>02</span><div><h3>Viết nội dung của bạn</h3><p>{t("Không cần căn chỉnh trang. Hệ thống tự trình bày thành trải nghiệm đọc sách.", "No need to format the page. Your words become a reading experience automatically.")}</p></div></div>
+              <label className={styles.field}>{t("Tên tác phẩm", "Story title")}<input value={name} maxLength={80} onChange={(event) => setName(event.target.value)} placeholder={t("Ví dụ: Gửi người mình thương...", "For example: To someone dear...")}/></label>
 
               {format === "message" && (
                 <div className={styles.writerPanel}>
-                  <div className={styles.writerHeading}><span>✎</span><div><strong>Thông điệp của bạn</strong><small>Một trang ngắn gọn và chân thành.</small></div></div>
-                  <label className={styles.field}>Nội dung thông điệp<textarea value={introduction} onChange={(event) => setIntroduction(event.target.value)} rows={10} maxLength={7000} placeholder="Bạn muốn nói điều gì với người nhận? Cứ viết tự nhiên như đang trò chuyện..."/></label>
-                  <p className={styles.helper}>Mỗi dòng trống sẽ tách thành một đoạn văn riêng.</p>
+                  <div className={styles.writerHeading}><span>✎</span><div><strong>{t("Thông điệp của bạn", "Your message")}</strong><small>{t("Một trang ngắn gọn và chân thành.", "A short and heartfelt page.")}</small></div></div>
+                  <label className={styles.field}>{t("Nội dung thông điệp", "Message")}<textarea value={introduction} onChange={(event) => setIntroduction(event.target.value)} rows={10} maxLength={7000} placeholder={t("Bạn muốn nói điều gì với người nhận? Cứ viết tự nhiên như đang trò chuyện...", "What would you like to tell the reader? Write naturally, as if you were talking.")}/></label>
+                  <p className={styles.helper}>{t("Mỗi dòng trống sẽ tách thành một đoạn văn riêng.", "A blank line starts a new paragraph.")}</p>
                 </div>
               )}
 
               {format === "letter" && (
                 <div className={styles.writerPanel}>
-                  <div className={styles.writerHeading}><span>✉</span><div><strong>Bức thư của bạn</strong><small>Một lá thư với lời mở đầu và chữ ký.</small></div></div>
-                  <label className={styles.field}>Lời dẫn ngắn<input value={introduction} onChange={(event) => setIntroduction(event.target.value)} maxLength={300} placeholder="Một câu giới thiệu để người nhận mở thư..."/></label>
-                  <label className={styles.field}>Tiêu đề thư<input value={letterTitle} maxLength={100} onChange={(event) => setLetterTitle(event.target.value)} placeholder="Gửi em, vào một ngày thật đẹp..."/></label>
-                  <label className={styles.field}>Nội dung thư<textarea value={letterText} onChange={(event) => setLetterText(event.target.value)} rows={12} maxLength={12000} placeholder="Bắt đầu viết bức thư của bạn tại đây..."/></label>
-                  <label className={styles.field}>Chữ ký<input value={signature} maxLength={80} onChange={(event) => setSignature(event.target.value)} placeholder="Thân thương, ..."/></label>
+                  <div className={styles.writerHeading}><span>✉</span><div><strong>{t("Bức thư của bạn", "Your letter")}</strong><small>{t("Một lá thư với lời mở đầu và chữ ký.", "A letter with an opening and a signature.")}</small></div></div>
+                  <label className={styles.field}>{t("Lời dẫn ngắn", "Short introduction")}<input value={introduction} onChange={(event) => setIntroduction(event.target.value)} maxLength={300} placeholder={t("Một câu giới thiệu để người nhận mở thư...", "A sentence to introduce the letter...")}/></label>
+                  <label className={styles.field}>{t("Tiêu đề thư", "Letter title")}<input value={letterTitle} maxLength={100} onChange={(event) => setLetterTitle(event.target.value)} placeholder="Gửi em, vào một ngày thật đẹp..."/></label>
+                  <label className={styles.field}>{t("Nội dung thư", "Letter content")}<textarea value={letterText} onChange={(event) => setLetterText(event.target.value)} rows={12} maxLength={12000} placeholder={t("Bắt đầu viết bức thư của bạn tại đây...", "Start writing your letter here...")}/></label>
+                  <label className={styles.field}>{t("Chữ ký", "Signature")}<input value={signature} maxLength={80} onChange={(event) => setSignature(event.target.value)} placeholder={t("Thân thương, ...", "With affection, ...")}/></label>
                 </div>
               )}
 
               {format === "book" && (
                 <div className={styles.writerPanel}>
-                  <div className={styles.writerHeading}><span>▤</span><div><strong>Cuốn sách của bạn</strong><small>Viết lời giới thiệu và thêm từng chương theo mạch truyện.</small></div></div>
-                  <label className={styles.field}>Lời giới thiệu<textarea value={introduction} onChange={(event) => setIntroduction(event.target.value)} rows={3} maxLength={700} placeholder="Một vài dòng dẫn người đọc bước vào câu chuyện..."/></label>
+                  <div className={styles.writerHeading}><span>▤</span><div><strong>{t("Cuốn sách của bạn", "Your book")}</strong><small>{t("Viết lời giới thiệu và thêm từng chương theo mạch truyện.", "Write an introduction and add chapters in the order of your story.")}</small></div></div>
+                  <label className={styles.field}>{t("Lời giới thiệu", "Introduction")}<textarea value={introduction} onChange={(event) => setIntroduction(event.target.value)} rows={3} maxLength={700} placeholder="Một vài dòng dẫn người đọc bước vào câu chuyện..."/></label>
                   <div className={styles.chapterWorkspace}>
                     <div className={styles.chapterPanel}>
-                      <div className={styles.chapterPanelHeading}><strong>Mục lục bản thảo</strong><span>{chapters.length} chương</span></div>
-                      {chapters.length === 0 ? <p className={styles.chapterEmpty}>Chưa có chương. Bạn có thể viết chương đầu tiên ở bên cạnh.</p> : chapters.map((chapter, index) => (
+                      <div className={styles.chapterPanelHeading}><strong>{t("Mục lục bản thảo", "Draft contents")}</strong><span>{chapters.length} chương</span></div>
+                      {chapters.length === 0 ? <p className={styles.chapterEmpty}>{t("Chưa có chương. Bạn có thể viết chương đầu tiên ở bên cạnh.", "No chapters yet. Write the first one in the panel beside this.")}</p> : chapters.map((chapter, index) => (
                         <div className={styles.chapterItem} key={chapter.chapter_id}>
                           <button type="button" className={chapter.chapter_id === selectedChapterId ? styles.chapterActive : styles.chapterSelect} onClick={() => chooseChapter(chapter)}>
                             <span>{String(index + 1).padStart(2, "0")}</span><strong>{chapter.title}</strong>
                           </button>
-                          <button type="button" className={styles.deleteChapter} onClick={() => void deleteChapter(chapter.chapter_id)} aria-label={"Xóa " + chapter.title}>×</button>
+                          <button type="button" className={styles.deleteChapter} onClick={() => void deleteChapter(chapter.chapter_id)} aria-label={t("Xóa chương", "Delete chapter") + " " + chapter.title}>×</button>
                         </div>
                       ))}
                     </div>
                     <div className={styles.chapterForm}>
                       {selectedChapter ? (
                         <>
-                          <div className={styles.chapterFormHeading}><strong>Chỉnh sửa chương</strong><span>Chương {selectedChapter.sort_order}</span></div>
-                          <label className={styles.field}>Tên chương<input value={chapterTitleDraft} onChange={(event) => setChapterTitleDraft(event.target.value)} maxLength={120}/></label>
-                          <label className={styles.field}>Nội dung<textarea value={chapterTextDraft} onChange={(event) => setChapterTextDraft(event.target.value)} rows={8} maxLength={16000}/></label>
-                          <button type="button" className={styles.secondaryButton} onClick={() => void saveChapter()} disabled={saving}>{saving ? "Đang lưu..." : "Lưu chương này"}</button>
+                          <div className={styles.chapterFormHeading}><strong>{t("Chỉnh sửa chương", "Edit chapter")}</strong><span>Chương {selectedChapter.sort_order}</span></div>
+                          <label className={styles.field}>{t("Tên chương", "Chapter title")}<input value={chapterTitleDraft} onChange={(event) => setChapterTitleDraft(event.target.value)} maxLength={120}/></label>
+                          <label className={styles.field}>{t("Nội dung", "Content")}<textarea value={chapterTextDraft} onChange={(event) => setChapterTextDraft(event.target.value)} rows={8} maxLength={16000}/></label>
+                          <button type="button" className={styles.secondaryButton} onClick={() => void saveChapter()} disabled={saving}>{saving ? t("Đang lưu...", "Saving...") : t("Lưu chương này", "Save chapter")}</button>
                         </>
                       ) : (
                         <>
-                          <div className={styles.chapterFormHeading}><strong>Viết chương đầu tiên</strong><span>01</span></div>
-                          <p className={styles.chapterEmpty}>Mỗi chương trở thành một lượt lật trang trong cuốn sách.</p>
+                          <div className={styles.chapterFormHeading}><strong>{t("Viết chương đầu tiên", "Write the first chapter")}</strong><span>01</span></div>
+                          <p className={styles.chapterEmpty}>{t("Mỗi chương trở thành một lượt lật trang trong cuốn sách.", "Each chapter becomes a page-turn in your book.")}</p>
                         </>
                       )}
                     </div>
                   </div>
                   <div className={styles.addChapterPanel}>
-                    <div className={styles.chapterFormHeading}><strong>＋ Thêm chương mới</strong><span>Chương {Math.max(0, ...chapters.map((chapter) => chapter.sort_order)) + 1}{!isAdmin ? " / 8" : ""}</span></div>
-                    {!isAdmin && <p className={styles.helper}>Tài khoản sáng tác có thể viết tối đa 8 chương cho mỗi cuốn sách.</p>}
-                    <label className={styles.field}>Tên chương<input value={newChapterTitle} onChange={(event) => setNewChapterTitle(event.target.value)} maxLength={120} placeholder="Ví dụ: Ngày mình gặp nhau..."/></label>
-                    <label className={styles.field}>Nội dung chương<textarea value={newChapterText} onChange={(event) => setNewChapterText(event.target.value)} rows={6} maxLength={16000} placeholder="Viết nội dung chương tiếp theo..."/></label>
-                    <button type="button" className={styles.primaryButton} onClick={() => void addChapter()} disabled={saving || !newChapterTitle.trim() || (!isAdmin && chapters.length >= CREATOR_MAX_CHAPTERS)}>{saving ? "Đang thêm..." : !isAdmin && chapters.length >= CREATOR_MAX_CHAPTERS ? "Đã đạt giới hạn 8 chương" : "Thêm chương vào sách"}</button>
+                    <div className={styles.chapterFormHeading}><strong>{t("＋ Thêm chương mới", "＋ Add a chapter")}</strong><span>Chương {t("Chương", "Chapter")} {Math.max(0, ...chapters.map((chapter) => chapter.sort_order)) + 1}</span></div>
+                    
+                    <label className={styles.field}>{t("Tên chương", "Chapter title")}<input value={newChapterTitle} onChange={(event) => setNewChapterTitle(event.target.value)} maxLength={120} placeholder={t("Ví dụ: Ngày mình gặp nhau...", "For example: The day we met...")}/></label>
+                    <label className={styles.field}>{t("Nội dung chương", "Chapter content")}<textarea value={newChapterText} onChange={(event) => setNewChapterText(event.target.value)} rows={6} maxLength={16000} placeholder={t("Viết nội dung chương tiếp theo...", "Write the next chapter...")}/></label>
+                    <button type="button" className={styles.primaryButton} onClick={() => void addChapter()} disabled={saving || !newChapterTitle.trim()}>{saving ? t("Đang thêm...", "Adding...") : t("Thêm chương vào sách", "Add chapter")}</button>
                   </div>
                   <div className={styles.writerInset}>
-                    <label className={styles.field}>Tiêu đề lá thư cuối (không bắt buộc)<input value={letterTitle} maxLength={100} onChange={(event) => setLetterTitle(event.target.value)}/></label>
-                    <label className={styles.field}>Nội dung lá thư cuối<textarea value={letterText} onChange={(event) => setLetterText(event.target.value)} rows={4} maxLength={5000} placeholder="Có thể để dành một lời nhắn đặc biệt cho trang cuối..."/></label>
-                    <label className={styles.field}>Chữ ký<input value={signature} maxLength={80} onChange={(event) => setSignature(event.target.value)} placeholder="Người viết"/></label>
-                    <p className={styles.helper}>Lá thư cuối sẽ xuất hiện sau khi người đọc hoàn thành các chương.</p>
+                    <label className={styles.field}>{t("Tiêu đề lá thư cuối (không bắt buộc)", "Final letter title (optional)")}<input value={letterTitle} maxLength={100} onChange={(event) => setLetterTitle(event.target.value)}/></label>
+                    <label className={styles.field}>{t("Nội dung lá thư cuối", "Final letter")}<textarea value={letterText} onChange={(event) => setLetterText(event.target.value)} rows={4} maxLength={5000} placeholder={t("Có thể để dành một lời nhắn đặc biệt cho trang cuối...", "Save a special note for the final page...")}/></label>
+                    <label className={styles.field}>{t("Chữ ký", "Signature")}<input value={signature} maxLength={80} onChange={(event) => setSignature(event.target.value)} placeholder={t("Người viết", "Author")}/></label>
+                    <p className={styles.helper}>{t("Lá thư cuối sẽ xuất hiện sau khi người đọc hoàn thành các chương.", "The final letter appears after the reader finishes the chapters.")}</p>
                   </div>
                 </div>
               )}
             </section>
 
             <section className={styles.section} id="write-03">
-              <div className={styles.sectionTitle}><span>03</span><div><h3>Hình ảnh do bạn chọn</h3><p>Ảnh bìa và ảnh kỷ niệm do bạn tải lên. Ảnh minh họa sách chỉ dùng làm nền giao diện khi chưa có ảnh bìa.</p></div></div>
-              {coverUrl && <div className={styles.coverPreview}><Image src={coverUrl} alt="Ảnh bìa tác phẩm" width={1200} height={720} unoptimized/><span>Ảnh bìa của tác phẩm</span></div>}
+              <div className={styles.sectionTitle}><span>03</span><div><h3>{t("Hình ảnh do bạn chọn", "Your photos")}</h3><p>{t("Ảnh bìa và ảnh kỷ niệm do bạn tải lên. Ảnh minh họa sách chỉ dùng làm nền giao diện khi chưa có ảnh bìa.", "Upload your own cover and memory photos. The sample book image is only a temporary background.")}</p></div></div>
+              {coverUrl && <div className={styles.coverPreview}><Image src={coverUrl} alt={t("Ảnh bìa tác phẩm", "Story cover")} width={1200} height={720} unoptimized/><span>{t("Ảnh bìa của tác phẩm", "Story cover")}</span></div>}
               <div className={styles.uploadGrid}>
-                <label className={styles.uploadCard}>＋ Tải ảnh bìa lên<input type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/gif" onChange={(event) => void uploadPhoto(event, true)} disabled={uploading || (!isAdmin && photos.length >= CREATOR_MAX_PHOTOS)}/><small>JPG, PNG, WEBP, AVIF hoặc GIF · tối đa {isAdmin ? "10 MB" : "5 MB"}</small></label>
-                <label className={styles.uploadCard}>＋ Thêm ảnh kỷ niệm<input type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/gif" onChange={(event) => void uploadPhoto(event, false)} disabled={uploading || (!isAdmin && photos.length >= CREATOR_MAX_PHOTOS)}/><small>{isAdmin ? "Tối đa 40 ảnh trong album" : "Tối đa 5 ảnh trong mỗi tác phẩm"}</small></label>
+                <label className={styles.uploadCard}>{t("＋ Tải ảnh bìa lên", "＋ Upload cover")}<input type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/gif" onChange={(event) => void uploadPhoto(event, true)} disabled={uploading || (!isAdmin && photos.length >= CREATOR_MAX_PHOTOS)}/><small>JPG, PNG, WEBP, AVIF, GIF · {isAdmin ? t("tối đa 10 MB", "up to 10 MB") : t("tối đa 5 MB", "up to 5 MB")}</small></label>
+                <label className={styles.uploadCard}>{t("＋ Thêm ảnh kỷ niệm", "＋ Add memory photos")}<input type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/gif" onChange={(event) => void uploadPhoto(event, false)} disabled={uploading || (!isAdmin && photos.length >= CREATOR_MAX_PHOTOS)}/><small>{isAdmin ? t("Tối đa 40 ảnh trong album", "Up to 40 photos per story") : t("Tối đa 5 ảnh trong mỗi tác phẩm", "Up to 5 photos per story")}</small></label>
               </div>
-              {uploading && <p className={styles.helper}>Đang tải ảnh lên...</p>}
-              {photos.length > 0 && <div className={styles.albumPreview}><strong>{photos.length} ảnh trong album</strong><div>{photos.slice(0, 6).map((photo) => <Image key={photo.path} src={photo.url} alt={photo.alt} width={100} height={78} unoptimized/>)}</div></div>}
+              {uploading && <p className={styles.helper}>{t("Đang tải ảnh lên...", "Uploading photos...")}</p>}
+              {photos.length > 0 && <div className={styles.albumPreview}><strong>{photos.length} {t("ảnh trong album", "photos in the album")}</strong><div>{photos.slice(0, 6).map((photo) => <Image key={photo.path} src={photo.url} alt={photo.alt} width={100} height={78} unoptimized/>)}</div></div>}
+            </section>
+
+            <section className={styles.section} id="write-04">
+              <div className={styles.sectionTitle}><span>04</span><div><h3>{t("Trang trí câu chuyện", "Decorate your story")}</h3><p>{t("Chọn màu sắc, chất giấy, hiệu ứng và sticker. Tất cả được lưu cùng tác phẩm và xuất hiện khi người nhận mở sách.", "Choose colors, paper textures, effects, and stickers. Your choices are saved with the story and appear when readers open it.")}</p></div></div>
+              <div className={styles.decoratorPanel}>
+                <div className={styles.decoratorGroup}>
+                  <div className={styles.decoratorHeading}><strong>{t("Chủ đề màu", "Color theme")}</strong><span>{t("Không thay đổi nội dung bạn đã viết", "Your written content stays unchanged")}</span></div>
+                  <div className={styles.decorationThemes}>
+                    {DECORATION_THEMES.map((item) => <button key={item.value} type="button" className={decorations.theme === item.value ? styles.decorationChoiceActive : styles.decorationChoice} onClick={() => setDecorations((current) => ({ ...current, theme: item.value }))}>
+                      <span className={[styles.themeSwatch, styles["swatch" + item.value[0].toUpperCase() + item.value.slice(1)]].join(" ")}/>
+                      <strong>{t(item.title, item.titleEn)}</strong><small>{t(item.detail, item.detailEn)}</small>
+                    </button>)}
+                  </div>
+                </div>
+                <div className={styles.decoratorGroup}>
+                  <div className={styles.decoratorHeading}><strong>{t("Bề mặt giấy", "Paper finish")}</strong><span>{t("Chọn cảm giác của từng trang", "Choose the feel of each page")}</span></div>
+                  <div className={styles.decorationOptions}>
+                    {PAPER_FINISHES.map((item) => <button key={item.value} type="button" className={decorations.paper === item.value ? styles.decorationPillActive : styles.decorationPill} onClick={() => setDecorations((current) => ({ ...current, paper: item.value }))}>
+                      <strong>{t(item.title, item.titleEn)}</strong><small>{t(item.detail, item.detailEn)}</small>
+                    </button>)}
+                  </div>
+                </div>
+                <div className={styles.decoratorGroup}>
+                  <div className={styles.decoratorHeading}><strong>{t("Hiệu ứng khi đọc", "Reading effects")}</strong><span>{t("Người đọc có thể tắt chuyển động bằng cài đặt thiết bị", "Readers can reduce motion in their device settings")}</span></div>
+                  <div className={styles.effectOptions}>
+                    {PAGE_EFFECTS.map((item) => <button key={item.value} type="button" className={decorations.effect === item.value ? styles.effectChoiceActive : styles.effectChoice} onClick={() => setDecorations((current) => ({ ...current, effect: item.value }))}>
+                      <strong>{t(item.title, item.titleEn)}</strong><small>{t(item.detail, item.detailEn)}</small>
+                    </button>)}
+                  </div>
+                </div>
+                <div className={styles.decoratorGroup}>
+                  <div className={styles.decoratorHeading}><strong>{t("Sticker trang trí", "Decorative stickers")}</strong><span>{decorations.stickers.length} / {isAdmin ? STORY_STICKERS.length : CREATOR_MAX_STICKERS} {t("đã chọn", "selected")}</span></div>
+                  <div className={styles.stickerPicker}>
+                    {STORY_STICKERS.map((sticker) => {
+                      const active = decorations.stickers.includes(sticker.id);
+                      const limitReached = !isAdmin && decorations.stickers.length >= CREATOR_MAX_STICKERS && !active;
+                      return <button key={sticker.id} type="button" className={active ? styles.stickerChoiceActive : styles.stickerChoice} onClick={() => toggleSticker(sticker.id)} disabled={limitReached}>
+                        <span>{sticker.emoji}</span><strong>{t(sticker.label, sticker.labelEn)}</strong>{active && <small>{t("✓ Đã thêm", "✓ Added")}</small>}
+                      </button>;
+                    })}
+                  </div>
+                  <p className={styles.helper}>{isAdmin ? t("Admin có thể dùng toàn bộ bộ sticker cho tác phẩm.", "Admin can use the full sticker collection.") : t("Bạn có thể chọn tối đa 4 sticker cho mỗi tác phẩm.", "You can choose up to 4 stickers per story.")} {t("Sticker chỉ mang tính trang trí, không che nội dung trang.", "Stickers are decorative and will not cover your text.")}</p>
+                </div>
+                <div className={styles.decorationPreview}><span>{decorations.stickers.map((id) => STORY_STICKERS.find((item) => item.id === id)?.emoji).join(" ") || "✦"}</span><div><strong>{t("Xem nhanh phong cách", "Style preview")}</strong><p>{DECORATION_THEMES.find((item) => item.value === decorations.theme) ? t(DECORATION_THEMES.find((item) => item.value === decorations.theme)!.title, DECORATION_THEMES.find((item) => item.value === decorations.theme)!.titleEn) : ""} · {PAPER_FINISHES.find((item) => item.value === decorations.paper) ? t(PAPER_FINISHES.find((item) => item.value === decorations.paper)!.title, PAPER_FINISHES.find((item) => item.value === decorations.paper)!.titleEn) : ""} · {PAGE_EFFECTS.find((item) => item.value === decorations.effect) ? t(PAGE_EFFECTS.find((item) => item.value === decorations.effect)!.title, PAGE_EFFECTS.find((item) => item.value === decorations.effect)!.titleEn) : ""}</p></div></div>
+              </div>
             </section>
 
             </fieldset>
-            {isAdmin && <section className={styles.section} id="write-04">
-              <div className={styles.sectionTitle}><span>04</span><div><h3>Lời nhắn từ người đọc</h3><p>Người nhận có thể để lại vài dòng sau khi đọc xong. Bạn duyệt trước khi hiển thị.</p></div></div>
-              <label className={styles.toggle}><input type="checkbox" checked={guestbookEnabled} onChange={(event) => setGuestbookEnabled(event.target.checked)}/> Cho phép người đọc để lại lời nhắn</label>
-              <div className={styles.guestStats}><span>{pendingCount} chờ duyệt</span><span>{approvedCount} đã duyệt</span></div>
+            {isAdmin && <section className={styles.section} id="write-05">
+              <div className={styles.sectionTitle}><span>05</span><div><h3>{t("Lời nhắn từ người đọc", "Reader notes")}</h3><p>{t("Người nhận có thể để lại vài dòng sau khi đọc xong. Bạn duyệt trước khi hiển thị.", "Readers can leave a note after reading. Review it before it appears.")}</p></div></div>
+              <label className={styles.toggle}><input type="checkbox" checked={guestbookEnabled} onChange={(event) => setGuestbookEnabled(event.target.checked)}/> {t("Cho phép người đọc để lại lời nhắn", "Allow readers to leave notes")}</label>
+              <div className={styles.guestStats}><span>{pendingCount} {t("chờ duyệt", "pending")}</span><span>{approvedCount} {t("đã duyệt", "approved")}</span></div>
               {guestbook.map((entry) => <div className={styles.guestEntry} key={entry.id}>
                 <div><strong>{entry.guest_name}</strong><small>{new Date(entry.created_at).toLocaleString("vi-VN")}</small><p>{entry.message}</p></div>
-                <span className={styles.guestStatus}>{entry.status === "pending" ? "Chờ duyệt" : entry.status === "approved" ? "Đã duyệt" : "Đã ẩn"}</span>
-                {entry.status !== "approved" && <button type="button" onClick={() => void reviewGuestbook(entry, "approved")}>Duyệt</button>}
-                {entry.status !== "rejected" && <button type="button" className={styles.textDanger} onClick={() => void reviewGuestbook(entry, "rejected")}>Ẩn</button>}
+                <span className={styles.guestStatus}>{entry.status === "pending" ? t("Chờ duyệt", "Pending") : entry.status === "approved" ? t("Đã duyệt", "Approved") : t("Đã ẩn", "Hidden")}</span>
+                {entry.status !== "approved" && <button type="button" onClick={() => void reviewGuestbook(entry, "approved")}>{t("Duyệt", "Approve")}</button>}
+                {entry.status !== "rejected" && <button type="button" className={styles.textDanger} onClick={() => void reviewGuestbook(entry, "rejected")}>{t("Ẩn", "Hide")}</button>}
               </div>)}
-              {guestbook.length === 0 && <p className={styles.chapterEmpty}>Chưa có lời nhắn nào.</p>}
+              {guestbook.length === 0 && <p className={styles.chapterEmpty}>{t("Chưa có lời nhắn nào.", "No reader notes yet.")}</p>}
             </section>}
 
-            <section className={styles.section} id="write-05">
-              <div className={styles.sectionTitle}><span>{isAdmin ? "05" : "04"}</span><div><h3>Xem trước và gửi tác phẩm</h3><p>Kiểm tra trải nghiệm lật trang, mục lục và hình ảnh trước khi gửi.</p></div></div>
-              <div className={styles.actionCard}><div><strong>Bản xem trước</strong><p>Mở thử tác phẩm như người nhận sẽ thấy.</p></div><button type="button" className={styles.secondaryButton} onClick={() => { setPreviewReadIds([]); setPreviewOpen(true); }}>◉ Xem trước</button></div>
-              <div className={styles.actionCard}><div><strong>Lưu riêng tư</strong><p>Lưu nội dung hiện tại mà không tạo link công khai.</p></div><button type="button" className={styles.primaryButton} onClick={() => void saveDraft()} disabled={saving || isCreatorReviewLocked}>{saving ? "Đang lưu..." : "Lưu bản nháp"}</button></div>
+            <section className={styles.section} id="write-06">
+              <div className={styles.sectionTitle}><span>{isAdmin ? "06" : "05"}</span><div><h3>{t("Xem trước và gửi tác phẩm", "Preview and submit")}</h3><p>{t("Kiểm tra trải nghiệm lật trang, mục lục và hình ảnh trước khi gửi.", "Check page turns, contents, and photos before submitting.")}</p></div></div>
+              <div className={styles.actionCard}><div><strong>{t("Bản xem trước", "Preview")}</strong><p>{t("Mở thử tác phẩm như người nhận sẽ thấy.", "Open the story as the reader will see it.")}</p></div><button type="button" className={styles.secondaryButton} onClick={() => { setPreviewReadIds([]); setPreviewOpen(true); }}>{t("◉ Xem trước", "◉ Preview")}</button></div>
+              <div className={styles.actionCard}><div><strong>{t("Lưu riêng tư", "Save privately")}</strong><p>{t("Lưu nội dung hiện tại mà không tạo link công khai.", "Save your current work without publishing a public link.")}</p></div><button type="button" className={styles.primaryButton} onClick={() => void saveDraft()} disabled={saving || isCreatorReviewLocked}>{saving ? t("Đang lưu...", "Saving...") : t("Lưu bản nháp", "Save draft")}</button></div>
               {isAdmin ? (
                 <div className={styles.publishPanel}>
-                  <div className={styles.publishHeading}><span>✉</span><div><strong>Kiểm duyệt và xuất bản</strong><p>Admin xem xét nội dung trước khi tạo link và chia sẻ.</p></div></div>
-                  <div className={styles.actionCard}><div><strong>Trạng thái kiểm duyệt</strong><p>{selectedGarden.approval_status === "pending" ? "Tác phẩm đang chờ Admin xem xét." : selectedGarden.approval_status === "approved" ? "Tác phẩm đã được duyệt." : selectedGarden.approval_status === "rejected" ? "Tác phẩm đã bị từ chối." : "Bản thảo chưa được gửi duyệt."}</p></div>
-                    {selectedGarden.approval_status !== "approved" && <button type="button" className={styles.primaryButton} onClick={() => void setApprovalStatus("approved")} disabled={saving}>Duyệt tác phẩm</button>}
-                    {selectedGarden.approval_status !== "rejected" && <button type="button" className={styles.secondaryButton} onClick={() => void setApprovalStatus("rejected")} disabled={saving}>Từ chối</button>}
+                  <div className={styles.publishHeading}><span>✉</span><div><strong>{t("Kiểm duyệt và xuất bản", "Review and publish")}</strong><p>{t("Admin xem xét nội dung trước khi tạo link và chia sẻ.", "Admin reviews the story before creating a sharing link.")}</p></div></div>
+                  <div className={styles.actionCard}><div><strong>{t("Trạng thái kiểm duyệt", "Review status")}</strong><p>{selectedGarden.approval_status === "pending" ? t("Tác phẩm đang chờ Admin xem xét.", "This story is awaiting Admin review.") : selectedGarden.approval_status === "approved" ? t("Tác phẩm đã được duyệt.", "This story has been approved.") : selectedGarden.approval_status === "rejected" ? t("Tác phẩm đã bị từ chối.", "This story was rejected.") : t("Bản thảo chưa được gửi duyệt.", "This draft has not been submitted for review.")}</p></div>
+                    {selectedGarden.approval_status !== "approved" && <button type="button" className={styles.primaryButton} onClick={() => void setApprovalStatus("approved")} disabled={saving}>{t("Duyệt tác phẩm", "Approve story")}</button>}
+                    {selectedGarden.approval_status !== "rejected" && <button type="button" className={styles.secondaryButton} onClick={() => void setApprovalStatus("rejected")} disabled={saving}>{t("Từ chối", "Reject")}</button>}
                   </div>
-                  <label className={styles.toggle}><input type="checkbox" checked={pinEnabled} onChange={(event) => setPinEnabled(event.target.checked)}/> Yêu cầu mã PIN khi mở tác phẩm</label>
-                  {pinEnabled && <label className={styles.field}>Mã PIN · tối thiểu 6 ký tự<input type="password" value={pinDraft} onChange={(event) => setPinDraft(event.target.value)} placeholder={pinExists ? "Để trống để giữ mã PIN hiện tại" : "Nhập mã PIN cho người nhận"}/></label>}
+                  <label className={styles.toggle}><input type="checkbox" checked={pinEnabled} onChange={(event) => setPinEnabled(event.target.checked)}/> {t("Yêu cầu mã PIN khi mở tác phẩm", "Require a PIN to open this story")}</label>
+                  {pinEnabled && <label className={styles.field}>{t("Mã PIN · tối thiểu 6 ký tự", "PIN · at least 6 characters")}<input type="password" value={pinDraft} onChange={(event) => setPinDraft(event.target.value)} placeholder={pinExists ? t("Để trống để giữ mã PIN hiện tại", "Leave blank to keep the current PIN") : t("Nhập mã PIN cho người nhận", "Enter a PIN for the reader")}/></label>}
                   <button type="button" className={selectedGarden.is_published ? styles.unpublishButton : styles.publishButton} onClick={() => void publishWork(!selectedGarden.is_published)} disabled={saving || (!selectedGarden.is_published && selectedGarden.approval_status !== "approved")}>
-                    {saving ? "Đang cập nhật..." : selectedGarden.is_published ? "Chuyển về bản nháp" : selectedGarden.approval_status !== "approved" ? "Duyệt trước khi xuất bản" : "Xuất bản và tạo link"}
+                    {saving ? t("Đang cập nhật...", "Updating...") : selectedGarden.is_published ? t("Chuyển về bản nháp", "Unpublish") : selectedGarden.approval_status !== "approved" ? t("Duyệt trước khi xuất bản", "Approve before publishing") : t("Xuất bản và tạo link", "Publish and create link")}
                   </button>
                   {selectedGarden.is_published && shareUrl && <div className={styles.shareResult}>
-                    <div className={styles.shareLinkBlock}><strong>Liên kết tác phẩm</strong><code>{shareUrl}</code><div><button type="button" onClick={() => void copyShareLink()}>Sao chép link</button><a href={shareUrl} target="_blank" rel="noreferrer">Mở trang người đọc ↗</a></div><small>{pinExists ? "Người nhận cần nhập mã PIN." : "Người nhận có thể mở trực tiếp."}</small></div>
-                    <div className={styles.qrCode} role="img" aria-label="Mã QR để mở tác phẩm" style={{ backgroundImage: "url(" + qrUrl + ")" }}/>
+                    <div className={styles.shareLinkBlock}><strong>{t("Liên kết tác phẩm", "Story link")}</strong><code>{shareUrl}</code><div><button type="button" onClick={() => void copyShareLink()}>{t("Sao chép link", "Copy link")}</button><a href={shareUrl} target="_blank" rel="noreferrer">Mở trang người đọc ↗</a></div><small>{pinExists ? t("Người nhận cần nhập mã PIN.", "Readers need a PIN.") : t("Người nhận có thể mở trực tiếp.", "Readers can open this link directly.")}</small></div>
+                    <div className={styles.qrCode} role="img" aria-label={t("Mã QR để mở tác phẩm", "QR code to open this story")} style={{ backgroundImage: "url(" + qrUrl + ")" }}/>
                   </div>}
                 </div>
               ) : (
                 <div className={styles.publishPanel}>
-                  <div className={styles.publishHeading}><span>✉</span><div><strong>Gửi bản thảo cho Admin kiểm duyệt</strong><p>Tác phẩm sẽ được giữ riêng tư cho đến khi Admin xem xét và duyệt. Bạn không cần tự tạo link công khai.</p></div></div>
-                  <div className={styles.actionCard}><div><strong>Trạng thái hiện tại</strong><p>{selectedGarden.approval_status === "pending" ? "Đã gửi duyệt. Admin sẽ xem nội dung trước khi xuất bản." : selectedGarden.approval_status === "approved" ? "Tác phẩm đã được duyệt. Admin sẽ quyết định thời điểm chia sẻ." : selectedGarden.approval_status === "rejected" ? "Admin đề nghị bạn chỉnh sửa rồi gửi lại." : "Bản thảo chỉ bạn nhìn thấy. Có thể lưu riêng tư hoặc gửi duyệt khi đã hoàn tất."}</p></div></div>
+                  <div className={styles.publishHeading}><span>✉</span><div><strong>{t("Gửi bản thảo cho Admin kiểm duyệt", "Submit draft for Admin review")}</strong><p>{t("Tác phẩm sẽ được giữ riêng tư cho đến khi Admin xem xét và duyệt. Bạn không cần tự tạo link công khai.", "Your story stays private until Admin reviews and approves it. You do not create a public link yourself.")}</p></div></div>
+                  <div className={styles.actionCard}><div><strong>{t("Trạng thái hiện tại", "Current status")}</strong><p>{selectedGarden.approval_status === "pending" ? t("Đã gửi duyệt. Admin sẽ xem nội dung trước khi xuất bản.", "Submitted. Admin will review the content before publishing.") : selectedGarden.approval_status === "approved" ? "Tác phẩm đã được duyệt. Admin sẽ quyết định thời điểm chia sẻ." : selectedGarden.approval_status === "rejected" ? t("Admin đề nghị bạn chỉnh sửa rồi gửi lại.", "Admin asked you to make changes and resubmit.") : t("Bản thảo chỉ bạn nhìn thấy. Có thể lưu riêng tư hoặc gửi duyệt khi đã hoàn tất.", "Only you can see this draft. Save it privately or submit when ready.")}</p></div></div>
                   <button type="button" className={styles.primaryButton} onClick={() => void submitForReview()} disabled={saving || !contentReady() || selectedGarden.approval_status === "pending" || selectedGarden.approval_status === "approved"}>
-                    {saving ? "Đang gửi..." : selectedGarden.approval_status === "pending" ? "Đang chờ Admin duyệt" : selectedGarden.approval_status === "approved" ? "Đã được Admin duyệt" : "Gửi Admin kiểm duyệt"}
+                    {saving ? t("Đang gửi...", "Submitting...") : selectedGarden.approval_status === "pending" ? t("Đang chờ Admin duyệt", "Awaiting Admin review") : selectedGarden.approval_status === "approved" ? t("Đã được Admin duyệt", "Approved by Admin") : t("Gửi Admin kiểm duyệt", "Submit to Admin")}
                   </button>
-                  {selectedGarden.approval_status === "pending" && <button type="button" className={styles.secondaryButton} onClick={() => void withdrawReview()} disabled={saving}>Rút yêu cầu duyệt</button>}
+                  {selectedGarden.approval_status === "pending" && <button type="button" className={styles.secondaryButton} onClick={() => void withdrawReview()} disabled={saving}>{t("Rút yêu cầu duyệt", "Withdraw review request")}</button>}
                 </div>
               )}
               </section>
             </section>
         ) : (
-          <section className={styles.emptyEditor}><span>✎</span><h2>Một trang giấy đang chờ bạn.</h2><p>Tạo bản thảo đầu tiên và chọn cách kể chuyện mình thích.</p><button type="button" onClick={createWork} disabled={saving}>＋ Bắt đầu viết</button></section>
+          <section className={styles.emptyEditor}><span>✎</span><h2>{t("Một trang giấy đang chờ bạn.", "A blank page is waiting for you.")}</h2><p>{t("Tạo bản thảo đầu tiên và chọn cách kể chuyện mình thích.", "Create your first draft and choose how to tell your story.")}</p><button type="button" onClick={createWork} disabled={saving}>{t("＋ Bắt đầu viết", "＋ Start writing")}</button></section>
         )}
       </div>
 
       <dialog ref={previewRef} className={styles.previewDialog} onClose={() => setPreviewOpen(false)}
-        onClick={(event) => { if (event.target === event.currentTarget) event.currentTarget.close(); }} aria-label="Bản xem trước tác phẩm">
+        onClick={(event) => { if (event.target === event.currentTarget) event.currentTarget.close(); }} aria-label={t("Bản xem trước tác phẩm", "Story preview")}>
         {selectedGarden && <>
-          <header className={styles.previewHeader}><div><p className={styles.eyebrow}>BẢN XEM TRƯỚC · CHỈ ANH NHÌN THẤY</p><h2>{name || selectedGarden.name}</h2></div><button type="button" onClick={() => setPreviewOpen(false)}>Đóng ✕</button></header>
+          <header className={styles.previewHeader}><div><p className={styles.eyebrow}>{t("BẢN XEM TRƯỚC · CHỈ BẠN NHÌN THẤY", "PREVIEW · ONLY YOU CAN SEE THIS")}</p><h2>{name || selectedGarden.name}</h2></div><button type="button" onClick={() => setPreviewOpen(false)}>Đóng ✕</button></header>
           <div className={styles.previewBody}>
             <GardenJournal key={selectedGarden.id + "-" + format} name={name || selectedGarden.name} introduction={introduction} format={format}
               coverUrl={coverUrl} coverPath={coverPath} photos={photos} chapters={journalChapters} readIds={previewReadIds}
-              onOpenChapter={markPreviewRead} letterTitle={letterTitle} letterParagraphs={splitText(letterText)}
+              decorations={decorations} onOpenChapter={markPreviewRead} letterTitle={letterTitle} letterParagraphs={splitText(letterText)}
               letterSignature={signature} letterReady={chapters.length > 0 && chapters.every((chapter) => previewReadIds.includes(chapter.chapter_id))}
-              returnHref="/" returnLabel="Little Story World" actionHref="#the-book" actionLabel="MỞ TÁC PHẨM">
-              {guestbookEnabled && <section className={styles.previewGuestbook}><h3>Lời nhắn từ người đọc</h3><p>Biểu mẫu gửi lời nhắn sẽ xuất hiện sau khi tác phẩm được xuất bản.</p></section>}
+              returnHref="/" returnLabel="Little Story World" actionHref="#the-book" actionLabel={t("MỞ TÁC PHẨM", "OPEN STORY")}>
+              {guestbookEnabled && <section className={styles.previewGuestbook}><h3>{t("Lời nhắn từ người đọc", "Reader notes")}</h3><p>{t("Biểu mẫu gửi lời nhắn sẽ xuất hiện sau khi tác phẩm được xuất bản.", "The reader note form appears after this story is published.")}</p></section>}
             </GardenJournal>
           </div>
         </>}

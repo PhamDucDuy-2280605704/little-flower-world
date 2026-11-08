@@ -7,10 +7,11 @@ import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { FAIRYTALE_TEST_GARDEN_ID } from "@/features/garden/data/gardenThemes";
 import { mapPersonalGarden } from "@/features/garden/data/mapPersonalGarden";
-import GardenJournal, { type GardenJournalPhoto, type JournalChapter } from "@/features/garden/components/GardenJournal";
+import GardenJournal, { normalizeStoryDecorations, type GardenJournalPhoto, type JournalChapter } from "@/features/garden/components/GardenJournal";
 
 import type { PersonalGarden, PersonalGardenRow } from "@/types/personalGarden";
 import styles from "../styles/GiftExperience.module.css";
+import { useLanguage } from "@/features/i18n/LanguageProvider";
 
 const PHOTO_BUCKET = "garden-photos";
 const PHOTO_LIMIT = 40;
@@ -56,6 +57,7 @@ async function loadGardenMedia(
 }
 
 export default function GiftExperience() {
+  const { t } = useLanguage();
   const [user, setUser] = useState<User | null>(null);
   const [authReady, setAuthReady] = useState(false);
 
@@ -86,17 +88,17 @@ export default function GiftExperience() {
   }, []);
 
   if (!authReady) {
-    return <main className={styles.statePage}><section className={styles.stateCard}><p role="status">Đang kiểm tra tài khoản...</p></section></main>;
+    return <main className={styles.statePage}><section className={styles.stateCard}><p role="status">{t("Đang kiểm tra tài khoản...", "Checking account...")}</p></section></main>;
   }
 
   if (!user) {
     return (
       <main className={styles.statePage}>
         <section className={styles.stateCard}>
-          <p className={styles.stateKicker}>LITTLE FLOWER WORLD</p>
-          <h1>Tác phẩm của bạn đang chờ.</h1>
-          <p>Bạn cần đăng nhập để mở tác phẩm riêng của tài khoản.</p>
-          <Link href="/login">Đến trang đăng nhập ↗</Link>
+          <p className={styles.stateKicker}>{"LITTLE STORY WORLD"}</p>
+          <h1>{t("Tác phẩm của bạn đang chờ.", "Your story is waiting.")}</h1>
+          <p>{t("Bạn cần đăng nhập để mở tác phẩm riêng của tài khoản.", "Sign in to open the stories saved to your account.")}</p>
+          <Link href="/login">{t("Đến trang đăng nhập ↗", "Sign in ↗")}</Link>
         </section>
       </main>
     );
@@ -106,6 +108,7 @@ export default function GiftExperience() {
 }
 
 function PersonalGardenJournal({ user }: { user: User }) {
+  const { t } = useLanguage();
   const [garden, setGarden] = useState<PersonalGarden | null>(null);
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [photos, setPhotos] = useState<GardenJournalPhoto[]>([]);
@@ -132,6 +135,7 @@ function PersonalGardenJournal({ user }: { user: User }) {
             letter_title,
             letter_paragraphs,
             letter_signature,
+            experience_settings,
             cover_path,
             garden_items (
               id, kind, color, x, depth, size, chapter_id, label, title, sort_order
@@ -148,7 +152,7 @@ function PersonalGardenJournal({ user }: { user: User }) {
         if (!active) return;
         if (error) {
           console.error("Load personal garden error:", error);
-          setGardenError("Chưa tải được tác phẩm của bạn. Hãy thử tải lại trang nhé.");
+          setGardenError(t("Chưa tải được tác phẩm của bạn. Hãy thử tải lại trang nhé.", "Could not load your story. Please reload the page."));
           setGardenLoading(false);
           return;
         }
@@ -179,7 +183,7 @@ function PersonalGardenJournal({ user }: { user: User }) {
         if (!active) return;
         if (progressLoadError) {
           console.error("Load story progress error:", progressLoadError);
-          setProgressError("Chưa tải được tiến độ đọc. Hãy thử tải lại trang nhé.");
+          setProgressError(t("Chưa tải được tiến độ đọc. Hãy thử tải lại trang nhé.", "Could not load reading progress. Please reload."));
         } else {
           const chapterIds = new Set(personalGarden.chapters.map((chapter) => chapter.id));
           const validIds = (progress ?? []).map((row) => row.chapter_id as string).filter((id) => chapterIds.has(id));
@@ -189,7 +193,7 @@ function PersonalGardenJournal({ user }: { user: User }) {
       } catch (error) {
         if (!active) return;
         console.error("Load personal garden failed:", error);
-        setGardenError("Có lỗi khi tải khu vườn. Hãy thử tải lại trang nhé.");
+        setGardenError(t("Có lỗi khi tải khu vườn. Hãy thử tải lại trang nhé.", "Something went wrong while loading your story. Please reload."));
         setGardenLoading(false);
         setProgressLoading(false);
       }
@@ -208,24 +212,24 @@ function PersonalGardenJournal({ user }: { user: User }) {
     );
     if (error) {
       console.error("Save story progress error:", error);
-      setProgressError("Chưa lưu được tiến độ đọc. Kiểm tra kết nối rồi thử lại nhé.");
+      setProgressError(t("Chưa lưu được tiến độ đọc. Kiểm tra kết nối rồi thử lại nhé.", "Could not save reading progress. Check your connection and try again."));
       return;
     }
     setReadIds((current) => current.includes(chapterId) ? current : [...current, chapterId]);
   }
 
   if (gardenLoading) {
-    return <main className={styles.statePage}><section className={styles.stateCard}><p role="status">Đang mở cuốn sách của bạn...</p></section></main>;
+    return <main className={styles.statePage}><section className={styles.stateCard}><p role="status">{t("Đang mở cuốn sách của bạn...", "Opening your story...")}</p></section></main>;
   }
 
   if (gardenError || !garden) {
     return (
       <main className={styles.statePage}>
         <section className={styles.stateCard}>
-          <p className={styles.stateKicker}>LITTLE FLOWER WORLD</p>
-          <h1>{gardenError ? "Tác phẩm đang gặp chút trục trặc." : "Chưa có tác phẩm nào."}</h1>
-          <p>{gardenError || "Tài khoản này chưa có tác phẩm. Hãy liên hệ người quản trị để được hỗ trợ."}</p>
-          <Link href="/">Về trang chủ ↗</Link>
+          <p className={styles.stateKicker}>{"LITTLE STORY WORLD"}</p>
+          <h1>{gardenError ? t("Tác phẩm đang gặp chút trục trặc.", "Your story is having a little trouble.") : t("Chưa có tác phẩm nào.", "There are no stories yet.")}</h1>
+          <p>{gardenError || t("Tài khoản này chưa có tác phẩm. Hãy liên hệ người quản trị để được hỗ trợ.", "This account has no stories yet. Contact the administrator for help.")}</p>
+          <Link href="/">{t("Về trang chủ ↗", "Back to home ↗")}</Link>
         </section>
       </main>
     );
@@ -236,6 +240,7 @@ function PersonalGardenJournal({ user }: { user: User }) {
       name={garden.name}
       introduction={garden.introduction}
       format="book"
+      decorations={normalizeStoryDecorations(garden.experienceSettings?.storyDecorations)}
       coverUrl={coverUrl}
       photos={photos}
       chapters={chapters}
@@ -246,12 +251,12 @@ function PersonalGardenJournal({ user }: { user: User }) {
       letterSignature={garden.letter.signature}
       letterReady={allRead}
       returnHref="/"
-      returnLabel="Little Flower World"
+      returnLabel="Little Story World"
       actionHref="#the-book"
-      actionLabel="MỞ CUỐN SÁCH"
+      actionLabel=t("MỞ CUỐN SÁCH", "OPEN STORY")
     >
       {progressError && <p role="alert" className={styles.stateKicker}>{progressError}</p>}
-      {progressLoading && <p role="status" className={styles.stateKicker}>Đang tải tiến độ đọc...</p>}
+      {progressLoading && <p role="status" className={styles.stateKicker}>{t("Đang tải tiến độ đọc...", "Loading reading progress...")}</p>}
     </GardenJournal>
   );
 }
