@@ -98,7 +98,7 @@
 .brand small {
   margin-top: 3px;
   color: #8d9d91;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.22em;
 }
@@ -109,7 +109,7 @@
 .panelEyebrow {
   margin: 0;
   color: #a7a18c;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.17em;
 }
@@ -124,7 +124,7 @@
   padding: 0 13px;
   border-radius: 12px;
   color: #b9c0b7;
-  font-size: 12px;
+  font-size: 14px;
   text-decoration: none;
   transition: background 160ms ease, color 160ms ease;
 }
@@ -173,13 +173,13 @@
 
 .accountCopy strong {
   color: #eee6d4;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .accountCopy span {
   overflow: hidden;
   color: #8f9d94;
-  font-size: 9px;
+  font-size: 11px;
   text-overflow: ellipsis;
 }
 
@@ -208,7 +208,7 @@
 .eyebrow {
   margin: 0 0 8px;
   color: #bb9d6b;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.18em;
 }
@@ -227,7 +227,7 @@
 .subtitle {
   margin: 8px 0 0;
   color: #9da99f;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.7;
 }
 
@@ -249,7 +249,7 @@
   border-radius: 999px;
   color: #d5d4c5;
   font: inherit;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 650;
   text-decoration: none;
 }
@@ -284,7 +284,7 @@
 
 .heroTag {
   color: #d6bb84;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.2em;
 }
@@ -307,7 +307,7 @@
   max-width: 450px;
   margin: 0;
   color: #c1c7b8;
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.7;
 }
 
@@ -355,7 +355,7 @@
 
 .statCard div { display: grid; gap: 4px; }
 .statCard strong { color: #f1e6d0; font-family: var(--font-body), Arial, Helvetica, sans-serif; font-size: 24px; font-weight: 500; }
-.statCard span:not(.statIcon) { color: #9da99f; font-size: 10px; }
+.statCard span:not(.statIcon) { color: #9da99f; font-size: 12px; }
 
 .workspace {
   display: grid;
@@ -395,7 +395,7 @@
 .albumHeader p:not(.panelEyebrow) {
   margin: 0;
   color: #98a59b;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.65;
 }
 
@@ -407,7 +407,7 @@
   border-radius: 999px;
   color: #d3bf95;
   background: rgba(195, 161, 104, 0.08);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
 }
 
@@ -433,7 +433,7 @@
   background: transparent;
   color: #eee9dc;
   font: inherit;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .searchBox input::placeholder { color: #77867e; }
@@ -488,7 +488,7 @@
   right: 4px;
   bottom: 3px;
   color: rgba(247, 233, 200, 0.55);
-  font-size: 7px;
+  font-size: 10px;
   font-style: normal;
 }
 
@@ -501,13 +501,13 @@
 .gardenInfo strong {
   overflow: hidden;
   color: #eee6d5;
-  font-size: 10px;
+  font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.gardenInfo small { color: #a5a18e; font-size: 8px; }
-.gardenInfo span { color: #8fa092; font-size: 8px; }
+.gardenInfo small { color: #a5a18e; font-size: 10px; }
+.gardenInfo span { color: #8fa092; font-size: 10px; }
 .gardenInfo b { padding: 0 3px; color: #bb9d6b; }
 .gardenArrow { margin-left: auto; color: #d0b780; font-size: 20px; }
 
@@ -516,7 +516,7 @@
   min-height: 110px;
   place-items: center;
   color: #a3ada2;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .albumHeader { margin-bottom: 18px; }
@@ -553,9 +553,9 @@
   font-size: 22px;
 }
 
-.dropzone strong { color: #eae3d2; font-size: 12px; }
+.dropzone strong { color: #eae3d2; font-size: 14px; }
 .dropzone p,
-.dropzoneActive p { margin: 0; color: #95a197; font-size: 9px; }
+.dropzoneActive p { margin: 0; color: #95a197; font-size: 11px; }
 
 .uploadButton {
   display: inline-flex;
@@ -568,7 +568,7 @@
   border-radius: 999px;
   background: linear-gradient(120deg, #aa895b, #6b886b);
   color: #17231d;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 800;
   cursor: pointer;
 }
@@ -582,7 +582,7 @@
 }
 
 .uploadButton:hover { filter: brightness(1.08); }
-.dropzone small { color: #75867a; font-size: 8px; }
+.dropzone small { color: #75867a; font-size: 10px; }
 
 .photoToolbar {
   display: flex;
@@ -594,9 +594,9 @@
   border-bottom: 1px solid rgba(225, 209, 177, 0.11);
 }
 
-.photoToolbar h3 { margin: 0; color: #e9e2d1; font-size: 12px; font-weight: 700; }
-.photoToolbar p { margin: 4px 0 0; color: #87968b; font-size: 9px; }
-.photoToolbar > span { color: #c9b17e; font-size: 9px; }
+.photoToolbar h3 { margin: 0; color: #e9e2d1; font-size: 14px; font-weight: 700; }
+.photoToolbar p { margin: 4px 0 0; color: #87968b; font-size: 11px; }
+.photoToolbar > span { color: #c9b17e; font-size: 11px; }
 
 .photoGrid {
   display: grid;
@@ -633,7 +633,7 @@
 .photoCard figcaption span {
   overflow: hidden;
   color: #bfc3b4;
-  font-size: 8px;
+  font-size: 10px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -663,11 +663,11 @@
   align-content: center;
   color: #91a095;
   text-align: center;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .photoEmpty span { color: #c4a66f; font-size: 26px; }
-.photoEmpty strong { color: #dcd9c9; font-size: 11px; }
+.photoEmpty strong { color: #dcd9c9; font-size: 13px; }
 .photoEmpty p { max-width: 250px; margin: 0; color: #85958a; line-height: 1.6; }
 
 .errorBanner,
@@ -675,7 +675,7 @@
   margin: 14px 0 0;
   padding: 10px 13px;
   border-radius: 10px;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .errorBanner { border: 1px solid rgba(208, 123, 105, 0.28); background: rgba(131, 63, 51, 0.14); color: #edb9a8; }
@@ -687,7 +687,7 @@
   gap: 12px;
   margin-top: 20px;
   color: #728279;
-  font-size: 8px;
+  font-size: 10px;
   letter-spacing: 0.07em;
 }
 
@@ -703,7 +703,7 @@
   text-align: center;
 }
 
-.loadingPage p { color: #a8b2a7; font-size: 12px; }
+.loadingPage p { color: #a8b2a7; font-size: 14px; }
 .loadingMark,
 .deniedMark { color: #d9bc82; font-size: 38px; }
 
@@ -726,9 +726,9 @@
   font-weight: 500;
 }
 
-.deniedCard > p:not(.eyebrow) { margin: 0 0 6px; color: #9da99f; font-size: 12px; line-height: 1.7; }
-.primaryLink { padding: 11px 19px; border-radius: 999px; background: #bd9b65; color: #18241d; font-size: 11px; font-weight: 800; text-decoration: none; }
-.backLink { color: #b8b8a6; font-size: 10px; text-decoration: none; }
+.deniedCard > p:not(.eyebrow) { margin: 0 0 6px; color: #9da99f; font-size: 14px; line-height: 1.7; }
+.primaryLink { padding: 11px 19px; border-radius: 999px; background: #bd9b65; color: #18241d; font-size: 13px; font-weight: 800; text-decoration: none; }
+.backLink { color: #b8b8a6; font-size: 12px; text-decoration: none; }
 
 @media (max-width: 1100px) {
   .app { grid-template-columns: 205px minmax(0, 1fr); }
@@ -752,7 +752,7 @@
   .sidebarSection { display: flex; align-items: center; gap: 6px; margin: 0; }
   .sidebarLabel { display: none; }
   .sideLink,
-  .sideLinkActive { min-height: 34px; margin: 0; padding: 0 9px; font-size: 9px; }
+  .sideLinkActive { min-height: 34px; margin: 0; padding: 0 9px; font-size: 11px; }
   .sidebarBottom { margin: 0; padding: 0; border: 0; }
   .accountCopy { display: none; }
   .adminDot { display: none; }
@@ -767,7 +767,7 @@
   .sideLink,
   .sideLinkActive { flex: 1; justify-content: center; }
   .sideLink span,
-  .sideLinkActive span { font-size: 8px; }
+  .sideLinkActive span { font-size: 10px; }
   .main { padding: 17px 13px; }
   .topbar { flex-direction: column; }
   .topActions { width: 100%; }
@@ -787,7 +787,7 @@
 /* Clear, Vietnamese-friendly typography and consistent sizing across the admin workspace. */
 .shell {
   font-family: var(--font-body), Arial, Helvetica, sans-serif;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.55;
 }
 
@@ -795,66 +795,66 @@
 .panelEyebrow,
 .eyebrow,
 .heroTag {
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 0.12em;
 }
 
 .sideLink,
 .sideLinkActive {
-  font-size: 13px;
+  font-size: 15px;
 }
 
-.accountCopy strong { font-size: 13px; }
-.accountCopy span { font-size: 11px; }
-.subtitle { font-size: 14px; }
-.heroCopy p { font-size: 13px; }
-.statCard span:not(.statIcon) { font-size: 12px; }
+.accountCopy strong { font-size: 15px; }
+.accountCopy span { font-size: 13px; }
+.subtitle { font-size: 16px; }
+.heroCopy p { font-size: 15px; }
+.statCard span:not(.statIcon) { font-size: 14px; }
 
 .panelHeader p:not(.panelEyebrow),
 .albumHeader p:not(.panelEyebrow) {
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .countPill,
-.albumCount { font-size: 11px; }
-.searchBox input { font-size: 13px; }
-.gardenInfo strong { font-size: 13px; }
+.albumCount { font-size: 13px; }
+.searchBox input { font-size: 15px; }
+.gardenInfo strong { font-size: 15px; }
 .gardenInfo small,
-.gardenInfo span { font-size: 11px; }
-.dropzone strong { font-size: 14px; }
+.gardenInfo span { font-size: 13px; }
+.dropzone strong { font-size: 16px; }
 .dropzone p,
-.dropzoneActive p { font-size: 12px; }
-.dropzone small { font-size: 10px; }
-.photoToolbar h3 { font-size: 14px; }
+.dropzoneActive p { font-size: 14px; }
+.dropzone small { font-size: 12px; }
+.photoToolbar h3 { font-size: 16px; }
 .photoToolbar p,
-.photoToolbar > span { font-size: 11px; }
-.photoCard figcaption span { font-size: 11px; }
-.photoEmpty { font-size: 12px; }
-.photoEmpty strong { font-size: 13px; }
+.photoToolbar > span { font-size: 13px; }
+.photoCard figcaption span { font-size: 13px; }
+.photoEmpty { font-size: 14px; }
+.photoEmpty strong { font-size: 15px; }
 .photoEmpty p { line-height: 1.7; }
-.footer { font-size: 10px; }
-.deniedCard > p:not(.eyebrow) { font-size: 14px; }
-.primaryLink { font-size: 13px; }
-.backLink { font-size: 12px; }
+.footer { font-size: 12px; }
+.deniedCard > p:not(.eyebrow) { font-size: 16px; }
+.primaryLink { font-size: 15px; }
+.backLink { font-size: 14px; }
 
 @media (max-width: 820px) {
   .sideLink,
-  .sideLinkActive { font-size: 12px; }
+  .sideLinkActive { font-size: 14px; }
   .gardenInfo small,
-  .gardenInfo span { font-size: 11px; }
+  .gardenInfo span { font-size: 13px; }
 }
 
 @media (max-width: 560px) {
   .sideLink span,
-  .sideLinkActive span { font-size: 10px; }
+  .sideLinkActive span { font-size: 12px; }
   .photoGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .photoCard figcaption span { font-size: 10px; }
-  .footer { font-size: 10px; }
+  .photoCard figcaption span { font-size: 12px; }
+  .footer { font-size: 12px; }
 }
 
 .photoOpenButton{position:relative;display:block;width:100%;padding:0;border:0;background:transparent;cursor:zoom-in}
 .photoOpenButton img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover}
-.photoOpenButton>span{position:absolute;right:9px;bottom:9px;display:grid;place-items:center;width:32px;height:32px;border:1px solid rgba(255,255,255,.5);border-radius:50%;background:rgba(12,18,24,.8);color:#fff4dc;font-size:22px;opacity:0;transition:opacity 160ms ease}
+.photoOpenButton>span{position:absolute;right:9px;bottom:9px;display:grid;place-items:center;width:32px;height:32px;border:1px solid rgba(255,255,255,.5);border-radius:50%;background:rgba(12,18,24,.8);color:#fff4dc;font-size: 22px;opacity:0;transition:opacity 160ms ease}
 .photoOpenButton:hover>span,.photoOpenButton:focus-visible>span{opacity:1}
 .photoOpenButton:focus-visible{outline:3px solid #f1d8a0;outline-offset:-3px}
 @media(max-width:600px){.photoOpenButton>span{opacity:1}}

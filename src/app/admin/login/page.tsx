@@ -4,8 +4,8 @@ import AdminLoginForm from "@/features/admin/components/AdminLoginForm";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
-  title: "Đăng nhập quản trị · Little Story World",
-  description: "Cổng đăng nhập riêng dành cho quản trị viên Little Story World.",
+  title: "Đăng nhập quản trị · Little Flower World",
+  description: "Cổng đăng nhập riêng dành cho quản trị viên Little Flower World.",
 };
 
 export default function AdminLoginPage() {
@@ -24,7 +24,7 @@ export default function AdminLoginPage() {
         <div className={styles.formSide}>
           <Link className={styles.brand} href="/">
             <span className={styles.brandMark}>✿</span>
-            <span><strong>Little Story World</strong><small>ADMIN PORTAL</small></span>
+            <span><strong>Little Flower World</strong><small>ADMIN PORTAL</small></span>
           </Link>
           <AdminLoginForm />
           <p className={styles.footer}>Khu vực riêng tư · Chỉ dành cho quản trị viên được cấp quyền</p>

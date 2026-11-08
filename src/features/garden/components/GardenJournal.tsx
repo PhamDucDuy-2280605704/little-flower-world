@@ -73,7 +73,7 @@ export default function GardenJournal({
   letterSignature = "",
   letterReady = false,
   returnHref = "/",
-  returnLabel = "Little Story World",
+  returnLabel = "Little Flower World",
   actionHref = "#the-book",
   actionLabel = "MỞ CUỐN SÁCH",
   children,
@@ -195,7 +195,7 @@ export default function GardenJournal({
       <header className={styles.siteHeader}>
         <Link className={styles.brand} href={returnHref}>
           <span className={styles.brandMark}>L</span>
-          <span>LITTLE STORY WORLD</span>
+          <span>LITTLE FLOWER WORLD</span>
         </Link>
         <nav aria-label="Điều hướng tác phẩm">
           <a href="#the-book">Cuốn sách</a>
@@ -366,7 +366,7 @@ export default function GardenJournal({
                   </div>
                   {currentPage.signature && <p className={styles.signature}>{currentPage.signature}</p>}
                   <div className={styles.pageFooter}>
-                    <span>{currentPage.kind === "letter" ? "WITH LOVE" : "LITTLE STORY WORLD"}</span>
+                    <span>{currentPage.kind === "letter" ? "WITH LOVE" : "LITTLE FLOWER WORLD"}</span>
                     <span>{currentNumber}</span>
                   </div>
                 </motion.article>
@@ -420,7 +420,7 @@ export default function GardenJournal({
 
       <footer className={styles.footer}>
         <Link href={returnHref}>{returnLabel}</Link>
-        <span>A STORY CREATED WITH CARE · LITTLE STORY WORLD</span>
+        <span>A STORY CREATED WITH CARE · LITTLE FLOWER WORLD</span>
         <a href={STOCK_BOOK_PAGE} target="_blank" rel="noreferrer">Ảnh minh họa: Pixabay ↗</a>
       </footer>
 

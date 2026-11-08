@@ -1,17 +1,17 @@
 .wrapper{display:flex;flex-direction:column;gap:24px}
-.heading .eyebrow{margin:0 0 10px;color:#9b7449;font-size:10px;font-weight:850;letter-spacing:.2em}
+.heading .eyebrow{margin:0 0 10px;color:#9b7449;font-size: 12px;font-weight:850;letter-spacing:.2em}
 .heading h1{margin:0;color:#453426;font-family:var(--font-display),Georgia,"Times New Roman",serif;font-size:clamp(29px,4vw,38px);font-weight:500;line-height:1.15;letter-spacing:-.035em}
-.heading>p:last-child{margin:10px 0 0;color:#817462;font-size:13px;line-height:1.75}
-.form{display:grid;gap:18px}.field{display:grid;gap:8px}.field label{color:#705338;font-size:12px;font-weight:750}
-.field input{box-sizing:border-box;width:100%;min-width:0;min-height:49px;padding:0 14px;border:1px solid rgba(139,109,70,.28);border-radius:12px;outline:none;background:#fffdf8;color:#49382b;font:inherit;font-size:14px;box-shadow:inset 0 1px 2px rgba(82,62,38,.035)}
+.heading>p:last-child{margin:10px 0 0;color:#817462;font-size: 15px;line-height:1.75}
+.form{display:grid;gap:18px}.field{display:grid;gap:8px}.field label{color:#705338;font-size: 14px;font-weight:750}
+.field input{box-sizing:border-box;width:100%;min-width:0;min-height:49px;padding:0 14px;border:1px solid rgba(139,109,70,.28);border-radius:12px;outline:none;background:#fffdf8;color:#49382b;font:inherit;font-size: 16px;box-shadow:inset 0 1px 2px rgba(82,62,38,.035)}
 .field input::placeholder{color:#aa9d88}.field input:focus{border-color:#a77b4d;box-shadow:0 0 0 3px rgba(167,123,77,.14)}
 .passwordField{display:flex;gap:8px}.passwordField input{flex:1}
-.showPassword{padding:0 13px;border:1px solid rgba(139,109,70,.24);border-radius:12px;background:#eee4d1;color:#715437;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
-.submit{display:flex;align-items:center;justify-content:space-between;min-height:50px;margin-top:4px;padding:0 18px;border:1px solid #725336;border-radius:13px;background:linear-gradient(110deg,#a77b4d,#775638);color:#fff8e9;font:inherit;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 8px 18px rgba(107,77,46,.16);transition:filter 160ms ease,transform 160ms ease}
+.showPassword{padding:0 13px;border:1px solid rgba(139,109,70,.24);border-radius:12px;background:#eee4d1;color:#715437;font:inherit;font-size: 14px;font-weight:700;cursor:pointer}
+.submit{display:flex;align-items:center;justify-content:space-between;min-height:50px;margin-top:4px;padding:0 18px;border:1px solid #725336;border-radius:13px;background:linear-gradient(110deg,#a77b4d,#775638);color:#fff8e9;font:inherit;font-size: 15px;font-weight:800;cursor:pointer;box-shadow:0 8px 18px rgba(107,77,46,.16);transition:filter 160ms ease,transform 160ms ease}
 .submit:hover:not(:disabled){filter:brightness(1.06);transform:translateY(-1px)}.submit:disabled{opacity:.65;cursor:wait}
 .submit:focus-visible,.showPassword:focus-visible,.guestLink:focus-visible{outline:3px solid rgba(167,123,77,.32);outline-offset:3px}
-.error{margin:-5px 0 0;padding:11px 13px;border:1px solid rgba(177,91,75,.25);border-radius:10px;background:#f8e8df;color:#9c483b;font-size:12px;line-height:1.55}
-.separation{display:flex;align-items:center;gap:10px;color:#978a76}.separation span{height:1px;flex:1;background:rgba(139,109,70,.2)}.separation p{margin:0;font-size:10px;text-align:center}
-.guestLink{align-self:center;color:#89643f;font-size:12px;text-decoration:none}.guestLink:hover{color:#5f452d;text-decoration:underline;text-underline-offset:4px}
-.checking{padding:22px 0;color:#817462;font-size:13px;text-align:center}
+.error{margin:-5px 0 0;padding:11px 13px;border:1px solid rgba(177,91,75,.25);border-radius:10px;background:#f8e8df;color:#9c483b;font-size: 14px;line-height:1.55}
+.separation{display:flex;align-items:center;gap:10px;color:#978a76}.separation span{height:1px;flex:1;background:rgba(139,109,70,.2)}.separation p{margin:0;font-size: 12px;text-align:center}
+.guestLink{align-self:center;color:#89643f;font-size: 14px;text-decoration:none}.guestLink:hover{color:#5f452d;text-decoration:underline;text-underline-offset:4px}
+.checking{padding:22px 0;color:#817462;font-size: 15px;text-align:center}
 @media(max-width:480px){.separation p{max-width:190px;line-height:1.5}}

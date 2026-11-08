@@ -8,7 +8,7 @@ Before changing the database, run the read-only queries in [check-existing-schem
 
 ## Apply the database migration
 
-1. Open Supabase Dashboard for the Little Flower World project.
+1. Open Supabase Dashboard for the Little Story World project.
 2. Open **SQL Editor** and create a new query.
 3. Copy and run `migrations/20261107000000_personalized_gardens.sql`.
 4. The migration checks that the existing `story_progress.user_id` is `uuid`, `chapter_id` is `text`, and there are no duplicate `(user_id, chapter_id)` pairs before creating the unique index. If that check fails, stop and inspect the existing table; do not change its columns blindly.

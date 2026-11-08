@@ -93,7 +93,7 @@ export default function GiftExperience() {
     return (
       <main className={styles.statePage}>
         <section className={styles.stateCard}>
-          <p className={styles.stateKicker}>LITTLE STORY WORLD</p>
+          <p className={styles.stateKicker}>LITTLE FLOWER WORLD</p>
           <h1>Tác phẩm của bạn đang chờ.</h1>
           <p>Bạn cần đăng nhập để mở tác phẩm riêng của tài khoản.</p>
           <Link href="/login">Đến trang đăng nhập ↗</Link>
@@ -222,7 +222,7 @@ function PersonalGardenJournal({ user }: { user: User }) {
     return (
       <main className={styles.statePage}>
         <section className={styles.stateCard}>
-          <p className={styles.stateKicker}>LITTLE STORY WORLD</p>
+          <p className={styles.stateKicker}>LITTLE FLOWER WORLD</p>
           <h1>{gardenError ? "Tác phẩm đang gặp chút trục trặc." : "Chưa có tác phẩm nào."}</h1>
           <p>{gardenError || "Tài khoản này chưa có tác phẩm. Hãy liên hệ người quản trị để được hỗ trợ."}</p>
           <Link href="/">Về trang chủ ↗</Link>
@@ -246,7 +246,7 @@ function PersonalGardenJournal({ user }: { user: User }) {
       letterSignature={garden.letter.signature}
       letterReady={allRead}
       returnHref="/"
-      returnLabel="Little Story World"
+      returnLabel="Little Flower World"
       actionHref="#the-book"
       actionLabel="MỞ CUỐN SÁCH"
     >

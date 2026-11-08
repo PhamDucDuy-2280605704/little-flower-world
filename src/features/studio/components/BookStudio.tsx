@@ -99,7 +99,7 @@ export default function BookStudio() {
     id: chapter.chapter_id, title: chapter.title, paragraphs: chapter.paragraphs,
   })), [chapters]);
   const shareUrl = selectedGarden?.is_published && selectedGarden.share_slug
-    ? (typeof window === "undefined" ? "https://little-flower-world.vercel.app" : window.location.origin) + "/g/" + selectedGarden.share_slug
+    ? (typeof window === "undefined" ? "https://little-story-world.vercel.app" : window.location.origin) + "/g/" + selectedGarden.share_slug
     : "";
   const qrUrl = shareUrl ? "https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=10&data=" + encodeURIComponent(shareUrl) : "";
   const pendingCount = guestbook.filter((entry) => entry.status === "pending").length;

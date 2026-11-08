@@ -226,7 +226,7 @@ export default function GardenStudio() {
   );
   const selectedChapter = chapters.find((chapter) => chapter.chapter_id === selectedChapterId) ?? null;
   const shareUrl = selectedGarden?.share_slug
-    ? (typeof window !== "undefined" ? window.location.origin : "https://little-flower-world.vercel.app") + "/g/" + selectedGarden.share_slug
+    ? (typeof window !== "undefined" ? window.location.origin : "https://little-story-world.vercel.app") + "/g/" + selectedGarden.share_slug
     : "";
 
   const loadGardens = useCallback(async (ownerId: string) => {
@@ -1068,7 +1068,7 @@ export default function GardenStudio() {
   return (
     <main className={styles.shell}>
       <header className={styles.topbar}>
-        <Link href="/" className={styles.brand}><span>✿</span><strong>Little Flower World <small>KHU VỰC QUẢN TRỊ · CREATOR STUDIO</small></strong></Link>
+        <Link href="/" className={styles.brand}><span>✿</span><strong>Little Story World <small>KHU VỰC QUẢN TRỊ · CREATOR STUDIO</small></strong></Link>
         <nav aria-label="Điều hướng Admin">
           <Link href="/admin">Trung tâm Admin</Link>
           {selectedGarden?.is_published && shareUrl && <a href={shareUrl} target="_blank" rel="noreferrer">Xem trang khách ↗</a>}
@@ -1365,7 +1365,7 @@ export default function GardenStudio() {
               <h3>{name.trim() || selectedGarden.name}</h3>
               <p>{introduction.trim() || "Một khu vườn nhỏ đang chờ bạn khám phá."}</p>
             </section>
-            <GardenJournal name={name.trim() || selectedGarden.name} introduction={introduction.trim()} coverUrl={coverUrl} items={previewItems} chapters={previewStoryChapters} readIds={[]} onOpenChapter={(chapterId) => setPreviewChapterId(chapterId)} letterReady={false} returnHref="/" returnLabel="Little Flower World" actionHref={guestbookEnabled ? "#guestbook" : "#the-path"} actionLabel={guestbookEnabled ? "ĐỂ LẠI LỜI NHẮN" : "KHÁM PHÁ CÂU CHUYỆN"}>
+            <GardenJournal name={name.trim() || selectedGarden.name} introduction={introduction.trim()} coverUrl={coverUrl} items={previewItems} chapters={previewStoryChapters} readIds={[]} onOpenChapter={(chapterId) => setPreviewChapterId(chapterId)} letterReady={false} returnHref="/" returnLabel="Little Story World" actionHref={guestbookEnabled ? "#guestbook" : "#the-path"} actionLabel={guestbookEnabled ? "ĐỂ LẠI LỜI NHẮN" : "KHÁM PHÁ CÂU CHUYỆN"}>
               {guestbookEnabled && <section className={styles.previewGuestbook} id="guestbook"><h3>Sổ lưu bút</h3><p>Khách có thể để lại lời nhắn sau khi ghé thăm thế giới này.</p><span>Biểu mẫu sẽ xuất hiện trong trang khách sau khi xuất bản.</span></section>}
             </GardenJournal>
           </div>

@@ -8,7 +8,7 @@ export default function Home() {
       <header className={styles.header}>
         <Link href="/" className={styles.brand}>
           <span className={styles.brandMark}>L</span>
-          <span><strong>Little Story World</strong><small>YOUR PERSONAL STORY STUDIO</small></span>
+          <span><strong>Little Flower World</strong><small>YOUR PERSONAL STORY STUDIO</small></span>
         </Link>
         <nav aria-label="Điều hướng trang chủ">
           <Link href="/" aria-current="page">Trang chủ</Link>
@@ -60,7 +60,7 @@ export default function Home() {
         </div>
       </section>
       <footer className={styles.footer}>
-        <Link href="/">Little Story World</Link><span>MADE OF WORDS, PHOTOGRAPHS & MEMORIES</span>
+        <Link href="/">Little Flower World</Link><span>MADE OF WORDS, PHOTOGRAPHS & MEMORIES</span>
         <a href="https://www.pexels.com/photo/open-book-on-desk-19561464/" target="_blank" rel="noreferrer">Ảnh minh họa: Pexels ↗</a>
       </footer>
     </main>
