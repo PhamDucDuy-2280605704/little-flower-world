@@ -554,7 +554,7 @@ export default function BookStudio() {
   return (
     <main className={styles.shell}>
       <header className={styles.topbar}>
-        <Link href="/" className={styles.brand}><span>✎</span><strong>Little Flower World <small>CREATOR STUDIO · KHÔNG GIAN SÁNG TÁC</small></strong></Link>
+        <Link href="/" className={styles.brand}><span>✎</span><strong>Little Story World <small>CREATOR STUDIO · KHÔNG GIAN SÁNG TÁC</small></strong></Link>
         <nav aria-label="Điều hướng quản trị">
           <Link href="/admin">Trung tâm Admin</Link>
           {selectedGarden?.is_published && shareUrl && <a href={shareUrl} target="_blank" rel="noreferrer">Mở bản khách ↗</a>}
@@ -745,7 +745,7 @@ export default function BookStudio() {
               coverUrl={coverUrl} coverPath={coverPath} photos={photos} chapters={journalChapters} readIds={previewReadIds}
               onOpenChapter={markPreviewRead} letterTitle={letterTitle} letterParagraphs={splitText(letterText)}
               letterSignature={signature} letterReady={chapters.length > 0 && chapters.every((chapter) => previewReadIds.includes(chapter.chapter_id))}
-              returnHref="/" returnLabel="Little Flower World" actionHref="#the-book" actionLabel="MỞ TÁC PHẨM">
+              returnHref="/" returnLabel="Little Story World" actionHref="#the-book" actionLabel="MỞ TÁC PHẨM">
               {guestbookEnabled && <section className={styles.previewGuestbook}><h3>Lời nhắn từ người đọc</h3><p>Biểu mẫu gửi lời nhắn sẽ xuất hiện sau khi tác phẩm được xuất bản.</p></section>}
             </GardenJournal>
           </div>

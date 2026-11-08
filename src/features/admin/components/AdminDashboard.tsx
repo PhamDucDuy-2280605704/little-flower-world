@@ -337,7 +337,7 @@ export default function AdminDashboard() {
       <main className={styles.deniedPage}>
         <div className={styles.deniedCard}>
           <span className={styles.deniedMark}>▤</span>
-          <p className={styles.eyebrow}>LITTLE FLOWER WORLD</p>
+          <p className={styles.eyebrow}>LITTLE STORY WORLD</p>
           <h1>Khu vực dành riêng cho Admin</h1>
           <p>Anh cần đăng nhập bằng tài khoản quản trị để mở trung tâm này.</p>
           <Link href="/admin/login" className={styles.primaryLink}>Đăng nhập Admin</Link>
@@ -356,7 +356,7 @@ export default function AdminDashboard() {
           <Link href="/" className={styles.brand}>
             <span className={styles.brandMark}>▤</span>
             <span>
-              <strong>Little Flower</strong>
+              <strong>Little Story</strong>
               <small>WORLD STUDIO</small>
             </span>
           </Link>
@@ -566,7 +566,7 @@ export default function AdminDashboard() {
           </section>
 
           <footer className={styles.footer}>
-            <span>▤ Little Flower World</span>
+            <span>▤ Little Story World</span>
             <span>Quản lý riêng tư · Mỗi tác phẩm một album</span>
           </footer>
         </div>

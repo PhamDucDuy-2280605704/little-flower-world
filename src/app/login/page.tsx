@@ -6,7 +6,7 @@ import styles from "./page.module.css";
 
 // Tiêu đề riêng cho tab trình duyệt của trang đăng nhập.
 export const metadata: Metadata = {
-  title: "Đăng nhập · Little Flower World",
+  title: "Đăng nhập · Little Story World",
 };
 
 // Trang đăng nhập – địa chỉ: /login

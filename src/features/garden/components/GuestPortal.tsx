@@ -38,7 +38,7 @@ export default function GuestPortal() {
   return (
     <main className={styles.page}>
       <header className={styles.header}>
-        <Link href="/" className={styles.brand}><span>▤</span><strong>Little Flower World</strong></Link>
+        <Link href="/" className={styles.brand}><span>▤</span><strong>Little Story World</strong></Link>
         <span className={styles.areaLabel}>KHU VỰC KHÁCH</span>
       </header>
       <section className={styles.card}>
