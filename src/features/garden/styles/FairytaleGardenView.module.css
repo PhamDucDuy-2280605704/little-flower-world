@@ -1608,3 +1608,95 @@
 @media (prefers-reduced-motion: reduce) {
   .tourHighlight { filter: drop-shadow(0 0 8px rgba(255, 243, 195, .7)); }
 }
+
+
+/* Vietnamese typography and control alignment polish. */
+.experiencePanel,
+.experiencePanel * {
+  font-family: var(--font-geist-sans), "Noto Sans", Arial, sans-serif;
+  font-kerning: normal;
+  font-feature-settings: "kern" 1;
+  letter-spacing: normal;
+  word-spacing: normal;
+}
+
+.panelHeader h3 {
+  font-family: var(--font-geist-sans), "Noto Sans", Arial, sans-serif;
+  font-size: clamp(22px, 2.8vw, 26px);
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.3;
+}
+
+.panelKicker {
+  letter-spacing: 0.16em;
+  line-height: 1.4;
+}
+
+.toolCard h4,
+.careCard h4,
+.collectionCard h4,
+.editorPanel h4 {
+  font-family: var(--font-geist-sans), "Noto Sans", Arial, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.4;
+}
+
+.choiceButton,
+.choiceActive {
+  min-height: 40px;
+  padding: 8px 13px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.actionButton,
+.actionActive {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 9px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0;
+  text-align: center;
+}
+
+.savePill {
+  font-size: 11px;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.careHeader h4 { line-height: 1.4; }
+.careHeader p,
+.careHint,
+.editorPanel p,
+.localSaveNote {
+  letter-spacing: 0;
+  word-spacing: normal;
+}
+
+.achievement,
+.achievementLocked {
+  min-height: 30px;
+  padding: 5px 10px;
+  font-size: 10px;
+  line-height: 1.3;
+  letter-spacing: 0;
+}
+
+@media (max-width: 640px) {
+  .panelHeader h3 { font-size: 22px; }
+  .choiceButton,
+  .choiceActive { min-height: 38px; padding-inline: 11px; }
+  .actionButton,
+  .actionActive { min-height: 42px; font-size: 11px; }
+}
