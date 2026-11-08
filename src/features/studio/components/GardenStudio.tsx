@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type PointerEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type PointerEvent, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import PhotoLightbox from "@/features/garden/components/PhotoLightbox";
@@ -111,7 +111,7 @@ async function hashPin(pin: string): Promise<{ salt: string; hash: string }> {
 export default function GardenStudio() {
   const router = useRouter();
   const canvasRef = useRef<HTMLDivElement>(null);
-  const draggingRef = useRef<{ id: string; pointerId: number } | null>(null);
+  const draggingRef = useRef<{ id: string; pointerId: number; startX: number; startY: number; origins: Array<{ id: string; x: number; depth: number }> } | null>(null);
 
   const [authReady, setAuthReady] = useState(false);
   const [userId, setUserId] = useState("");
@@ -616,8 +616,23 @@ export default function GardenStudio() {
     if (event.button !== 0) return;
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
-    draggingRef.current = { id: itemId, pointerId: event.pointerId };
-    selectCanvasItem(itemId, multiSelect || event.shiftKey);
+
+    const additive = multiSelect || event.shiftKey;
+    const movingIds = additive
+      ? [...new Set([...selectedItemIds, itemId])]
+      : [itemId];
+    const origins = items
+      .filter((item) => movingIds.includes(item.id))
+      .map((item) => ({ id: item.id, x: item.x, depth: item.depth }));
+
+    draggingRef.current = {
+      id: itemId,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      origins,
+    };
+    selectCanvasItem(itemId, additive);
   }
 
   function handleCanvasMove(event: PointerEvent<HTMLDivElement>) {
@@ -628,16 +643,19 @@ export default function GardenStudio() {
     const rect = canvas.getBoundingClientRect();
     if (rect.width <= 0 || rect.height <= 0) return;
 
-    const rawX = ((event.clientX - rect.left) / rect.width) * 100;
-    const bottomRatio = 1 - ((event.clientY - rect.top) / rect.height);
-    // Keep the placement plane within the real ground band of the visitor's garden scene.
-    const rawDepth = (bottomRatio - 0.08) / 0.27;
+    const deltaX = ((event.clientX - dragging.startX) / rect.width) * 100;
+    const deltaDepth = -((event.clientY - dragging.startY) / rect.height) / 0.27;
     const xStep = gridStep;
     const depthStep = gridStep / 100;
-    const x = Math.max(2, Math.min(98, snapCoordinate(rawX, xStep)));
-    const depth = Math.max(0, Math.min(1, snapCoordinate(rawDepth, depthStep)));
+    const originMap = new Map(dragging.origins.map((origin) => [origin.id, origin]));
 
-    setItems((current) => current.map((item) => item.id === dragging.id ? { ...item, x, depth } : item));
+    setItems((current) => current.map((item) => {
+      const origin = originMap.get(item.id);
+      if (!origin) return item;
+      const x = Math.max(2, Math.min(98, snapCoordinate(origin.x + deltaX, xStep)));
+      const depth = Math.max(0, Math.min(1, snapCoordinate(origin.depth + deltaDepth, depthStep)));
+      return { ...item, x, depth };
+    }));
     setDirtyLayout(true);
   }
 
@@ -661,7 +679,7 @@ export default function GardenStudio() {
     setDirtyLayout(true);
   }
 
-  function handleCanvasKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+  function handleCanvasKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
     if (event.key === "ArrowLeft" || event.key === "ArrowRight" || event.key === "ArrowUp" || event.key === "ArrowDown") {
       event.preventDefault();
       moveSelection(
