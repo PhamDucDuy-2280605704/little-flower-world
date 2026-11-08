@@ -121,6 +121,8 @@ export default function SharedGardenExperience({ slug }: { slug: string }) {
   }, [slug]);
 
   useEffect(() => {
+    // Initial public fetch is an external request; requestGarden owns its loading state.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void requestGarden();
   }, [requestGarden]);
 
@@ -138,6 +140,12 @@ export default function SharedGardenExperience({ slug }: { slug: string }) {
       label: item.label ?? undefined,
       title: item.title ?? undefined,
     })), [payload]);
+
+  const lightboxImages = useMemo(() => [
+    ...(garden?.cover_url ? [{ url: garden.cover_url, alt: "Ảnh bìa " + garden.name }] : []),
+    ...(payload?.photos ?? []).map((photo) => ({ url: photo.url, alt: photo.alt })),
+  ], [garden?.cover_url, garden?.name, payload?.photos]);
+  const photoLightboxOffset = garden?.cover_url ? 1 : 0;
 
   const chapters: StoryChapter[] = useMemo(() => (payload?.chapters ?? []).map((chapter) => {
     const flower = items.find((item) => item.chapterId === chapter.chapter_id);
@@ -252,7 +260,7 @@ export default function SharedGardenExperience({ slug }: { slug: string }) {
         <p className={styles.eyebrow}>A LITTLE WORLD MADE FOR YOU</p>
         <h1>{garden.name}</h1>
         {garden.introduction && <p>{garden.introduction}</p>}
-        {garden.cover_url && <Image className={styles.cover} src={garden.cover_url} alt={"Ảnh bìa " + garden.name} width={1600} height={900} unoptimized priority/>}
+        {garden.cover_url && <button type="button" className={styles.coverOpen} onClick={() => setActivePhotoIndex(0)} aria-label="Phóng to ảnh bìa"><Image className={styles.cover} src={garden.cover_url} alt={"Ảnh bìa " + garden.name} width={1600} height={900} unoptimized priority/></button>}
       </header>
 
       <section className={styles.gardenFrame}>
@@ -284,7 +292,7 @@ export default function SharedGardenExperience({ slug }: { slug: string }) {
           <div className={styles.sectionHeading}><span>❀</span><div><p className={styles.eyebrow}>LITTLE MEMORIES</p><h2>Album của khu vườn</h2><p>Những hình ảnh được người tạo gửi gắm trong món quà này.</p></div></div>
           <div className={styles.photoGrid}>
             {payload.photos.map((photo, index) => (
-              <button key={photo.path} type="button" onClick={() => setActivePhotoIndex(index)} aria-label="Mở ảnh lớn">
+              <button key={photo.path} type="button" onClick={() => setActivePhotoIndex(index + photoLightboxOffset)} aria-label="Mở ảnh lớn">
                 <Image src={photo.url} alt={photo.alt} width={700} height={520} unoptimized loading="lazy"/>
               </button>
             ))}
@@ -330,7 +338,7 @@ export default function SharedGardenExperience({ slug }: { slug: string }) {
         />
       )}
       <PhotoLightbox
-        images={payload.photos.map((photo) => ({ url: photo.url, alt: photo.alt }))}
+        images={lightboxImages}
         activeIndex={activePhotoIndex}
         onClose={() => setActivePhotoIndex(null)}
         onChange={setActivePhotoIndex}

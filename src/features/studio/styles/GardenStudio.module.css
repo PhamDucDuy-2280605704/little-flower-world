@@ -257,3 +257,18 @@
   .shareCard { justify-content:center; }
   .shareInfo { width:100%; }
 }
+
+.coverOpen {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  cursor: zoom-in;
+}
+.coverOpen:focus-visible {
+  outline: 3px solid rgba(167, 123, 77, .4);
+  outline-offset: 4px;
+}

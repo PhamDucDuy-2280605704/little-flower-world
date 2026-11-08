@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type PointerEvent } from "react";
 import Link from "next/link";
+import Image from "next/image";
+import PhotoLightbox from "@/features/garden/components/PhotoLightbox";
 import { useRouter } from "next/navigation";
 import Flower from "@/features/flowers/components/Flower";
 import type { FlowerKind } from "@/types/flower";
@@ -144,6 +146,7 @@ export default function GardenStudio() {
   const [selectedChapterId, setSelectedChapterId] = useState("");
   const [selectedItemId, setSelectedItemId] = useState("");
   const [coverUrl, setCoverUrl] = useState("");
+  const [coverLightboxOpen, setCoverLightboxOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [dirtyLayout, setDirtyLayout] = useState(false);
 
@@ -267,12 +270,14 @@ export default function GardenStudio() {
   useEffect(() => {
     if (!selectedGarden) return;
     let active = true;
+    // Fetching the selected garden is an external synchronization step.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadGardenDetails(selectedGarden).catch((loadError) => {
       console.error("Garden details load failed:", loadError);
       if (active) setError("Chưa tải được nội dung khu vườn.");
     });
     return () => { active = false; };
-  }, [selectedGarden?.id, loadGardenDetails]);
+  }, [selectedGarden, loadGardenDetails]);
 
   async function createGarden() {
     if (!userId || saving) return;
@@ -564,9 +569,12 @@ export default function GardenStudio() {
   const [chapterDraftText, setChapterDraftText] = useState("");
 
   useEffect(() => {
+    // Keep the editable form draft aligned with the chapter selected in the list.
+    /* eslint-disable react-hooks/set-state-in-effect */
     setChapterDraftTitle(selectedChapter?.title ?? "");
     setChapterDraftText(selectedChapter?.paragraphs.join("\n\n") ?? "");
-  }, [selectedChapter?.chapter_id]);
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [selectedChapter?.chapter_id, selectedChapter?.title, selectedChapter?.paragraphs]);
 
   async function deleteChapter(chapterId: string) {
     if (!selectedGarden || !window.confirm("Xóa chương và bông hoa mở chương này khỏi khu vườn?")) return;
@@ -857,7 +865,7 @@ export default function GardenStudio() {
 
             <section className={styles.section}>
               <div className={styles.sectionTitle}><span>05</span><div><h3>Ảnh và album kỷ niệm</h3><p>Ảnh được lưu trong kho riêng của khu vườn; bản chia sẻ dùng URL ảnh ký hạn.</p></div></div>
-              {coverUrl && <img className={styles.coverPreview} src={coverUrl} alt="Ảnh bìa khu vườn"/>}
+              {coverUrl && <button type="button" className={styles.coverOpen} onClick={() => setCoverLightboxOpen(true)} aria-label="Phóng to ảnh bìa"><Image className={styles.coverPreview} src={coverUrl} alt="Ảnh bìa khu vườn" width={1200} height={675} unoptimized/></button>}
               <label className={styles.uploadButton}>＋ Tải ảnh lên / đổi ảnh bìa<input type="file" accept="image/jpeg,image/png,image/webp,image/avif" onChange={(event) => void uploadPhoto(event)} disabled={uploading}/></label>
               {uploading && <p className={styles.muted}>Đang tải ảnh lên...</p>}
             </section>
@@ -890,7 +898,7 @@ export default function GardenStudio() {
               </div>
               {selectedGarden.is_published && shareUrl && <div className={styles.shareCard}>
                 <div className={styles.shareInfo}><strong>Đường link của khu vườn</strong><code>{shareUrl}</code><div><button type="button" onClick={() => void copyShareLink()}>Sao chép link</button><a href={shareUrl} target="_blank" rel="noreferrer">Mở bản xem</a></div><small>{pinExists ? "Khách cần mã PIN để mở." : "Khách có thể mở trực tiếp, không cần đăng nhập."}</small></div>
-                <div className={styles.qr}><img src={publicQrUrl} alt="Mã QR để chia sẻ khu vườn"/><span>Quét để bước vào vườn</span></div>
+                <div className={styles.qr}><Image src={publicQrUrl} alt="Mã QR để chia sẻ khu vườn" width={240} height={240} unoptimized/><span>Quét để bước vào vườn</span></div>
               </div>}
             </section>
 
@@ -900,6 +908,12 @@ export default function GardenStudio() {
           <section className={styles.emptyEditor}><span>✿</span><h2>Khu vườn đầu tiên đang chờ anh</h2><p>Bấm “Tạo vườn” để bắt đầu một món quà mới.</p><button type="button" onClick={createGarden} disabled={saving}>＋ Tạo khu vườn</button></section>
         )}
       </div>
+      <PhotoLightbox
+        images={coverUrl ? [{ url: coverUrl, alt: "Ảnh bìa khu vườn" }] : []}
+        activeIndex={coverLightboxOpen && coverUrl ? 0 : null}
+        onClose={() => setCoverLightboxOpen(false)}
+        onChange={() => setCoverLightboxOpen(false)}
+      />
     </main>
   );
 }
