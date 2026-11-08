@@ -107,7 +107,7 @@ export default function AdminDashboard() {
     setGardensLoading(true);
     setError("");
 
-    const { data, error: gardenError } = await supabase
+    const { data, error: gardenError } = await adminSupabase
       .from("gardens")
       .select("id, owner_id, name, introduction, created_at, garden_items(id), garden_chapters(chapter_id)")
       .order("created_at", { ascending: false });
