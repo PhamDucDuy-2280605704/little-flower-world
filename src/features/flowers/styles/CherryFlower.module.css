@@ -48,3 +48,10 @@
     -14px -5px 0 -5px #f6b94c;
   z-index: 2;
 }
+
+.petal {
+  background:
+    radial-gradient(ellipse at 36% 15%, rgba(255, 255, 255, 0.85), transparent 34%),
+    linear-gradient(0deg, color-mix(in srgb, var(--flower-color, #ffc6dc) 68%, #d24f80), var(--flower-color, #ffc6dc) 46%, color-mix(in srgb, var(--flower-color, #ffc6dc) 27%, white));
+  filter: drop-shadow(0 1px 2px rgba(132, 57, 83, 0.15));
+}

@@ -56,3 +56,17 @@
   border-radius: 36% 70% 50% 48% / 66% 82% 30% 34%;
   transform: rotate(9deg);
 }
+
+.petalMiddle {
+  background:
+    radial-gradient(ellipse at 35% 13%, rgba(255, 255, 255, 0.58), transparent 37%),
+    linear-gradient(180deg, color-mix(in srgb, var(--flower-color, #ff7a8a) 55%, white), var(--flower-color, #ff7a8a) 64%, color-mix(in srgb, var(--flower-color, #ff7a8a) 75%, #712b3d));
+  box-shadow: inset 5px 0 9px rgba(255, 255, 255, 0.12), inset -7px -7px 12px rgba(87, 35, 43, 0.14);
+}
+.petalLeft,
+.petalRight {
+  background:
+    radial-gradient(ellipse at 36% 20%, rgba(255, 255, 255, 0.45), transparent 35%),
+    linear-gradient(180deg, color-mix(in srgb, var(--flower-color, #ff7a8a) 78%, white), var(--flower-color, #ff7a8a) 64%, color-mix(in srgb, var(--flower-color, #ff7a8a) 78%, #702d3a));
+  box-shadow: inset 0 -8px 12px rgba(0, 0, 0, 0.09), inset 5px 0 8px rgba(255,255,255,.12), 0 2px 5px rgba(65, 30, 38, .08);
+}

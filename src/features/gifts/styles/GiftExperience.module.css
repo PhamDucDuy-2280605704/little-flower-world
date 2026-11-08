@@ -305,3 +305,46 @@
     line-height: 1.7;
   }
 }
+
+/* Warm botanical atmosphere around the private fairy-tale garden. */
+.fairytalePage {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse at 12% 14%, rgba(170, 178, 130, 0.2), transparent 28%),
+    radial-gradient(ellipse at 88% 82%, rgba(72, 113, 91, 0.22), transparent 34%),
+    radial-gradient(ellipse at 52% 0%, rgba(135, 116, 142, 0.18), transparent 42%),
+    linear-gradient(145deg, #151f2b 0%, #27353c 48%, #3c3e42 100%);
+}
+.fairytalePage::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.3;
+  background:
+    radial-gradient(circle at 12% 22%, rgba(234, 207, 154, 0.18) 0 1px, transparent 2px),
+    radial-gradient(circle at 82% 68%, rgba(204, 226, 183, 0.14) 0 1px, transparent 2px);
+  background-size: 92px 112px, 137px 159px;
+}
+.fairytaleCard {
+  border-color: rgba(214, 196, 151, 0.4);
+  background:
+    radial-gradient(ellipse at 14% 0%, rgba(174, 176, 139, 0.1), transparent 38%),
+    linear-gradient(145deg, rgba(39, 53, 61, 0.96), rgba(29, 42, 48, 0.97));
+  box-shadow:
+    0 28px 82px rgba(5, 10, 18, 0.38),
+    inset 0 1px rgba(255, 246, 215, 0.1),
+    inset 0 -1px rgba(16, 32, 31, 0.2);
+}
+.fairytaleTitle {
+  color: #f4e6c4;
+  text-shadow: 0 2px 16px rgba(213, 184, 122, 0.17), 0 1px rgba(255,255,255,0.08);
+  letter-spacing: -0.03em;
+}
+.fairytaleMessage {
+  color: #d4d9c9;
+  line-height: 1.8;
+}
+.fairytalePage .progress { color: #e4d8b9; }

@@ -39,3 +39,14 @@
   border: 1.5px solid color-mix(in srgb, var(--flower-color, #ff9ec7) 75%, #b8366f);
   box-shadow: 0 2px 5px rgba(200, 90, 140, 0.15);
 }
+
+.petal {
+  background:
+    radial-gradient(ellipse at 35% 13%, rgba(255, 255, 255, 0.72), transparent 36%),
+    linear-gradient(0deg, color-mix(in srgb, var(--flower-color, #ff9ec7) 82%, #a73e68), var(--flower-color, #ff9ec7) 48%, color-mix(in srgb, var(--flower-color, #ff9ec7) calc(100% - var(--k)), white));
+  box-shadow: inset 0 -5px 8px rgba(104, 35, 74, 0.12), inset 2px 0 4px rgba(255,255,255,.2), 0 2px 5px rgba(115, 50, 82, .14);
+}
+.pad {
+  background: radial-gradient(ellipse at 35% 24%, #b9d28d, transparent 38%), linear-gradient(135deg, #8baa6b, #497451);
+  box-shadow: inset 0 2px 4px rgba(239, 250, 205, 0.26), inset 0 -4px 7px rgba(32, 81, 51, 0.22), 0 3px 6px rgba(30, 90, 50, 0.2);
+}

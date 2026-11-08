@@ -31,3 +31,11 @@
     inset 0 -6px 10px rgba(0, 0, 0, 0.12),
     0 2px 6px rgba(0, 0, 0, 0.1);
 }
+
+.layer {
+  background:
+    radial-gradient(ellipse at 35% 18%, rgba(255, 255, 255, 0.42), transparent 34%),
+    radial-gradient(circle at 50% 25%, color-mix(in srgb, var(--flower-color, #e0436a) var(--k), white), var(--flower-color, #e0436a) 65%, color-mix(in srgb, var(--flower-color, #e0436a) 72%, #58172e));
+  border-color: color-mix(in srgb, var(--flower-color, #e0436a) 70%, #641e35);
+  box-shadow: inset 0 -7px 12px rgba(67, 12, 31, 0.15), inset 2px 1px 4px rgba(255, 255, 255, 0.2), 0 2px 6px rgba(60, 17, 34, 0.12);
+}

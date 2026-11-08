@@ -80,3 +80,10 @@
     transition: none;
   }
 }
+
+.seed::after {
+  background:
+    radial-gradient(circle at 34% 27%, #fff 12%, rgba(255, 255, 255, 0.88) 38%, transparent 73%),
+    radial-gradient(circle, color-mix(in srgb, var(--flower-color, #f6f2ea) 85%, white), transparent 72%);
+  filter: drop-shadow(0 1px 2px rgba(111, 106, 87, 0.12));
+}
