@@ -213,8 +213,10 @@ export default function AdminDashboard() {
   }, []);
 
   useEffect(() => {
-    if (authState === "admin" && selectedGarden) void loadAlbum(selectedGarden);
-  }, [authState, selectedGarden?.id, loadAlbum]);
+    if (authState !== "admin" || !selectedGardenId) return;
+    const garden = gardens.find((item) => item.id === selectedGardenId);
+    if (garden) void loadAlbum(garden);
+  }, [authState, selectedGardenId, gardens, loadAlbum]);
 
   const filteredGardens = useMemo(() => {
     const query = search.trim().toLocaleLowerCase("vi");

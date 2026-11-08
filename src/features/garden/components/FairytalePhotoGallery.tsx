@@ -98,7 +98,7 @@ export default function FairytalePhotoGallery({
   if (photos.length === 0) return null;
 
   return (
-    <section className={styles.gallery} aria-label="Album ảnh của khu vườn">
+    <section className={styles.gallery + " " + styles.viewer} aria-label="Album ảnh của khu vườn">
       <div className={styles.grid}>
         {photos.map((photo) => (
           <figure className={styles.photo} key={photo.path}>

@@ -10,10 +10,7 @@ import { supabase } from "@/lib/supabase";
 import GardenView from "@/features/garden/components/GardenView";
 import FairytaleGardenView from "@/features/garden/components/FairytaleGardenView";
 import FairytalePhotoGallery from "@/features/garden/components/FairytalePhotoGallery";
-import {
-  FAIRYTALE_GARDEN_ADMIN_USER_ID,
-  FAIRYTALE_TEST_GARDEN_ID,
-} from "@/features/garden/data/gardenThemes";
+import { FAIRYTALE_TEST_GARDEN_ID } from "@/features/garden/data/gardenThemes";
 import { mapPersonalGarden } from "@/features/garden/data/mapPersonalGarden";
 import ChapterReader from "@/features/stories/components/ChapterReader";
 import type {
