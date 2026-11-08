@@ -501,7 +501,6 @@ function PersonalGardenExperience({
 
               <FairytalePhotoGallery
                 currentUserId={user.id}
-                isFairytaleGarden={isFairytaleGarden}
                 adminUserId={FAIRYTALE_GARDEN_ADMIN_USER_ID}
               />
 

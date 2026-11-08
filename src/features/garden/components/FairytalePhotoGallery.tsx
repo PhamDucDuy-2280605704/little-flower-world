@@ -20,13 +20,11 @@ type Photo = { name: string; path: string; url: string };
 type Props = {
   currentUserId: string;
   adminUserId: string;
-  isFairytaleGarden: boolean;
 };
 
 export default function FairytalePhotoGallery({
   currentUserId,
   adminUserId,
-  isFairytaleGarden,
 }: Props) {
   const isAdmin = currentUserId === adminUserId;
   const [photos, setPhotos] = useState<Photo[]>([]);
@@ -168,11 +166,7 @@ export default function FairytalePhotoGallery({
 
   return (
     <section
-      className={
-        isFairytaleGarden
-          ? styles.gallery
-          : styles.gallery + " " + styles.viewer
-      }
+      className={isAdmin ? styles.gallery : styles.gallery + " " + styles.viewer}
       aria-label={isAdmin ? "Quản lý album ảnh" : "Ảnh kỷ niệm"}
     >
       {isAdmin && (
