@@ -19,8 +19,9 @@ type Weather = "clear" | "cloudy" | "rain" | "snow";
 type Season = "spring" | "summer" | "autumn" | "winter";
 type PlacedKind = FlowerKind | "lantern" | "mushroom" | "stone" | "herb";
 type PlacedDecoration = { id: string; kind: PlacedKind; x: number; y: number };
+type MusicMood = "bells" | "piano" | "lullaby";
 
-type GardenSave = {
+export type GardenSave = {
   version: 1;
   weather: Weather;
   season: Season;
@@ -30,6 +31,10 @@ type GardenSave = {
   discoveries: string[];
   cinematicLighting: boolean;
   ecologyEnabled: boolean;
+  musicVolume: number;
+  musicMood: MusicMood;
+  time: TimeOfDay;
+  wind: WindLevel;
 };
 
 type Props = {
@@ -37,6 +42,8 @@ type Props = {
   items: GardenItem[];
   readIds: string[];
   onOpenChapter: (chapterId: string) => void;
+  viewerMode?: boolean;
+  initialSettings?: Partial<GardenSave>;
 };
 
 const TREES = [
@@ -206,17 +213,17 @@ function isFlowerKind(kind: PlacedKind): kind is FlowerKind {
   return Object.prototype.hasOwnProperty.call(FLOWER_COLORS, kind);
 }
 
-export default function FairytaleGardenView({ gardenId, items, readIds, onOpenChapter }: Props) {
-  const [time, setTime] = useState<TimeOfDay>("day");
-  const [wind, setWind] = useState<WindLevel>("breeze");
-  const [weather, setWeather] = useState<Weather>("clear");
-  const [season, setSeason] = useState<Season>("spring");
-  const [decorations, setDecorations] = useState<PlacedDecoration[]>([]);
-  const [moisture, setMoisture] = useState(58);
-  const [wateredCount, setWateredCount] = useState(0);
-  const [discoveries, setDiscoveries] = useState<string[]>([]);
-  const [cinematicLighting, setCinematicLighting] = useState(true);
-  const [ecologyEnabled, setEcologyEnabled] = useState(true);
+export default function FairytaleGardenView({ gardenId, items, readIds, onOpenChapter, viewerMode = false, initialSettings }: Props) {
+  const [time, setTime] = useState<TimeOfDay>(initialSettings?.time ?? "day");
+  const [wind, setWind] = useState<WindLevel>(initialSettings?.wind ?? "breeze");
+  const [weather, setWeather] = useState<Weather>(initialSettings?.weather ?? "clear");
+  const [season, setSeason] = useState<Season>(initialSettings?.season ?? "spring");
+  const [decorations, setDecorations] = useState<PlacedDecoration[]>(initialSettings?.decorations ?? []);
+  const [moisture, setMoisture] = useState(initialSettings?.moisture ?? 58);
+  const [wateredCount, setWateredCount] = useState(initialSettings?.wateredCount ?? 0);
+  const [discoveries, setDiscoveries] = useState<string[]>(initialSettings?.discoveries ?? []);
+  const [cinematicLighting, setCinematicLighting] = useState(initialSettings?.cinematicLighting ?? true);
+  const [ecologyEnabled, setEcologyEnabled] = useState(initialSettings?.ecologyEnabled ?? true);
   const [editMode, setEditMode] = useState(false);
   const [selectedDecoration, setSelectedDecoration] = useState<PlacedKind>("daisy");
   const [musicEnabled, setMusicEnabled] = useState(false);
@@ -257,6 +264,10 @@ export default function FairytaleGardenView({ gardenId, items, readIds, onOpenCh
 
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
+    if (viewerMode) {
+      setSaveReady(true);
+      return;
+    }
     try {
       const raw = window.localStorage.getItem("lfw:vanilla-garden:v1:" + gardenId);
       if (raw) {
@@ -264,6 +275,8 @@ export default function FairytaleGardenView({ gardenId, items, readIds, onOpenCh
         if (saved.version === 1) {
           if (isWeather(saved.weather)) setWeather(saved.weather);
           if (isSeason(saved.season)) setSeason(saved.season);
+          if (saved.time === "day" || saved.time === "night") setTime(saved.time);
+          if (saved.wind === "calm" || saved.wind === "breeze" || saved.wind === "strong") setWind(saved.wind);
           if (Array.isArray(saved.decorations)) {
             const restored = saved.decorations.filter(isPlacedDecoration).slice(0, 80);
             setDecorations(restored);
@@ -285,10 +298,10 @@ export default function FairytaleGardenView({ gardenId, items, readIds, onOpenCh
     } finally {
       setSaveReady(true);
     }
-  }, [gardenId]);
+  }, [gardenId, viewerMode]);
 
   useEffect(() => {
-    if (!saveReady) return;
+    if (!saveReady || viewerMode) return;
     const save: GardenSave = {
       version: 1,
       weather,
@@ -299,13 +312,17 @@ export default function FairytaleGardenView({ gardenId, items, readIds, onOpenCh
       discoveries,
       cinematicLighting,
       ecologyEnabled,
+      musicVolume: initialSettings?.musicVolume ?? 0.55,
+      musicMood: initialSettings?.musicMood ?? "bells",
+      time,
+      wind,
     };
     try {
       window.localStorage.setItem("lfw:vanilla-garden:v1:" + gardenId, JSON.stringify(save));
     } catch (error) {
       console.warn("Could not save local garden customisation:", error);
     }
-  }, [gardenId, saveReady, weather, season, decorations, moisture, wateredCount, discoveries, cinematicLighting, ecologyEnabled]);
+  }, [gardenId, saveReady, viewerMode, weather, season, decorations, moisture, wateredCount, discoveries, cinematicLighting, ecologyEnabled, time, wind, initialSettings?.musicVolume, initialSettings?.musicMood]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
@@ -402,13 +419,15 @@ export default function FairytaleGardenView({ gardenId, items, readIds, onOpenCh
       const context = new AudioContextConstructor();
       audioContextRef.current = context;
       const master = context.createGain();
-      master.gain.value = 0.72;
+      master.gain.value = Math.max(0, Math.min(1, initialSettings?.musicVolume ?? 0.55));
       master.connect(context.destination);
 
-      [110, 164.81, 220].forEach((frequency, index) => {
+      const musicMood = initialSettings?.musicMood ?? "bells";
+      const bassNotes = musicMood === "piano" ? [130.81, 196, 261.63] : musicMood === "lullaby" ? [98, 146.83, 196] : [110, 164.81, 220];
+      bassNotes.forEach((frequency, index) => {
         const oscillator = context.createOscillator();
         const volume = context.createGain();
-        oscillator.type = index === 0 ? "sine" : "triangle";
+        oscillator.type = musicMood === "piano" ? "triangle" : index === 0 ? "sine" : "triangle";
         oscillator.frequency.value = frequency;
         volume.gain.value = [0.014, 0.009, 0.006][index];
         oscillator.connect(volume);
@@ -416,18 +435,22 @@ export default function FairytaleGardenView({ gardenId, items, readIds, onOpenCh
         oscillator.start();
       });
 
-      const notes = [261.63, 329.63, 392, 329.63, 293.66, 349.23, 440, 392];
+      const notes = musicMood === "piano"
+        ? [261.63, 392, 329.63, 440, 392, 349.23, 293.66, 329.63]
+        : musicMood === "lullaby"
+          ? [392, 440, 523.25, 440, 392, 349.23, 329.63, 293.66]
+          : [261.63, 329.63, 392, 329.63, 293.66, 349.23, 440, 392];
       let noteIndex = 0;
       const playBell = () => {
         if (context.state === "closed") return;
         const now = context.currentTime;
         const oscillator = context.createOscillator();
         const volume = context.createGain();
-        oscillator.type = "sine";
+        oscillator.type = musicMood === "piano" ? "triangle" : "sine";
         oscillator.frequency.setValueAtTime(notes[noteIndex % notes.length], now);
         noteIndex += 1;
         volume.gain.setValueAtTime(0.0001, now);
-        volume.gain.exponentialRampToValueAtTime(0.022, now + 0.22);
+        volume.gain.exponentialRampToValueAtTime(musicMood === "piano" ? 0.015 : 0.022, now + 0.22);
         volume.gain.exponentialRampToValueAtTime(0.0001, now + 2.8);
         oscillator.connect(volume);
         volume.connect(master);
@@ -440,7 +463,7 @@ export default function FairytaleGardenView({ gardenId, items, readIds, onOpenCh
         notify("Trình duyệt chưa cho phép phát âm thanh.");
       });
       playBell();
-      musicTimerRef.current = window.setInterval(playBell, 3600);
+      musicTimerRef.current = window.setInterval(playBell, musicMood === "lullaby" ? 4400 : 3600);
       setMusicEnabled(true);
       unlock("music-listener");
       notify("Giai điệu ambient Vanilla Garden đang phát.");
@@ -795,7 +818,8 @@ export default function FairytaleGardenView({ gardenId, items, readIds, onOpenCh
           <span className={styles.savePill}>{saveReady ? "✓ Đã lưu trên thiết bị" : "Đang tải bản lưu"}</span>
         </div>
 
-        <div className={styles.experienceGrid}>
+        {!viewerMode && (
+          <div className={styles.experienceGrid}>
           <section className={styles.toolCard}>
             <h4>Thời tiết</h4>
             <div className={styles.choiceRow}>
@@ -844,44 +868,60 @@ export default function FairytaleGardenView({ gardenId, items, readIds, onOpenCh
               </button>
             </div>
           </section>
-        </div>
-
-        <div className={styles.actionBar}>
-          <button type="button" className={editMode ? styles.actionActive : styles.actionButton} aria-pressed={editMode} onClick={() => {
-            setEditMode((current) => !current);
-            notify(editMode ? "Đã đóng chế độ sắp xếp khu vườn." : "Chế độ thiết kế đã bật. Chọn vật trang trí rồi chạm vào khu vườn.");
-          }}>✿ {editMode ? "Hoàn tất sắp xếp" : "Thiết kế khu vườn"}</button>
-          <button type="button" className={styles.actionButton} onClick={waterGarden}>💧 Tưới hoa</button>
-          <button type="button" className={styles.actionButton} onClick={() => {
-            setBloomCycle((current) => current + 1);
-            notify("Những bông hoa đang bung nở...");
-          }}>✧ Đánh thức hoa</button>
-          <button type="button" className={musicEnabled ? styles.actionActive : styles.actionButton} aria-pressed={musicEnabled} onClick={toggleMusic}>{musicEnabled ? "♫ Tắt nhạc" : "♫ Nhạc khu vườn"}</button>
-          <button type="button" className={presentation ? styles.actionActive : styles.actionButton} aria-pressed={presentation} onClick={() => {
-            setPresentation((current) => !current);
-            unlock("garden-curator");
-            notify(presentation ? "Đã dừng chuyến dạo vườn." : "Bắt đầu chuyến dạo qua những câu chuyện.");
-          }}>{presentation ? "Ⅱ Dừng trình diễn" : "▷ Trình diễn khu vườn"}</button>
-        </div>
-
-        {editMode && (
-          <div className={styles.editorPanel}>
-            <div>
-              <h4>Chọn vật trang trí</h4>
-              <p>Chạm vào khoảng trống để đặt; kéo vật đã đặt để đổi vị trí. Hoa và chương có sẵn vẫn được giữ nguyên.</p>
-            </div>
-            <div className={styles.choiceRow}>
-              {DECORATION_OPTIONS.map((option) => (
-                <button key={option.value} type="button" className={selectedDecoration === option.value ? styles.choiceActive : styles.choiceButton} aria-pressed={selectedDecoration === option.value} onClick={() => setSelectedDecoration(option.value)}>
-                  <span aria-hidden="true">{option.icon}</span>{option.label}
-                </button>
-              ))}
-            </div>
-            <p className={styles.editorCount}>Đã thêm {decorations.length}/80 vật trang trí</p>
           </div>
         )}
 
-        <div className={styles.careAndCollection}>
+        {viewerMode ? (
+          <div className={styles.actionBar}>
+            <button type="button" className={styles.actionActive} onClick={() => {
+              setBloomCycle((current) => current + 1);
+              if (!musicEnabled) startMusic();
+              notify("Khu vườn đã thức giấc. Chúc bạn có một chuyến dạo chơi thật dịu dàng. ✨");
+            }}>✧ Đánh thức khu vườn</button>
+            <button type="button" className={musicEnabled ? styles.actionActive : styles.actionButton} aria-pressed={musicEnabled} onClick={toggleMusic}>
+              {musicEnabled ? "♫ Tắt nhạc" : "♫ Bật nhạc nền"}
+            </button>
+          </div>
+        ) : (
+          <>
+          <div className={styles.actionBar}>
+            <button type="button" className={editMode ? styles.actionActive : styles.actionButton} aria-pressed={editMode} onClick={() => {
+              setEditMode((current) => !current);
+              notify(editMode ? "Đã đóng chế độ sắp xếp khu vườn." : "Chế độ thiết kế đã bật. Chọn vật trang trí rồi chạm vào khu vườn.");
+            }}>✿ {editMode ? "Hoàn tất sắp xếp" : "Thiết kế khu vườn"}</button>
+            <button type="button" className={styles.actionButton} onClick={waterGarden}>💧 Tưới hoa</button>
+            <button type="button" className={styles.actionButton} onClick={() => {
+              setBloomCycle((current) => current + 1);
+              notify("Những bông hoa đang bung nở...");
+            }}>✧ Đánh thức hoa</button>
+            <button type="button" className={musicEnabled ? styles.actionActive : styles.actionButton} aria-pressed={musicEnabled} onClick={toggleMusic}>{musicEnabled ? "♫ Tắt nhạc" : "♫ Nhạc khu vườn"}</button>
+            <button type="button" className={presentation ? styles.actionActive : styles.actionButton} aria-pressed={presentation} onClick={() => {
+              setPresentation((current) => !current);
+              unlock("garden-curator");
+              notify(presentation ? "Đã dừng chuyến dạo vườn." : "Bắt đầu chuyến dạo qua những câu chuyện.");
+            }}>{presentation ? "Ⅱ Dừng trình diễn" : "▷ Trình diễn khu vườn"}</button>
+          </div>
+  
+          {editMode && (
+            <div className={styles.editorPanel}>
+              <div>
+                <h4>Chọn vật trang trí</h4>
+                <p>Chạm vào khoảng trống để đặt; kéo vật đã đặt để đổi vị trí. Hoa và chương có sẵn vẫn được giữ nguyên.</p>
+              </div>
+              <div className={styles.choiceRow}>
+                {DECORATION_OPTIONS.map((option) => (
+                  <button key={option.value} type="button" className={selectedDecoration === option.value ? styles.choiceActive : styles.choiceButton} aria-pressed={selectedDecoration === option.value} onClick={() => setSelectedDecoration(option.value)}>
+                    <span aria-hidden="true">{option.icon}</span>{option.label}
+                  </button>
+                ))}
+              </div>
+              <p className={styles.editorCount}>Đã thêm {decorations.length}/80 vật trang trí</p>
+            </div>
+          )}
+          </>
+        )}
+        {!viewerMode && (
+          <div className={styles.careAndCollection}>
           <section className={styles.careCard}>
             <div className={styles.careHeader}>
               <div><h4>Chăm sóc khu vườn</h4><p>Độ ẩm đất mô phỏng</p></div>
@@ -910,9 +950,10 @@ export default function FairytaleGardenView({ gardenId, items, readIds, onOpenCh
               })}
             </div>
           </section>
-        </div>
+          </div>
+        )}
         {notice && <p className={styles.gardenNotice} role="status" aria-live="polite">{notice}</p>}
-        <p className={styles.localSaveNote}>Bản thiết kế, mùa, thời tiết và thành tựu được lưu riêng trên trình duyệt này; nội dung hoa, truyện và tiến độ đọc trên tài khoản vẫn giữ nguyên.</p>
+        {!viewerMode && <p className={styles.localSaveNote}>Bản thiết kế, mùa, thời tiết và thành tựu được lưu riêng trên trình duyệt này; nội dung hoa, truyện và tiến độ đọc trên tài khoản vẫn giữ nguyên.</p>}
       </section>
     </section>
   );

@@ -120,6 +120,10 @@ export default function HomeAuthActions({
         Xem thử hộp quà
       </Link>
 
+      <Link href="/studio" className={giftClassName}>
+        Tạo khu vườn
+      </Link>
+
       <Link href="/admin/login" className={giftClassName}>
         Cổng quản trị
       </Link>
