@@ -1,35 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import LoginForm from "@/features/auth/components/LoginForm";
-import styles from "./page.module.css";
-import { useLanguage } from "@/features/i18n/LanguageProvider";
+import LoginPageContent from "@/features/auth/components/LoginPageContent";
 
-// Tiêu đề riêng cho tab trình duyệt của trang đăng nhập.
 export const metadata: Metadata = {
   title: "Đăng nhập · Little Story World",
+  robots: { index: false, follow: false },
 };
 
-// Trang đăng nhập – địa chỉ: /login
-// File này chỉ dựng bố cục; phần form nằm trong features/auth.
 export default function LoginPage() {
-  const { t } = useLanguage();
-  return (
-    <main className={styles.page}>
-      <section className={styles.card}>
-        {/* Bên trái: bông hoa trang trí (ẩn trên điện thoại) */}
-        <div className={styles.stage}>
-          <span className={styles.stageCaption}>WORDS BECOME MEMORIES</span>
-        </div>
-
-        {/* Bên phải: form đăng nhập */}
-        <div className={styles.formSide}>
-          <LoginForm />
-
-          <Link href="/" className={styles.backLink}>
-            {t("Về trang chủ", "Back to home")}
-          </Link>
-        </div>
-      </section>
-    </main>
-  );
+  return <LoginPageContent />;
 }
