@@ -30,6 +30,7 @@ type GardenRow = {
   name: string;
   introduction: string | null;
   created_at: string;
+  approval_status: "draft" | "pending" | "approved" | "rejected";
   garden_chapters: Array<{ chapter_id: string }> | null;
 };
 
@@ -41,6 +42,7 @@ type Garden = {
   createdAt: string;
   chapterCount: number;
   photoCount: number;
+  approvalStatus: "draft" | "pending" | "approved" | "rejected";
 };
 
 type Photo = {
@@ -103,7 +105,7 @@ export default function AdminDashboard() {
 
     const { data, error: gardenError } = await adminSupabase
       .from("gardens")
-      .select("id, owner_id, name, introduction, created_at, garden_chapters(chapter_id)")
+      .select("id, owner_id, name, introduction, created_at, approval_status, garden_chapters(chapter_id)")
       .order("created_at", { ascending: false });
 
     if (gardenError) {
@@ -134,6 +136,7 @@ export default function AdminDashboard() {
         createdAt: row.created_at,
         chapterCount: row.garden_chapters?.length ?? 0,
         photoCount: folderResults.reduce((sum, count) => sum + count, 0),
+        approvalStatus: row.approval_status,
       } satisfies Garden;
     }));
 
@@ -229,6 +232,7 @@ export default function AdminDashboard() {
 
   const totalPhotos = gardens.reduce((sum, garden) => sum + garden.photoCount, 0);
   const totalChapters = gardens.reduce((sum, garden) => sum + garden.chapterCount, 0);
+  const pendingApprovalCount = gardens.filter((garden) => garden.approvalStatus === "pending").length;
 
   async function uploadFiles(files: File[]) {
     if (!selectedGarden || files.length === 0 || uploading) return;
@@ -337,7 +341,7 @@ export default function AdminDashboard() {
       <main className={styles.deniedPage}>
         <div className={styles.deniedCard}>
           <span className={styles.deniedMark}>▤</span>
-          <p className={styles.eyebrow}>LITTLE FLOWER WORLD</p>
+          <p className={styles.eyebrow}>LITTLE STORY WORLD</p>
           <h1>Khu vực dành riêng cho Admin</h1>
           <p>Anh cần đăng nhập bằng tài khoản quản trị để mở trung tâm này.</p>
           <Link href="/admin/login" className={styles.primaryLink}>Đăng nhập Admin</Link>
@@ -356,7 +360,7 @@ export default function AdminDashboard() {
           <Link href="/" className={styles.brand}>
             <span className={styles.brandMark}>▤</span>
             <span>
-              <strong>Little Flower</strong>
+              <strong>Little Story</strong>
               <small>WORLD STUDIO</small>
             </span>
           </Link>
@@ -366,7 +370,7 @@ export default function AdminDashboard() {
             <a href="#overview" className={styles.sideLinkActive}>⌂ <span>Tổng quan</span></a>
             <a href="#garden-list" className={styles.sideLink}>▤ <span>Quản lý tác phẩm</span></a>
             <a href="#photo-library" className={styles.sideLink}>▧ <span>Kho ảnh riêng</span></a>
-            <Link href="/studio" className={styles.sideLink}>✎ <span>Creator Studio</span></Link>
+            <Link href="/studio?mode=admin" className={styles.sideLink}>✎ <span>Viết & kiểm duyệt</span></Link>
             <Link href="/" className={styles.sideLink}>⌂ <span>Trang chủ</span></Link>
           </div>
 
@@ -388,7 +392,7 @@ export default function AdminDashboard() {
               <p className={styles.subtitle}>Mỗi tác phẩm có một album riêng, mọi kỷ niệm đều ở đúng nơi.</p>
             </div>
             <div className={styles.topActions}>
-              <Link href="/studio" className={styles.secondaryLink}>Mở Creator Studio</Link>
+              <Link href="/studio?mode=admin" className={styles.secondaryLink}>Mở không gian viết & kiểm duyệt</Link>
               <button type="button" className={styles.logoutButton} onClick={() => void handleLogout()}>Đăng xuất</button>
             </div>
           </header>
@@ -414,6 +418,10 @@ export default function AdminDashboard() {
             <article className={styles.statCard}>
               <span className={styles.statIcon}>✧</span>
               <div><strong>{totalChapters}</strong><span>Chương truyện</span></div>
+            </article>
+            <article className={styles.statCard}>
+              <span className={styles.statIcon}>◷</span>
+              <div><strong>{pendingApprovalCount}</strong><span>Chờ Admin duyệt</span></div>
             </article>
           </section>
 
@@ -463,7 +471,7 @@ export default function AdminDashboard() {
                         </span>
                         <span className={styles.gardenInfo}>
                           <strong>{garden.name}</strong>
-                          <small>{garden.ownerId === FAIRYTALE_GARDEN_ADMIN_USER_ID ? "Tác phẩm của Admin" : "Tác phẩm khách"}</small>
+                          <small>{garden.ownerId === FAIRYTALE_GARDEN_ADMIN_USER_ID ? "Tác phẩm của Admin" : "Tác phẩm khách"} · {garden.approvalStatus === "pending" ? "Chờ duyệt" : garden.approvalStatus === "approved" ? "Đã duyệt" : garden.approvalStatus === "rejected" ? "Cần chỉnh sửa" : "Bản nháp"}</small>
                           <span>{garden.photoCount} ảnh <b>·</b> {garden.chapterCount} chương</span>
                         </span>
                         <span className={styles.gardenArrow}>›</span>
@@ -566,7 +574,7 @@ export default function AdminDashboard() {
           </section>
 
           <footer className={styles.footer}>
-            <span>▤ Little Flower World</span>
+            <span>▤ Little Story World</span>
             <span>Quản lý riêng tư · Mỗi tác phẩm một album</span>
           </footer>
         </div>

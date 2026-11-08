@@ -1,26 +1,35 @@
 # Little Story World
 
-Không gian sáng tác riêng tư để biến lời nhắn, bức thư và những câu chuyện nhiều chương thành trải nghiệm đọc như một cuốn sách.
+Không gian sáng tác riêng tư để mỗi người viết thông điệp, bức thư hoặc sách nhiều chương; Admin kiểm duyệt trước khi tác phẩm được chia sẻ.
 
 Website: https://little-story-world.vercel.app/
 
-## Trải nghiệm chính
+## Các khu vực chính
 
 | Đường dẫn | Chức năng |
 | --- | --- |
-| `/` | Giới thiệu Little Story World và ba định dạng sáng tác |
-| `/studio` | Soạn thông điệp, bức thư hoặc sách nhiều chương |
+| `/` | Giới thiệu và bắt đầu sáng tác |
+| `/login` | Đăng nhập tài khoản người viết |
+| `/studio` | Tạo, viết, lưu bản nháp và gửi tác phẩm cho Admin duyệt |
 | `/guest` | Cổng dành cho người nhận lời mời |
-| `/g/[slug]` | Mở và đọc tác phẩm được chia sẻ |
-| `/gift` | Đọc tác phẩm được gửi tặng |
-| `/login` | Đăng nhập tài khoản |
+| `/g/[slug]` | Đọc tác phẩm được chia sẻ |
+| `/gift` | Mở các tác phẩm được gửi tặng |
 | `/admin/login`, `/admin` | Đăng nhập và quản trị |
+| `/studio?mode=admin` | Không gian Admin để duyệt và xuất bản |
+
+## Hai cấp quyền sáng tác
+
+**Tài khoản người viết** có thể tạo nhiều tác phẩm riêng, chọn thông điệp/thư/sách, thêm tối đa 8 chương và 5 ảnh cho mỗi tác phẩm, lưu bản nháp và gửi Admin kiểm duyệt. Tài khoản người viết không thể tự xuất bản, tạo link công khai, đặt PIN hay duyệt lưu bút. Trong lúc chờ duyệt, nội dung được khóa; người viết có thể rút yêu cầu để tiếp tục chỉnh sửa.
+
+**Admin** xem được tất cả tác phẩm, duyệt hoặc từ chối, quyết định xuất bản/gỡ xuất bản, đặt PIN, quản lý lưu bút và quản lý ảnh. Tài khoản người viết hiện được cấp riêng bởi Admin; đăng ký công khai không mở.
+
+Phân quyền được thực thi tại Supabase RLS, trigger và Storage, không chỉ dựa trên các nút bị ẩn trong giao diện.
 
 ## Công nghệ
 
 - Next.js App Router, React và TypeScript
 - CSS Modules và Tailwind CSS
-- Motion cho chuyển động và hiệu ứng lật trang
+- Motion cho chuyển động/hiệu ứng lật trang
 - Supabase Auth, Postgres Row Level Security (RLS) và Storage
 - Noto Sans và Noto Serif hỗ trợ tiếng Việt
 
@@ -33,7 +42,7 @@ Website: https://little-story-world.vercel.app/
    npm ci
    ```
 
-3. Sao chép file môi trường:
+3. Tạo file môi trường cục bộ:
 
    ```bash
    cp .env.example .env.local
@@ -46,7 +55,7 @@ Website: https://little-story-world.vercel.app/
    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<publishable-key>
    ```
 
-5. Khởi động môi trường phát triển:
+5. Khởi động:
 
    ```bash
    npm run dev
@@ -56,24 +65,23 @@ Mở [http://localhost:3000](http://localhost:3000).
 
 ## Kiểm tra chất lượng
 
-Chạy các lệnh sau trước khi đưa thay đổi lên nhánh chính:
-
 ```bash
 npm run lint
 npm run typecheck
 npm run build
 ```
 
-## Dữ liệu và quyền truy cập
+## Dữ liệu và bảo mật
 
-- Nội dung tác phẩm và các chương được lưu trong Supabase.
-- Ảnh riêng tư nằm trong bucket Storage private và được truy cập bằng signed URL.
-- Tiến độ đọc được lưu theo tài khoản.
-- RLS giới hạn quyền truy cập ở cấp database; giao diện website không thay thế các chính sách này.
-- Chỉ dùng Publishable Key ở trình duyệt. Không đưa Service Role Key, Secret Key hay thông tin đăng nhập vào mã nguồn hoặc biến `NEXT_PUBLIC_*`.
+- `gardens` lưu bản thảo và trạng thái kiểm duyệt của từng tác phẩm.
+- `garden_chapters` lưu nội dung từng chương.
+- `story_progress` lưu tiến độ đọc theo tài khoản.
+- `garden-photos` là bucket private; ảnh được xem qua signed URL.
+- RLS giới hạn người viết ở tác phẩm của mình; các hành động xuất bản và kiểm duyệt dành cho Admin.
+- Chỉ dùng Publishable Key ở trình duyệt. Không đưa Supabase Service Role Key, Secret Key hoặc thông tin đăng nhập vào mã nguồn hay biến `NEXT_PUBLIC_*`.
 
-Các migration và hướng dẫn database nằm trong thư mục [`supabase/`](supabase/).
+Các migration và hướng dẫn database nằm trong [`supabase/`](supabase/).
 
 ## Triển khai
 
-Nhánh `main` được kết nối với Vercel. Push commit lên nhánh chính sẽ kích hoạt quy trình kiểm tra và triển khai production.
+Nhánh `main` được kết nối với Vercel. Push lên `main` sẽ kích hoạt quy trình kiểm tra và triển khai production.

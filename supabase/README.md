@@ -1,48 +1,64 @@
-# Personalized gardens
+# Little Story World · Supabase
 
-Each authenticated account owns at most one garden. Garden content is stored in Supabase instead of using the shared `sampleGarden` and `sampleStory` data at runtime.
+Supabase lưu tài khoản, bản thảo, chương truyện, ảnh riêng tư, tiến độ đọc và trạng thái kiểm duyệt của Little Story World.
 
-## Inspect the existing progress table first
+## Tạo tài khoản người viết
 
-Before changing the database, run the read-only queries in [check-existing-schema.sql](check-existing-schema.sql) from Supabase SQL Editor and review the `story_progress` column types, duplicate pairs, existing indexes, RLS status, and policies. The query does not modify data. Keep its results so the current table state is known before migration.
+Tài khoản người viết hiện do Admin cấp, không mở đăng ký công khai.
 
-## Apply the database migration
+1. Mở **Supabase Dashboard → Authentication → Users**.
+2. Tạo tài khoản và gửi thông tin đăng nhập cho người viết qua kênh an toàn.
+3. Không chia sẻ Service Role Key hoặc quyền Admin cho tài khoản khách.
 
-1. Open Supabase Dashboard for the Little Story World project.
-2. Open **SQL Editor** and create a new query.
-3. Copy and run `migrations/20261107000000_personalized_gardens.sql`.
-4. The migration checks that the existing `story_progress.user_id` is `uuid`, `chapter_id` is `text`, and there are no duplicate `(user_id, chapter_id)` pairs before creating the unique index. If that check fails, stop and inspect the existing table; do not change its columns blindly.
-5. In **Table Editor**, verify the tables `gardens`, `garden_chapters`, `garden_items`, and `story_progress`, and inspect the RLS policies.
+Mỗi tài khoản có thể tạo nhiều tác phẩm riêng. Mỗi tác phẩm là một dòng trong `public.gardens`, các chương nằm ở `public.garden_chapters` và ảnh nằm trong bucket private `garden-photos`.
 
-The migration makes garden content read-only to authenticated visitors. The project owner creates and edits garden content from the Supabase Dashboard / SQL Editor. It does not put a service-role key in the website.
+## Quy trình sáng tác và kiểm duyệt
 
-## Create a garden for an invited account
+| Trạng thái | Tài khoản người viết | Admin |
+| --- | --- | --- |
+| `draft` | Tạo, sửa, xem trước và lưu riêng tư | Xem, sửa, quản lý |
+| `pending` | Nội dung tạm khóa; có thể rút yêu cầu duyệt | Xem xét và duyệt/từ chối |
+| `approved` | Chỉ xem; không tự xuất bản | Có thể bật PIN và xuất bản |
+| `rejected` | Chỉnh sửa và gửi duyệt lại | Có thể xem, chỉnh sửa hoặc xóa |
 
-1. Create the Auth user in **Authentication > Users**. Public sign-up should remain disabled.
-2. Copy that user's **User UID**.
-3. Open `examples/create_personal_garden.sql` and replace the placeholder `target_user_id`.
-4. Customize the garden name, introduction, chapter titles/text, flower types/colors/positions, and final letter.
-5. Run the SQL template once for that user. The unique constraint on `gardens.owner_id` prevents assigning a second garden to the same account.
+Tài khoản người viết có giới hạn tối đa **8 chương** và **5 ảnh mỗi tác phẩm** (tối đa 5 MB/ảnh). Admin không bị giới hạn số chương bởi trigger và có thể quản lý album rộng hơn, đặt/gỡ PIN, quản lý lưu bút, xuất bản hoặc gỡ xuất bản.
 
-Every row in `garden_chapters` is a story chapter. A row in `garden_items` with the matching `chapter_id` is the flower that opens it. Decorative flowers have a NULL `chapter_id`. Chapter IDs are derived from the new garden UUID, so a new personalized story does not accidentally inherit read markers from the old shared sample story. Keep those IDs unchanged when editing an existing garden. Paragraphs and letter text are JSON arrays of strings.
+Các quyền quan trọng được kiểm tra ở database, không chỉ ẩn nút trên giao diện:
+- Trigger ép mọi tác phẩm mới của người viết ở trạng thái riêng tư, không có share slug.
+- Chỉ Admin được duyệt/từ chối, xuất bản, cấu hình PIN và kiểm duyệt lưu bút.
+- Tác phẩm đang chờ duyệt không thể bị người viết sửa nội dung.
+- Nếu nội dung của tác phẩm đã duyệt bị thay đổi bởi chủ sở hữu, hệ thống chuyển về bản nháp và gỡ liên kết công khai để phải duyệt lại.
+- RLS giới hạn người viết vào tác phẩm của chính họ; chương/ảnh chỉ được thêm hoặc sửa khi tác phẩm là bản nháp hoặc đã bị từ chối.
+- Quota chương và ảnh được áp dụng cả ở database/storage để không thể vượt giới hạn bằng cách gọi API trực tiếp.
 
-## Data isolation
+## Migration đã triển khai
 
-- `gardens.owner_id` identifies the Supabase Auth account that owns the garden.
-- RLS lets that account select only its garden, flowers, and chapters.
-- Visitors cannot insert, update, or delete garden content through the public client.
-- `story_progress` remains keyed by `(user_id, chapter_id)`; its policies only allow a user to access progress for chapters in that user's garden.
-- The browser continues to use only the Supabase Publishable Key. Never add a Secret / Service Role key to `.env`, client code, or GitHub.
+Các migration story-authoring được áp dụng cho project production theo thứ tự:
 
-## First verification after migration
+1. `20261108064414_guest_story_authoring_and_admin_approval.sql`
+2. `20261108065344_tighten_creator_review_and_media_controls.sql`
+3. `20261108065415_allow_rejected_story_resubmission.sql`
+4. `20261108065433_guard_creator_story_cover_and_resubmission.sql`
+5. `20261108070427_restrict_creator_photo_quota_trigger_function.sql`
 
-Use two invited test accounts with two different garden records.
+Các migration trước đó vẫn nằm trong `supabase/migrations/`. Không sửa/xóa migration lịch sử đã áp dụng; hãy tạo migration mới cho thay đổi tiếp theo.
 
-1. Sign in as account A and confirm only A's garden and chapters load.
-2. Read a chapter, refresh the page, and confirm its read marker remains.
-3. Sign out, then sign in as account B and confirm B sees different flowers and story content.
-4. While signed in as B, try selecting A's garden by its UUID in the Supabase client/API; it should return no rows.
-5. Try inserting/updating garden content as a normal authenticated user; the request should be denied.
-6. Confirm account A's progress is unchanged after testing account B.
+## Kiểm tra quyền sau khi thay đổi
 
-Do not consider RLS verified until these checks have been run against the actual Supabase project.
+Dùng một tài khoản người viết thử nghiệm và một tài khoản Admin riêng.
+
+1. Người viết đăng nhập và tạo một tác phẩm; kiểm tra `approval_status = 'draft'`, `is_published = false`, `share_slug IS NULL`.
+2. Người viết thêm chương và ảnh trong giới hạn; thử vượt 8 chương/5 ảnh để xác nhận database từ chối.
+3. Người viết gửi duyệt; trạng thái chuyển sang `pending` và nội dung không thể sửa cho tới khi rút yêu cầu hoặc Admin xử lý.
+4. Admin duyệt; thử bật PIN và xuất bản. Admin từ chối phải tự động gỡ publication và share slug.
+5. Tài khoản người viết không thể đọc `garden_share_secrets` hoặc danh sách kiểm duyệt `garden_guestbook`, cũng không thể tự xuất bản.
+6. Đăng nhập bằng tài khoản người viết khác và xác nhận không thể đọc/sửa tác phẩm của tài khoản đầu tiên.
+
+Không dùng tài khoản thật để thử các thao tác xóa hoặc thay đổi trạng thái nếu chưa bọc trong transaction và rollback.
+
+## Bảo mật
+
+- Trình duyệt chỉ dùng Supabase Publishable Key.
+- Không đưa Secret / Service Role Key vào mã nguồn, file `.env` được commit, hoặc biến `NEXT_PUBLIC_*`.
+- Hàm trigger quota ảnh chỉ được PostgreSQL gọi qua trigger; quyền `EXECUTE` đã bị thu hồi khỏi `anon` và `authenticated`.
+- Bật **Leaked Password Protection** trong Supabase Auth để cảnh báo và chặn mật khẩu đã bị lộ.

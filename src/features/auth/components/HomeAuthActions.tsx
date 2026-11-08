@@ -112,10 +112,11 @@ export default function HomeAuthActions({
         </button>
       ) : (
         <Link href="/login" className={loginClassName}>
-          Đăng nhập để mở tác phẩm
+          Đăng nhập để sáng tác
         </Link>
       )}
 
+      {user && <Link href="/studio" className={giftClassName}>Viết câu chuyện của tôi</Link>}
       <Link href="/gift" className={giftClassName}>
         Mở tác phẩm của tôi
       </Link>

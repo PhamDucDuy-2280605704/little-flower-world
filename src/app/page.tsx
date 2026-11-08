@@ -8,7 +8,7 @@ export default function Home() {
       <header className={styles.header}>
         <Link href="/" className={styles.brand}>
           <span className={styles.brandMark}>L</span>
-          <span><strong>Little Flower World</strong><small>YOUR PERSONAL STORY STUDIO</small></span>
+          <span><strong>Little Story World</strong><small>YOUR PERSONAL STORY STUDIO</small></span>
         </Link>
         <nav aria-label="Điều hướng trang chủ">
           <Link href="/" aria-current="page">Trang chủ</Link>
@@ -21,13 +21,13 @@ export default function Home() {
         <div className={styles.heroCopy}>
           <p className={styles.eyebrow}>WORDS BECOME MEMORIES</p>
           <h1>Một điều muốn viết. <em>Một cuốn sách để giữ.</em></h1>
-          <p className={styles.description}>Có những lời nhắn xứng đáng được trình bày đẹp hơn một dòng tin nhắn. Hãy viết thành thông điệp, bức thư hoặc cuốn sách nhỏ rồi gửi riêng cho người bạn quý mến.</p>
+          <p className={styles.description}>Mỗi người đều có thể viết câu chuyện của riêng mình. Hãy bắt đầu bằng một thông điệp, một bức thư hoặc cuốn sách nhiều chương; lưu bản nháp và gửi Admin duyệt trước khi chia sẻ với người đọc.</p>
           <div className={styles.primaryActions}>
-            <Link href="/studio" className={styles.createButton}>Bắt đầu sáng tác <span>↗</span></Link>
+            <Link href="/studio" className={styles.createButton}>Bắt đầu viết câu chuyện <span>↗</span></Link>
             <Link href="/guest" className={styles.readerButton}>Tôi có một lời mời</Link>
           </div>
           <HomeAuthActions actionsClassName={styles.memberActions} loginClassName={styles.memberLogin} giftClassName={styles.memberGift} messageClassName={styles.authMessage}/>
-          <p className={styles.heroFootnote}>Riêng tư khi soạn thảo · Xem trước trước khi gửi · Có thể bảo vệ bằng mã PIN</p>
+          <p className={styles.heroFootnote}>Bản nháp riêng tư · Admin kiểm duyệt trước khi xuất bản · Tác phẩm được chia sẻ bằng liên kết an toàn</p>
         </div>
         <div className={styles.heroVisual}>
           <div className={styles.photoFrame}><div className={styles.photoLabel}>A STORY, MADE FOR ONE</div></div>
@@ -52,15 +52,15 @@ export default function Home() {
           <p className={styles.eyebrow}>FROM YOUR DESK TO THEIR HANDS</p>
           <h2>Từ bản thảo riêng tư đến món quà có thể mở ra.</h2>
           <ol>
-            <li><span>01</span><div><strong>Viết điều anh muốn gửi</strong><p>Chọn thông điệp, thư hoặc sách và nhập nội dung.</p></div></li>
+            <li><span>01</span><div><strong>Tự viết câu chuyện của bạn</strong><p>Đăng nhập tài khoản sáng tác và chọn thông điệp, thư hoặc sách nhiều chương.</p></div></li>
             <li><span>02</span><div><strong>Thêm ảnh và xem trước</strong><p>Tải ảnh của anh lên, lật thử từng trang và chỉnh lại nếu cần.</p></div></li>
-            <li><span>03</span><div><strong>Xuất bản và gửi link</strong><p>Chia sẻ bằng đường link riêng hoặc bật mã PIN để bảo vệ.</p></div></li>
+            <li><span>03</span><div><strong>Gửi Admin kiểm duyệt</strong><p>Admin xem xét nội dung, quyết định xuất bản và quản lý liên kết chia sẻ.</p></div></li>
           </ol>
           <Link href="/studio" className={styles.textLink}>Mở không gian sáng tác ↗</Link>
         </div>
       </section>
       <footer className={styles.footer}>
-        <Link href="/">Little Flower World</Link><span>MADE OF WORDS, PHOTOGRAPHS & MEMORIES</span>
+        <Link href="/">Little Story World</Link><span>MADE OF WORDS, PHOTOGRAPHS & MEMORIES</span>
         <a href="https://www.pexels.com/photo/open-book-on-desk-19561464/" target="_blank" rel="noreferrer">Ảnh minh họa: Pexels ↗</a>
       </footer>
     </main>

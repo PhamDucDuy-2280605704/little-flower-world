@@ -23,7 +23,7 @@ const monoFont = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Little Flower World",
+  title: "Little Story World",
   description: "Một không gian sáng tác thông điệp, thư và những cuốn sách dành riêng cho người bạn quý mến.",
 };
 

@@ -149,3 +149,6 @@
  .actionCard{align-items:flex-start;flex-direction:column}.actionCard button{width:100%}.shareResult{grid-template-columns:1fr 90px}.qrCode{width:88px;height:88px}
  .previewDialog{width:calc(100vw - 10px);max-height:calc(100dvh - 10px);border-radius:14px}.previewHeader{padding:10px}.previewHeader h2{font-size: 16px}
 }
+
+.creatorFieldset{min-width:0;margin:0;padding:0;border:0;}
+.creatorFieldset:disabled{opacity:.72;}

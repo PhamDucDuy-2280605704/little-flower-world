@@ -43,7 +43,9 @@ export default function LoginForm() {
 
       if (signInError) throw signInError;
 
-      router.replace("/gift");
+      const requestedPath = new URLSearchParams(window.location.search).get("next");
+      const nextPath = requestedPath?.startsWith("/") && !requestedPath.startsWith("//") ? requestedPath : "/studio";
+      router.replace(nextPath);
       router.refresh();
     } catch (err: unknown) {
       const errorMessage =
@@ -66,9 +68,9 @@ export default function LoginForm() {
   return (
     <div className={styles.wrapper}>
       <div>
-        <h1 className={styles.title}>Một món quà đang chờ bạn</h1>
+        <h1 className={styles.title}>Câu chuyện của bạn đang chờ được viết</h1>
         <p className={styles.subtitle}>
-          Đăng nhập để bước vào khu vườn bí mật.
+          Đăng nhập để viết câu chuyện riêng hoặc mở tác phẩm được gửi tặng.
         </p>
       </div>
 
