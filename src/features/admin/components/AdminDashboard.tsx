@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type DragEvent } from "react";
+import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import PhotoLightbox from "@/features/garden/components/PhotoLightbox";
 import { adminSupabase } from "@/lib/adminSupabase";
 import {
@@ -56,16 +58,8 @@ function photoFolders(gardenId: string): string[] {
     : [gardenId];
 }
 
-function formatDate(value: string): string {
-  if (!value) return "Vừa cập nhật";
-  return new Intl.DateTimeFormat("vi-VN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(value));
-}
-
 export default function AdminDashboard() {
+  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [authState, setAuthState] = useState<"checking" | "admin" | "denied">("checking");
   const [userEmail, setUserEmail] = useState("");
@@ -156,7 +150,11 @@ export default function AdminDashboard() {
   }, []);
 
   useEffect(() => {
-    if (authState === "admin") void loadGardens();
+    if (authState === "admin") {
+      // Intentional async Supabase read; state updates follow the network response.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      void loadGardens();
+    }
   }, [authState, loadGardens]);
 
   const selectedGarden = gardens.find((garden) => garden.id === selectedGardenId) ?? null;
@@ -217,7 +215,11 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (authState !== "admin" || !selectedGardenId) return;
     const garden = gardens.find((item) => item.id === selectedGardenId);
-    if (garden) void loadAlbum(garden);
+    if (garden) {
+      // Intentional async Storage read; state updates follow the request.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      void loadAlbum(garden);
+    }
   }, [authState, selectedGardenId, gardens, loadAlbum]);
 
   const filteredGardens = useMemo(() => {
@@ -321,7 +323,7 @@ export default function AdminDashboard() {
       setError("Đăng xuất chưa thành công. Anh thử lại nhé.");
       return;
     }
-    window.location.assign("/admin/login");
+    router.replace("/admin/login");
   }
 
   if (authState === "checking") {
@@ -545,7 +547,7 @@ export default function AdminDashboard() {
                             aria-label="Phóng to ảnh trong kho"
                             title="Bấm để xem ảnh lớn"
                           >
-                            <img src={photo.url} alt={"Ảnh trong " + selectedGarden.name} loading="lazy" />
+                            <Image src={photo.url} alt={"Ảnh trong " + selectedGarden.name} width={960} height={720} sizes="(max-width: 600px) 50vw, 25vw" unoptimized loading="lazy" />
                             <span aria-hidden="true">⌕</span>
                           </button>
                           <figcaption>

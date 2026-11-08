@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type TouchEvent } from "react";
+import Image from "next/image";
 import { createPortal } from "react-dom";
 import styles from "../styles/PhotoLightbox.module.css";
 
@@ -35,10 +36,12 @@ export default function PhotoLightbox({
   const imageCountRef = useRef(images.length);
   const onCloseRef = useRef(onClose);
   const onChangeRef = useRef(onChange);
-  activeIndexRef.current = activeIndex;
-  imageCountRef.current = images.length;
-  onCloseRef.current = onClose;
-  onChangeRef.current = onChange;
+  useEffect(() => {
+    activeIndexRef.current = activeIndex;
+    imageCountRef.current = images.length;
+    onCloseRef.current = onClose;
+    onChangeRef.current = onChange;
+  }, [activeIndex, images.length, onChange, onClose]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -232,10 +235,14 @@ export default function PhotoLightbox({
           </>
         )}
 
-        <img
+        <Image
           className={styles.image}
           src={activeImage.url}
           alt={activeImage.alt}
+          width={2400}
+          height={1600}
+          sizes="100vw"
+          unoptimized
           draggable={false}
         />
 

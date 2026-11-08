@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Image from "next/image";
 import PhotoLightbox from "./PhotoLightbox";
 import { supabase } from "@/lib/supabase";
 import styles from "../styles/FairytalePhotoGallery.module.css";
@@ -94,6 +95,8 @@ export default function FairytalePhotoGallery({
   }, [gardenId, legacyFolderId]);
 
   useEffect(() => {
+    // Intentional async Supabase Storage read; state updates follow the requests.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadPhotos();
   }, [loadPhotos]);
 
@@ -111,7 +114,7 @@ export default function FairytalePhotoGallery({
               aria-label="Phóng to ảnh trong khu vườn"
               title="Bấm để xem ảnh lớn"
             >
-              <img src={photo.url} alt="Khoảnh khắc trong khu vườn" loading="lazy" />
+              <Image src={photo.url} alt="Khoảnh khắc trong khu vườn" width={1200} height={900} sizes="(max-width: 600px) 50vw, 25vw" unoptimized loading="lazy" />
               <span className={styles.zoomHint} aria-hidden="true">⌕</span>
             </button>
           </figure>
