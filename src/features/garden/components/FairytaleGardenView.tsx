@@ -28,14 +28,14 @@ function pseudoRandom(index: number, salt: number): number {
   return value - Math.floor(value);
 }
 
-const STARS = Array.from({ length: 28 }, (_, index) => ({
+const STARS = Array.from({ length: 18 }, (_, index) => ({
   left: 3 + pseudoRandom(index, 1) * 94,
   top: 4 + pseudoRandom(index, 2) * 43,
   size: 1.5 + pseudoRandom(index, 3) * 2.5,
   delay: pseudoRandom(index, 4) * 4,
 }));
 
-const FIREFLIES = Array.from({ length: 18 }, (_, index) => ({
+const FIREFLIES = Array.from({ length: 9 }, (_, index) => ({
   left: 5 + pseudoRandom(index, 5) * 90,
   top: 35 + pseudoRandom(index, 6) * 48,
   delay: pseudoRandom(index, 7) * 5,
@@ -49,7 +49,7 @@ const STONES = Array.from({ length: 7 }, (_, index) => ({
   rotation: -10 + pseudoRandom(index, 10) * 20,
 }));
 
-const CLOUDS = Array.from({ length: 4 }, (_, index) => ({
+const CLOUDS = Array.from({ length: 2 }, (_, index) => ({
   left: 4 + pseudoRandom(index, 21) * 72,
   top: 10 + pseudoRandom(index, 22) * 26,
   width: 92 + pseudoRandom(index, 23) * 88,
@@ -57,7 +57,7 @@ const CLOUDS = Array.from({ length: 4 }, (_, index) => ({
   delay: -pseudoRandom(index, 25) * 42,
 }));
 
-const PETALS = Array.from({ length: 8 }, (_, index) => ({
+const PETALS = Array.from({ length: 5 }, (_, index) => ({
   left: 8 + pseudoRandom(index, 26) * 84,
   top: 22 + pseudoRandom(index, 27) * 48,
   size: 5 + pseudoRandom(index, 28) * 5,
@@ -67,7 +67,7 @@ const PETALS = Array.from({ length: 8 }, (_, index) => ({
   color: ["#f3b9c8", "#f7d4cf", "#e9b6d0", "#f0caa5"][index % 4],
 }));
 
-const POLLEN = Array.from({ length: 14 }, (_, index) => ({
+const POLLEN = Array.from({ length: 7 }, (_, index) => ({
   left: 4 + pseudoRandom(index, 32) * 92,
   top: 30 + pseudoRandom(index, 33) * 54,
   size: 1.5 + pseudoRandom(index, 34) * 2.2,
@@ -75,7 +75,7 @@ const POLLEN = Array.from({ length: 14 }, (_, index) => ({
   delay: -pseudoRandom(index, 36) * 12,
 }));
 
-const GRASS = Array.from({ length: 30 }, (_, index) => ({
+const GRASS = Array.from({ length: 22 }, (_, index) => ({
   left: 2 + pseudoRandom(index, 37) * 96,
   height: 12 + pseudoRandom(index, 38) * 28,
   width: 2 + pseudoRandom(index, 39) * 2.2,
@@ -89,7 +89,7 @@ const BUTTERFLIES = [
 ];
 
 export default function FairytaleGardenView({ items, readIds, onOpenChapter }: Props) {
-  const [time, setTime] = useState<TimeOfDay>("night");
+  const [time, setTime] = useState<TimeOfDay>("day");
   const [wind, setWind] = useState<WindLevel>("breeze");
   const reduceMotion = useReducedMotion();
   const { ref, width } = useElementWidth<HTMLDivElement>();

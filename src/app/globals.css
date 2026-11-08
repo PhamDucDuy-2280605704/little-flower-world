@@ -2,8 +2,26 @@
 
 :root {
   color-scheme: light;
-  --background: #fffafc;
-  --foreground: #624858;
+  --background: #edf0e5;
+  --foreground: #35463a;
+
+  --garden-forest: #344b3b;
+  --garden-deep: #263d32;
+  --garden-moss: #687d55;
+  --garden-leaf: #82966a;
+  --garden-sage: #b9c5a5;
+  --garden-clay: #a58b6d;
+  --garden-earth: #786b55;
+  --garden-cream: #f5f2e7;
+  --garden-paper: #edf0e5;
+  --garden-muted: #687566;
+  --garden-line: rgba(91, 111, 78, 0.22);
+  --garden-shadow: rgba(43, 59, 43, 0.12);
+  --garden-page-bg:
+    radial-gradient(ellipse at 12% 10%, rgba(190, 202, 165, 0.32), transparent 36%),
+    radial-gradient(ellipse at 88% 82%, rgba(171, 190, 163, 0.26), transparent 34%),
+    linear-gradient(135deg, #f0f1e7 0%, #e9eee3 54%, #e3ebdf 100%);
+  --garden-surface: rgba(250, 249, 241, 0.86);
 }
 
 @theme inline {
@@ -25,7 +43,7 @@ html {
 
 body {
   margin: 0;
-  background: var(--background);
+  background: var(--garden-page-bg);
   color: var(--foreground);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
   font-size: 16px;
