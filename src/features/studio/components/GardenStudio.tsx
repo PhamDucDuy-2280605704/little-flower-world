@@ -91,8 +91,9 @@ function clampValue(value: number, minimum: number, maximum: number): number {
 function findOverlappingItems(items: GardenItemRow[], canvasWidth: number, canvasHeight: number): Set<string> {
   const bounds = items.map((item) => {
     const scale = clampValue(item.size, 0.72, 1.28);
-    const width = 100.8 * scale;
-    const height = 142.8 * scale;
+    // Clearance envelope includes the leaf spread and the chapter label, not only the flower button box.
+    const width = 160 * scale;
+    const height = 190 * scale;
     const centerX = canvasWidth * item.x / 100;
     const bottom = canvasHeight * (8 + item.depth * 27) / 100;
     return {
