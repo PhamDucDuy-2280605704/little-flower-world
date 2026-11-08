@@ -37,7 +37,7 @@ export default function AdminLoginForm() {
 
       // Clear only a non-admin session from the isolated admin client.
       if (currentUser) {
-        await adminSupabase.auth.signOut();
+        await adminSupabase.auth.signOut({ scope: "local" });
       }
 
       if (active) setChecking(false);
@@ -84,7 +84,7 @@ export default function AdminLoginForm() {
       }
 
       if (data.user?.id !== FAIRYTALE_GARDEN_ADMIN_USER_ID) {
-        await adminSupabase.auth.signOut();
+        await adminSupabase.auth.signOut({ scope: "local" });
         setError("Tài khoản này không được cấp quyền quản trị.");
         return;
       }

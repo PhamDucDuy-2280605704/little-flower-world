@@ -314,7 +314,7 @@ export default function AdminDashboard() {
   }
 
   async function handleLogout() {
-    const { error: logoutError } = await adminSupabase.auth.signOut();
+    const { error: logoutError } = await adminSupabase.auth.signOut({ scope: "local" });
     if (logoutError) {
       setError("Đăng xuất chưa thành công. Anh thử lại nhé.");
       return;
