@@ -3,8 +3,7 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import FairytaleGardenView from "./FairytaleGardenView";
-import PhotoLightbox from "./PhotoLightbox";
+import GardenJournal from "./GardenJournal";
 import ChapterReader from "@/features/stories/components/ChapterReader";
 import styles from "../styles/SharedGardenExperience.module.css";
 import type { FlowerKind } from "@/types/flower";
@@ -78,7 +77,6 @@ export default function SharedGardenExperience({ slug }: { slug: string }) {
   const [fatalError, setFatalError] = useState("");
   const [reading, setReading] = useState<ReaderState>(null);
   const [readIds, setReadIds] = useState<string[]>([]);
-  const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
   const [guestName, setGuestName] = useState("");
   const [guestMessage, setGuestMessage] = useState("");
   const [guestSending, setGuestSending] = useState(false);
@@ -140,12 +138,6 @@ export default function SharedGardenExperience({ slug }: { slug: string }) {
       label: item.label ?? undefined,
       title: item.title ?? undefined,
     })), [payload]);
-
-  const lightboxImages = [
-    ...(garden?.cover_url ? [{ url: garden.cover_url, alt: "Ảnh bìa " + garden.name }] : []),
-    ...(payload?.photos ?? []).map((photo) => ({ url: photo.url, alt: photo.alt })),
-  ];
-  const photoLightboxOffset = garden?.cover_url ? 1 : 0;
 
   const chapters: StoryChapter[] = useMemo(() => (payload?.chapters ?? []).map((chapter) => {
     const flower = items.find((item) => item.chapterId === chapter.chapter_id);
@@ -254,70 +246,50 @@ export default function SharedGardenExperience({ slug }: { slug: string }) {
   }
 
   return (
-    <main className={styles.page}>
-      <header className={styles.hero}>
-        <div className={styles.guestNavigation}>
-          <Link className={styles.brand} href="/">✿ LITTLE FLOWER WORLD</Link>
-          <Link className={styles.guestExit} href="/guest">← Cổng khách</Link>
-        </div>
-        <p className={styles.guestBadge}>KHU VỰC KHÁCH · LỜI MỜI RIÊNG</p>
-        <p className={styles.eyebrow}>A LITTLE WORLD MADE FOR YOU</p>
-        <h1>{garden.name}</h1>
-        {garden.introduction && <p>{garden.introduction}</p>}
-        {garden.cover_url && <button type="button" className={styles.coverOpen} onClick={() => setActivePhotoIndex(0)} aria-label="Phóng to ảnh bìa"><Image className={styles.cover} src={garden.cover_url} alt={"Ảnh bìa " + garden.name} width={1600} height={900} unoptimized priority/></button>}
-      </header>
-
-      <section className={styles.gardenFrame}>
-        <FairytaleGardenView
-          gardenId={garden.id}
-          items={items}
-          readIds={readIds}
-          onOpenChapter={openChapter}
-          viewerMode
-          initialSettings={initialSettings}
-        />
-      </section>
-
-      <section className={styles.storySection}>
-        <div className={styles.sectionHeading}><span>✧</span><div><p className={styles.eyebrow}>A STORY IN BLOOM</p><h2>Những câu chuyện trong hoa</h2><p>Chạm vào hoa trong khu vườn hoặc chọn một chương bên dưới để mở trang sách.</p></div></div>
-        <div className={styles.chapterCards}>
-          {chapters.map((chapter, index) => (
-            <button key={chapter.id} type="button" onClick={() => openChapterIndex(index)}>
-              <span>0{index + 1}</span><strong>{chapter.title}</strong><small>{readIds.includes(chapter.id) ? "Đã khám phá" : "Chạm để đọc"}</small>
-            </button>
-          ))}
-        </div>
-        {chapters.length > 0 && <p className={styles.progress}>Đã khám phá {readIds.length}/{chapters.length} câu chuyện</p>}
-        {allRead && <button type="button" className={styles.letterButton} onClick={() => setReading({ kind: "letter" })}>Mở lá thư cuối ✉</button>}
-      </section>
-
-      {payload.photos.length > 0 && (
-        <section className={styles.gallery}>
-          <div className={styles.sectionHeading}><span>❀</span><div><p className={styles.eyebrow}>LITTLE MEMORIES</p><h2>Album của khu vườn</h2><p>Những hình ảnh được người tạo gửi gắm trong món quà này.</p></div></div>
-          <div className={styles.photoGrid}>
-            {payload.photos.map((photo, index) => (
-              <button key={photo.path} type="button" onClick={() => setActivePhotoIndex(index + photoLightboxOffset)} aria-label="Mở ảnh lớn">
-                <Image src={photo.url} alt={photo.alt} width={700} height={520} unoptimized loading="lazy"/>
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {garden.guestbook_enabled && (
-        <section className={styles.guestbook}>
-          <div className={styles.sectionHeading}><span>✎</span><div><p className={styles.eyebrow}>A NOTE FOR THE GARDEN</p><h2>Để lại một lời nhắn</h2><p>Lời nhắn sẽ được người tạo xem trước khi xuất hiện trong khu vườn.</p></div></div>
-          <form onSubmit={submitGuestbook}>
-            <label>Tên của bạn<input value={guestName} onChange={(event) => setGuestName(event.target.value)} maxLength={50} required placeholder="Tên hoặc biệt danh"/></label>
-            <label>Lời nhắn<textarea value={guestMessage} onChange={(event) => setGuestMessage(event.target.value)} maxLength={1000} rows={4} required placeholder="Gửi lại một điều dễ thương..."/></label>
-            <button type="submit" disabled={guestSending || !guestName.trim() || !guestMessage.trim()}>{guestSending ? "Đang gửi..." : "Gửi lời nhắn"}</button>
-            {guestNotice && <p role="status">{guestNotice}</p>}
-          </form>
-          {payload.guestbook.length > 0 && <div className={styles.approvedNotes}>{payload.guestbook.map((entry) => <blockquote key={entry.id}><p>“{entry.message}”</p><footer>— {entry.guest_name}</footer></blockquote>)}</div>}
-        </section>
-      )}
-
-      <footer className={styles.footer}><p>Made with care · Vanilla Garden</p><Link href="/guest">Quay về cổng khách</Link></footer>
+    <>
+      <GardenJournal
+        name={garden.name}
+        introduction={garden.introduction}
+        coverUrl={garden.cover_url}
+        photos={payload.photos}
+        items={items}
+        chapters={chapters}
+        readIds={readIds}
+        onOpenChapter={openChapter}
+        onOpenLetter={() => setReading({ kind: "letter" })}
+        letterReady={allRead}
+        progressText={"Đã khám phá " + readIds.length + " / " + chapters.length + " câu chuyện"}
+        returnHref="/guest"
+        returnLabel="Quay về cổng khách"
+        actionHref={garden.guestbook_enabled ? "#guestbook" : "#the-path"}
+        actionLabel={garden.guestbook_enabled ? "LEAVE A NOTE" : "EXPLORE"}
+      >
+        {garden.guestbook_enabled && (
+          <section className={styles.guestbook} id="guestbook">
+            <div className={styles.sectionHeading}>
+              <span>✎</span>
+              <div>
+                <p className={styles.eyebrow}>A NOTE FOR THE GARDEN</p>
+                <h2>Để lại một lời nhắn</h2>
+                <p>Lời nhắn sẽ được người tạo xem trước khi xuất hiện trong khu vườn.</p>
+              </div>
+            </div>
+            <form onSubmit={submitGuestbook}>
+              <label>Tên của bạn<input value={guestName} onChange={(event) => setGuestName(event.target.value)} maxLength={50} required placeholder="Tên hoặc biệt danh"/></label>
+              <label>Lời nhắn<textarea value={guestMessage} onChange={(event) => setGuestMessage(event.target.value)} maxLength={1000} rows={4} required placeholder="Gửi lại một điều dễ thương..."/></label>
+              <button type="submit" disabled={guestSending || !guestName.trim() || !guestMessage.trim()}>{guestSending ? "Đang gửi..." : "Gửi lời nhắn"}</button>
+              {guestNotice && <p role="status">{guestNotice}</p>}
+            </form>
+            {payload.guestbook.length > 0 && (
+              <div className={styles.approvedNotes}>
+                {payload.guestbook.map((entry) => (
+                  <blockquote key={entry.id}><p>“{entry.message}”</p><footer>— {entry.guest_name}</footer></blockquote>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+      </GardenJournal>
 
       {reading?.kind === "chapter" && currentChapter && (
         <ChapterReader
@@ -341,12 +313,6 @@ export default function SharedGardenExperience({ slug }: { slug: string }) {
           onClose={() => setReading(null)}
         />
       )}
-      <PhotoLightbox
-        images={lightboxImages}
-        activeIndex={activePhotoIndex}
-        onClose={() => setActivePhotoIndex(null)}
-        onChange={setActivePhotoIndex}
-      />
-    </main>
+    </>
   );
 }
