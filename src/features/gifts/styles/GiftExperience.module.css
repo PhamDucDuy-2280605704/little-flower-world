@@ -215,7 +215,10 @@
     radial-gradient(circle at 92% 86%, rgba(67, 91, 82, 0.25), transparent 34%),
     linear-gradient(145deg, #171d35, #2d3049 52%, #4b3d50);
   color: #f6ebd5;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  font-synthesis: none;
 }
 
 .fairytaleCard {
@@ -232,17 +235,25 @@
 
 .fairytaleTitle {
   color: #f8e7be;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(30px, 4.4vw, 44px);
-  font-weight: 500;
-  letter-spacing: 0.025em;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-size: clamp(28px, 3.4vw, 40px);
+  font-weight: 700;
+  line-height: 1.16;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
   text-shadow: 0 3px 18px rgba(235, 199, 129, 0.18);
 }
 
 .fairytaleMessage {
-  max-width: 680px;
-  color: #d8cdb8;
-  font-family: Georgia, "Times New Roman", serif;
+  max-width: 760px;
+  margin: 10px auto 12px;
+  color: #e0d5c1;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-size: clamp(14px, 1.2vw, 15px);
+  font-weight: 400;
+  line-height: 1.75;
+  letter-spacing: 0;
+  text-wrap: pretty;
 }
 
 .fairytalePage .progress { color: #ead9b6; }
@@ -253,3 +264,44 @@
 }
 .fairytalePage .replay { background: #586f63; }
 .fairytalePage .backLink { color: #e5c992; }
+
+
+/* Đồng bộ font và nhịp chữ trong cảnh cổ tích: không để nhãn chương/nút
+   điều khiển rơi về font serif hoặc cỡ chữ mặc định của trình duyệt. */
+.fairytalePage button,
+.fairytalePage .progress,
+.fairytalePage .locked,
+.fairytalePage .backLink {
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+.fairytalePage .progress,
+.fairytalePage .locked,
+.fairytalePage .backLink {
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+@media (max-width: 640px) {
+  .fairytalePage {
+    padding: 14px 12px 28px;
+    font-size: 14px;
+  }
+
+  .fairytaleCard {
+    padding: 18px 14px;
+    border-radius: 24px;
+  }
+
+  .fairytaleTitle {
+    font-size: clamp(25px, 7vw, 32px);
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+
+  .fairytaleMessage {
+    max-width: 58ch;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+}
