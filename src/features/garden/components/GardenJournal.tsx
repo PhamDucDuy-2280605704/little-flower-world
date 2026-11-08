@@ -1,12 +1,10 @@
 "use client";
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useRef, useState, type KeyboardEvent, type ReactNode, type TouchEvent } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
-import Flower from "@/features/flowers/components/Flower";
 import PhotoLightbox, { type LightboxImage } from "./PhotoLightbox";
-import type { GardenItem } from "@/types/garden";
-import type { StoryChapter } from "@/types/story";
 import styles from "../styles/GardenJournal.module.css";
 
 export type GardenJournalPhoto = {
@@ -15,18 +13,37 @@ export type GardenJournalPhoto = {
   alt: string;
 };
 
+export type JournalChapter = {
+  id: string;
+  title: string;
+  paragraphs: string[];
+};
+
+export type StoryFormat = "message" | "letter" | "book";
+
+type BookPage = {
+  id: string;
+  kind: "message" | "letter" | "chapter";
+  title: string;
+  paragraphs: string[];
+  signature?: string;
+  chapterId?: string;
+};
+
 type Props = {
   name: string;
   introduction: string;
+  format?: StoryFormat;
   coverUrl?: string | null;
+  coverPath?: string | null;
   photos?: GardenJournalPhoto[];
-  items: GardenItem[];
-  chapters: StoryChapter[];
-  readIds: string[];
-  onOpenChapter: (chapterId: string) => void;
-  onOpenLetter?: () => void;
+  chapters?: JournalChapter[];
+  readIds?: string[];
+  onOpenChapter?: (chapterId: string) => void;
+  letterTitle?: string;
+  letterParagraphs?: string[];
+  letterSignature?: string;
   letterReady?: boolean;
-  progressText?: string;
   returnHref?: string;
   returnLabel?: string;
   actionHref?: string;
@@ -34,213 +51,357 @@ type Props = {
   children?: ReactNode;
 };
 
+const STOCK_BOOK_IMAGE = "https://cdn.pixabay.com/photo/2016/03/27/19/32/book-1283865_1280.jpg";
+const STOCK_BOOK_PAGE = "https://pixabay.com/photos/book-pages-chapters-open-open-book-1283865/";
+
 export default function GardenJournal({
   name,
   introduction,
+  format = "book",
   coverUrl,
+  coverPath,
   photos = [],
-  items,
-  chapters,
-  readIds,
+  chapters = [],
+  readIds = [],
   onOpenChapter,
-  onOpenLetter,
+  letterTitle = "Một lá thư dành riêng cho bạn",
+  letterParagraphs = [],
+  letterSignature = "",
   letterReady = false,
-  progressText,
   returnHref = "/",
   returnLabel = "Little Flower World",
-  actionHref = "#the-path",
-  actionLabel = "JOIN THE JOURNEY",
+  actionHref = "#the-book",
+  actionLabel = "MỞ CUỐN SÁCH",
   children,
 }: Props) {
+  const [pageIndex, setPageIndex] = useState(0);
+  const [turnDirection, setTurnDirection] = useState<"next" | "prev">("next");
   const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
+  const touchStartX = useRef<number | null>(null);
+  const reduceMotion = useReducedMotion();
+
   const primaryPhoto = coverUrl
     ? { url: coverUrl, alt: "Ảnh bìa " + name }
     : photos[0] ?? null;
   const secondaryPhotos = coverUrl
-    ? photos.filter((photo) => photo.url !== coverUrl)
+    ? photos.filter((photo) => photo.path !== coverPath && photo.url !== coverUrl)
     : photos.slice(1);
+
   const lightboxImages = useMemo<LightboxImage[]>(() => [
     ...(primaryPhoto ? [primaryPhoto] : []),
     ...secondaryPhotos.map((photo) => ({ url: photo.url, alt: photo.alt })),
   ], [primaryPhoto, secondaryPhotos]);
-  const firstChapter = chapters[0] ?? null;
-  const firstParagraph = firstChapter?.paragraphs[0] ?? introduction;
-  const quote = firstChapter?.paragraphs.length
-    ? firstChapter.paragraphs[firstChapter.paragraphs.length - 1]
-    : introduction;
-  const progress = chapters.length > 0
-    ? Math.round((readIds.length / chapters.length) * 100)
-    : 0;
-  function openImage(index: number) {
+
+  const pages = useMemo<BookPage[]>(() => {
+    if (format === "message") {
+      return [{
+        id: "main-message",
+        kind: "message",
+        title: name || "Một lời nhắn dành cho bạn",
+        paragraphs: introduction.split(/\n\s*\n/).map((part) => part.trim()).filter(Boolean),
+      }];
+    }
+
+    if (format === "letter") {
+      return [{
+        id: "main-letter",
+        kind: "letter",
+        title: letterTitle,
+        paragraphs: letterParagraphs,
+        signature: letterSignature,
+      }];
+    }
+
+    const bookPages: BookPage[] = chapters.map((chapter) => ({
+      id: chapter.id,
+      chapterId: chapter.id,
+      kind: "chapter",
+      title: chapter.title,
+      paragraphs: chapter.paragraphs,
+    }));
+
+    if (letterReady && letterParagraphs.length > 0) {
+      bookPages.push({
+        id: "final-letter",
+        kind: "letter",
+        title: letterTitle,
+        paragraphs: letterParagraphs,
+        signature: letterSignature,
+      });
+    }
+
+    return bookPages.length > 0 ? bookPages : [{
+      id: "empty-book",
+      kind: "message",
+      title: "Trang đầu tiên",
+      paragraphs: ["Cuốn sách này đang chờ những dòng đầu tiên."],
+    }];
+  }, [format, name, introduction, chapters, letterReady, letterTitle, letterParagraphs, letterSignature]);
+
+  const safePageIndex = Math.min(pageIndex, Math.max(0, pages.length - 1));
+  const currentPage = pages[safePageIndex];
+
+  function goToPage(nextIndex: number) {
+    const bounded = Math.max(0, Math.min(pages.length - 1, nextIndex));
+    if (bounded === safePageIndex) return;
+    setTurnDirection(bounded > safePageIndex ? "next" : "prev");
+    setPageIndex(bounded);
+    const page = pages[bounded];
+    if (page?.chapterId) onOpenChapter?.(page.chapterId);
+  }
+
+  function openPhoto(index: number) {
     if (lightboxImages.length > 0) setActivePhotoIndex(index);
   }
+
+  function handleBookKeyDown(event: KeyboardEvent<HTMLElement>) {
+    if (event.key === "ArrowRight") {
+      event.preventDefault();
+      goToPage(safePageIndex + 1);
+    } else if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      goToPage(safePageIndex - 1);
+    }
+  }
+
+  function handleTouchEnd(event: TouchEvent<HTMLElement>) {
+    const start = touchStartX.current;
+    const end = event.changedTouches[0]?.clientX;
+    touchStartX.current = null;
+    if (start === null || end === undefined) return;
+    const distance = end - start;
+    if (Math.abs(distance) < 52) return;
+    goToPage(safePageIndex + (distance < 0 ? 1 : -1));
+  }
+
+  const currentNumber = String(safePageIndex + 1).padStart(2, "0");
+  const totalNumber = String(pages.length).padStart(2, "0");
+  const readPercent = chapters.length > 0 ? Math.round((readIds.length / chapters.length) * 100) : 0;
+  const formatLabel = format === "message" ? "THÔNG ĐIỆP" : format === "letter" ? "BỨC THƯ" : "CUỐN SÁCH";
 
   return (
     <main className={styles.page}>
       <header className={styles.siteHeader}>
         <Link className={styles.brand} href={returnHref}>
-          <span className={styles.brandMark}>✿</span>
+          <span className={styles.brandMark}>L</span>
           <span>LITTLE FLOWER WORLD</span>
         </Link>
-        <nav aria-label="Điều hướng nhật ký khu vườn">
-          <a href="#our-story">Our Story</a>
-          <a href="#the-path">The Path</a>
-          <a href="#in-bloom">In Bloom</a>
+        <nav aria-label="Điều hướng tác phẩm">
+          <a href="#the-book">Cuốn sách</a>
+          <a href="#contents">Mục lục</a>
+          {secondaryPhotos.length > 0 && <a href="#memories">Hình ảnh</a>}
         </nav>
-        <a className={styles.joinButton} href={actionHref}>{actionLabel}</a>
+        <a className={styles.headerAction} href={actionHref}>{actionLabel}</a>
       </header>
 
-      <section className={styles.masthead} id="our-story">
-        <p className={styles.overline}><span /> A STORY CREATED BY YOU <span /></p>
-        <h1>A World of Your Own</h1>
-        <p className={styles.mastheadNote}>{name}</p>
+      <section className={styles.masthead}>
+        <p className={styles.overline}><span /> A PERSONAL STORY, MADE WITH CARE <span /></p>
+        <h1>{name}</h1>
+        <p className={styles.mastheadNote}>{formatLabel} · MỘT TÁC PHẨM RIÊNG DÀNH CHO BẠN</p>
       </section>
 
-      <section className={styles.feature}>
-        <div className={styles.featureVisual}>
+      <section className={styles.hero}>
+        <div className={styles.heroCopy}>
+          <p className={styles.entryLabel}>A LITTLE SOMETHING TO KEEP</p>
+          <h2>Mỗi trang là một điều muốn gửi trao.</h2>
+          <p>{introduction || "Có những điều thật đẹp khi được viết thành lời và lưu lại trong một cuốn sách nhỏ."}</p>
+          <a href="#the-book" className={styles.readButton}>Bắt đầu lật trang <span aria-hidden="true">↗</span></a>
+          <div className={styles.heroMeta}>
+            <span>{chapters.length || (format === "book" ? 0 : 1)} {format === "book" ? "CHƯƠNG" : "TRANG NỘI DUNG"}</span>
+            <span>ĐỌC THEO NHỊP CỦA BẠN</span>
+          </div>
+        </div>
+        <div className={styles.heroVisual}>
           {primaryPhoto ? (
             <button
               type="button"
-              className={styles.coverButton}
-              onClick={() => openImage(0)}
-              aria-label="Mở ảnh khu vườn ở kích thước lớn"
+              className={styles.heroPhotoButton}
+              onClick={() => openPhoto(0)}
+              aria-label="Phóng to ảnh bìa"
             >
               <Image
                 src={primaryPhoto.url}
                 alt={primaryPhoto.alt}
-                width={1200}
-                height={1500}
-                sizes="(max-width: 760px) 92vw, 42vw"
+                width={1300}
+                height={900}
+                sizes="(max-width: 760px) 92vw, 44vw"
                 unoptimized
                 priority
               />
-              <span className={styles.imageExpand} aria-hidden="true">↗</span>
+              <span className={styles.photoExpand} aria-hidden="true">↗</span>
             </button>
           ) : (
-            <div className={styles.uploadPrompt}>
-              <span aria-hidden="true">＋</span>
-              <strong>Ảnh bìa do anh tự tải lên</strong>
-              <p>Chưa có ảnh bìa. Hãy thêm hình ảnh của riêng anh trong Creator Studio.</p>
+            <div
+              className={styles.stockPhoto}
+              role="img"
+              aria-label="Ảnh chụp một cuốn sách đang mở dưới ánh sáng tự nhiên"
+              style={{ backgroundImage: "url(" + STOCK_BOOK_IMAGE + ")" }}
+            >
+              <span>Ảnh minh họa · Pixabay</span>
             </div>
           )}
-          <div className={styles.imageStamp}>
-            <strong>{String(chapters.length).padStart(2, "0")}</strong>
-            <span>CHAPTERS MEMORIES</span>
+          <div className={styles.photoNote}>
+            <span>01</span>
+            <p>Words become memories when we give them a page.</p>
           </div>
-          <p className={styles.visualCaption}>A little world, made by you</p>
         </div>
-
-        <article className={styles.featureStory}>
-          <p className={styles.entryLabel}>FIRST ENTRY — CHAPTER 01</p>
-          <h2>{firstChapter?.title || name}</h2>
-          <p className={styles.introduction}>
-            {introduction || "Mỗi thế giới bắt đầu từ một ý tưởng và được hoàn thiện bằng câu chuyện của riêng bạn."}
-          </p>
-          <div className={styles.storyDivider}><span>✳</span></div>
-          <p className={styles.entryText}>
-            {firstParagraph || "Trang đầu tiên đang chờ câu chuyện của bạn."}
-          </p>
-          {firstChapter && (
-            <button
-              type="button"
-              className={styles.readFirst}
-              onClick={() => onOpenChapter(firstChapter.id)}
-            >
-              READ THE FIRST ENTRY <span aria-hidden="true">↗</span>
-            </button>
-          )}
-          {quote && (
-            <blockquote className={styles.quoteCard}>
-              <span className={styles.quoteFlower} aria-hidden="true">✿</span>
-              <p>“{quote}”</p>
-              <cite>— A NOTE FROM THIS STORY</cite>
-            </blockquote>
-          )}
-        </article>
       </section>
 
-      <section className={styles.pathSection} id="the-path">
-        <div className={styles.sectionIntro}>
-          <p className={styles.entryLabel}>THE STORY WORLD</p>
-          <h2>Mỗi chương mở ra một phần thế giới.</h2>
-          <p>Khám phá từng chương theo thứ tự anh đã sắp đặt.</p>
+      <section
+        className={styles.bookSection}
+        id="the-book"
+        aria-label="Trình đọc sách"
+        tabIndex={0}
+        onKeyDown={handleBookKeyDown}
+        onTouchStart={(event) => { touchStartX.current = event.touches[0]?.clientX ?? null; }}
+        onTouchEnd={handleTouchEnd}
+      >
+        <div className={styles.sectionHeading}>
+          <p className={styles.entryLabel}>TURN THE PAGE</p>
+          <h2>Hãy cùng đọc nhé.</h2>
+          <p>Chọn một chương ở mục lục hoặc dùng nút lật trang để tiếp tục.</p>
         </div>
-        <div className={styles.progressRow}>
-          <span>JOURNEY PROGRESS</span>
-          <strong>{readIds.length} / {chapters.length} READ</strong>
-        </div>
-        <div className={styles.progressTrack} role="progressbar" aria-label="Tiến độ đọc câu chuyện" aria-valuemin={0} aria-valuemax={chapters.length} aria-valuenow={readIds.length}>
-          <span style={{ width: progress + "%" }} />
-        </div>
-        {progressText && <p className={styles.progressText}>{progressText}</p>}
-        <div className={styles.chapterList}>
-          {chapters.length > 0 ? chapters.map((chapter, index) => {
-            const flower = items.find((item) => item.chapterId === chapter.id);
-            const isRead = readIds.includes(chapter.id);
-            const excerpt = chapter.paragraphs[0] ?? "Một trang mới trong thế giới này.";
-            return (
-              <article className={styles.chapterRow} key={chapter.id}>
-                <span className={styles.chapterNumber}>{String(index + 1).padStart(2, "0")}</span>
-                <span className={styles.chapterFlower} aria-hidden="true">
-                  {flower
-                    ? <Flower kind={flower.kind} color={flower.color} size={.42} />
-                    : <span>✿</span>}
-                </span>
-                <div className={styles.chapterCopy}>
-                  <p>ENTRY {String(index + 1).padStart(2, "0")}</p>
-                  <h3>{chapter.title}</h3>
-                  <span>{excerpt}</span>
-                </div>
-                <button type="button" onClick={() => onOpenChapter(chapter.id)}>
-                  {isRead ? "READ AGAIN" : "OPEN ENTRY"} <span aria-hidden="true">↗</span>
-                </button>
-              </article>
-            );
-          }) : (
-            <p className={styles.emptyStory}>Chương đầu tiên đang chờ được viết.</p>
-          )}
-        </div>
-        {letterReady && onOpenLetter && (
-          <div className={styles.finalLetter}>
-            <span>THE LAST PAGE</span>
-            <h3>A letter kept for you.</h3>
-            <button type="button" onClick={onOpenLetter}>OPEN THE FINAL LETTER ↗</button>
+
+        <div className={styles.openBook}>
+          <aside className={styles.leftPage} id="contents">
+            <div className={styles.pageTopline}>
+              <span>TABLE OF CONTENTS</span>
+              <span>✳</span>
+            </div>
+            <p className={styles.pageEyebrow}>TRONG CUỐN SÁCH NÀY</p>
+            <h3>Mục lục</h3>
+
+            {format === "book" && chapters.length > 0 ? (
+              <div className={styles.contentsList}>
+                {chapters.map((chapter, index) => {
+                  const pageNumber = String(index + 1).padStart(2, "0");
+                  const isActive = currentPage?.chapterId === chapter.id;
+                  return (
+                    <button
+                      type="button"
+                      key={chapter.id}
+                      className={isActive ? styles.contentsActive : styles.contentsButton}
+                      onClick={() => goToPage(index)}
+                    >
+                      <span>{pageNumber}</span>
+                      <strong>{chapter.title}</strong>
+                      <small>{readIds.includes(chapter.id) ? "Đã đọc" : "Mở trang"}</small>
+                    </button>
+                  );
+                })}
+                {letterReady && letterParagraphs.length > 0 && (
+                  <button
+                    type="button"
+                    className={currentPage?.id === "final-letter" ? styles.contentsActive : styles.contentsButton}
+                    onClick={() => goToPage(pages.length - 1)}
+                  >
+                    <span>✉</span>
+                    <strong>{letterTitle}</strong>
+                    <small>Trang cuối</small>
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className={styles.contentsIntro}>
+                <span>{format === "message" ? "ONE MESSAGE" : "A LETTER FOR YOU"}</span>
+                <p>{format === "message" ? "Một lời nhắn được viết riêng cho bạn." : "Một bức thư nhỏ, được giữ lại trên những trang giấy."}</p>
+              </div>
+            )}
+
+            <blockquote className={styles.marginNote}>
+              <span>✳</span>
+              <p>{introduction || "Một điều nhỏ bé, nhưng được viết bằng tất cả sự chân thành."}</p>
+            </blockquote>
+            <div className={styles.pageFooter}>
+              <span>{name}</span>
+              <span>✦</span>
+            </div>
+          </aside>
+
+          <div className={styles.bookGutter} aria-hidden="true" />
+
+          <div className={styles.rightPage}>
+            <div className={styles.pageTurnWrap}>
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.article
+                  key={currentPage.id}
+                  className={styles.readingPage}
+                  initial={reduceMotion ? false : {
+                    opacity: 0,
+                    rotateY: turnDirection === "next" ? -15 : 15,
+                    x: turnDirection === "next" ? 18 : -18,
+                  }}
+                  animate={{ opacity: 1, rotateY: 0, x: 0 }}
+                  exit={reduceMotion ? undefined : {
+                    opacity: 0,
+                    rotateY: turnDirection === "next" ? 15 : -15,
+                    x: turnDirection === "next" ? -18 : 18,
+                  }}
+                  transition={{ duration: reduceMotion ? 0 : 0.42, ease: [0.22, 1, 0.36, 1] }}
+                  style={{ transformOrigin: turnDirection === "next" ? "left center" : "right center" }}
+                  aria-live="polite"
+                >
+                  <div className={styles.pageTopline}>
+                    <span>{currentPage.kind === "chapter" ? "CHAPTER" : currentPage.kind === "letter" ? "A LETTER FOR YOU" : "A MESSAGE"}</span>
+                    <span>{currentNumber}</span>
+                  </div>
+                  <p className={styles.pageEyebrow}>{currentPage.kind === "chapter" ? "MỘT PHẦN CỦA CÂU CHUYỆN" : "DÀNH RIÊNG CHO BẠN"}</p>
+                  <h3>{currentPage.title}</h3>
+                  <div className={styles.pageRule}><span>✳</span></div>
+                  <div className={styles.pageParagraphs}>
+                    {currentPage.paragraphs.length > 0
+                      ? currentPage.paragraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)
+                      : <p>Trang này đang chờ những dòng chữ đầu tiên.</p>}
+                  </div>
+                  {currentPage.signature && <p className={styles.signature}>{currentPage.signature}</p>}
+                  <div className={styles.pageFooter}>
+                    <span>{currentPage.kind === "letter" ? "WITH LOVE" : "LITTLE FLOWER WORLD"}</span>
+                    <span>{currentNumber}</span>
+                  </div>
+                </motion.article>
+              </AnimatePresence>
+            </div>
           </div>
+        </div>
+
+        <div className={styles.pageControls}>
+          <button type="button" onClick={() => goToPage(safePageIndex - 1)} disabled={safePageIndex === 0}>
+            <span aria-hidden="true">←</span> Trang trước
+          </button>
+          <div className={styles.pageProgress}>
+            <strong>{currentNumber}</strong>
+            <span>/</span>
+            <span>{totalNumber}</span>
+            <div className={styles.progressTrack}><span style={{ width: ((safePageIndex + 1) / pages.length * 100) + "%" }} /></div>
+          </div>
+          <button type="button" onClick={() => goToPage(safePageIndex + 1)} disabled={safePageIndex >= pages.length - 1}>
+            Lật trang <span aria-hidden="true">→</span>
+          </button>
+        </div>
+        {format === "book" && chapters.length > 0 && (
+          <p className={styles.readProgress}>{readIds.length} / {chapters.length} chương đã đọc · {readPercent}% hành trình</p>
         )}
       </section>
 
       {secondaryPhotos.length > 0 && (
-        <section className={styles.bloomSection} id="in-bloom">
-          <div className={styles.bloomHeading}>
-            <div>
-              <p className={styles.entryLabel}>MEMORIES</p>
-              <h2>Những hình ảnh anh muốn lưu giữ.</h2>
-            </div>
-            <span>{photos.length} ẢNH KỶ NIỆM</span>
+        <section className={styles.memories} id="memories">
+          <div className={styles.sectionHeading}>
+            <p className={styles.entryLabel}>PHOTOGRAPHS & MEMORIES</p>
+            <h2>Những khoảnh khắc được giữ lại.</h2>
           </div>
-          {secondaryPhotos.length > 0 ? (
-            <div className={styles.photoGrid}>
-              {secondaryPhotos.map((photo, index) => (
-                <button
-                  type="button"
-                  key={photo.path}
-                  onClick={() => openImage(index + (primaryPhoto ? 1 : 0))}
-                  aria-label={"Mở ảnh " + (index + 1)}
-                >
-                  <Image src={photo.url} alt={photo.alt} width={700} height={560} sizes="(max-width: 680px) 46vw, 24vw" unoptimized loading="lazy"/>
-                  <span aria-hidden="true">↗</span>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className={styles.flowerStrip}>
-              {items.slice(0, 9).map((item) => (
-                <span key={item.id} title={item.title || "Flower"}>
-                  <Flower kind={item.kind} color={item.color} size={.52}/>
-                </span>
-              ))}
-            </div>
-          )}
+          <div className={styles.photoGrid}>
+            {secondaryPhotos.map((photo, index) => (
+              <button
+                type="button"
+                key={photo.path}
+                onClick={() => openPhoto(index + (primaryPhoto ? 1 : 0))}
+                aria-label={"Phóng to ảnh kỷ niệm " + (index + 1)}
+              >
+                <Image src={photo.url} alt={photo.alt} width={720} height={560} sizes="(max-width: 680px) 46vw, 25vw" unoptimized loading="lazy" />
+                <span aria-hidden="true">↗</span>
+              </button>
+            ))}
+          </div>
         </section>
       )}
 
@@ -248,7 +409,8 @@ export default function GardenJournal({
 
       <footer className={styles.footer}>
         <Link href={returnHref}>{returnLabel}</Link>
-        <span>A WORLD MADE BY YOU · LITTLE FLOWER WORLD</span>
+        <span>A STORY CREATED WITH CARE · LITTLE FLOWER WORLD</span>
+        <a href={STOCK_BOOK_PAGE} target="_blank" rel="noreferrer">Ảnh minh họa: Pixabay ↗</a>
       </footer>
 
       <PhotoLightbox

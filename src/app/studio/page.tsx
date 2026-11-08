@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import GardenStudio from "@/features/studio/components/GardenStudio";
+import BookStudio from "@/features/studio/components/BookStudio";
 
 export const metadata: Metadata = {
-  title: "Creator Studio · Little Flower World",
-  description: "Thiết kế khu vườn kể chuyện và xuất bản món quà của riêng bạn.",
+  title: "Không gian sáng tác · Little Flower World",
+  description: "Viết một thông điệp, một bức thư hoặc một cuốn sách và gửi tặng người bạn yêu quý.",
 };
 
 export default function StudioPage() {
-  return <GardenStudio />;
+  return <BookStudio />;
 }
