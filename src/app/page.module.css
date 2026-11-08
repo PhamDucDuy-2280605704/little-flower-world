@@ -15,7 +15,7 @@
     #fffafc;
 
   color: #624858;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
 /* Khung nội dung chính */

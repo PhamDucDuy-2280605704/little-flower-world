@@ -15,7 +15,7 @@
   box-shadow: 0 25px 70px rgba(120, 70, 100, 0.3);
 
   color: #624858;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
 /* Vùng tối phía sau cửa sổ */

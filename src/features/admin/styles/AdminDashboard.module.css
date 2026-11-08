@@ -88,7 +88,7 @@
 }
 
 .brand strong {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
   font-size: 16px;
   font-weight: 600;
   letter-spacing: 0.01em;
@@ -160,7 +160,7 @@
   border-radius: 12px;
   background: linear-gradient(145deg, #c4a16c, #647e68);
   color: #17231e;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
   font-weight: 800;
 }
 
@@ -217,7 +217,7 @@
 .topbar h1 {
   margin: 0;
   color: #f2ead9;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
   font-size: clamp(26px, 3vw, 36px);
   font-weight: 500;
   letter-spacing: 0.01em;
@@ -291,7 +291,7 @@
 .heroCopy h2 {
   margin: 15px 0 9px;
   color: #f1e5cb;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
   font-size: clamp(23px, 3vw, 34px);
   font-weight: 500;
   line-height: 1.18;
@@ -421,7 +421,7 @@
 }
 
 .statCard div { display: grid; gap: 4px; }
-.statCard strong { color: #f1e6d0; font-family: Georgia, "Times New Roman", serif; font-size: 24px; font-weight: 500; }
+.statCard strong { color: #f1e6d0; font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif; font-size: 24px; font-weight: 500; }
 .statCard span:not(.statIcon) { color: #9da99f; font-size: 10px; }
 
 .workspace {
@@ -453,7 +453,7 @@
 .albumHeader h2 {
   margin: 7px 0 5px;
   color: #f1e8d7;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
   font-size: 22px;
   font-weight: 500;
 }
@@ -788,7 +788,7 @@
 .deniedCard h1 {
   margin: 0;
   color: #f2ead9;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
   font-size: 28px;
   font-weight: 500;
 }
@@ -848,4 +848,73 @@
   .gardenList { grid-template-columns: 1fr; }
   .albumHeader { flex-direction: column; }
   .footer { flex-direction: column; }
+}
+
+
+/* Clear, Vietnamese-friendly typography and consistent sizing across the admin workspace. */
+.shell {
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.sidebarLabel,
+.panelEyebrow,
+.eyebrow,
+.heroTag {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+}
+
+.sideLink,
+.sideLinkActive {
+  font-size: 13px;
+}
+
+.accountCopy strong { font-size: 13px; }
+.accountCopy span { font-size: 11px; }
+.subtitle { font-size: 14px; }
+.heroCopy p { font-size: 13px; }
+.statCard span:not(.statIcon) { font-size: 12px; }
+
+.panelHeader p:not(.panelEyebrow),
+.albumHeader p:not(.panelEyebrow) {
+  font-size: 12px;
+}
+
+.countPill,
+.albumCount { font-size: 11px; }
+.searchBox input { font-size: 13px; }
+.gardenInfo strong { font-size: 13px; }
+.gardenInfo small,
+.gardenInfo span { font-size: 11px; }
+.dropzone strong { font-size: 14px; }
+.dropzone p,
+.dropzoneActive p { font-size: 12px; }
+.dropzone small { font-size: 10px; }
+.photoToolbar h3 { font-size: 14px; }
+.photoToolbar p,
+.photoToolbar > span { font-size: 11px; }
+.photoCard figcaption span { font-size: 11px; }
+.photoEmpty { font-size: 12px; }
+.photoEmpty strong { font-size: 13px; }
+.photoEmpty p { line-height: 1.7; }
+.footer { font-size: 10px; }
+.deniedCard > p:not(.eyebrow) { font-size: 14px; }
+.primaryLink { font-size: 13px; }
+.backLink { font-size: 12px; }
+
+@media (max-width: 820px) {
+  .sideLink,
+  .sideLinkActive { font-size: 12px; }
+  .gardenInfo small,
+  .gardenInfo span { font-size: 11px; }
+}
+
+@media (max-width: 560px) {
+  .sideLink span,
+  .sideLinkActive span { font-size: 10px; }
+  .photoGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .photoCard figcaption span { font-size: 10px; }
+  .footer { font-size: 10px; }
 }
