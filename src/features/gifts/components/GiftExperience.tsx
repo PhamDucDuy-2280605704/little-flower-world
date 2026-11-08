@@ -500,8 +500,8 @@ function PersonalGardenExperience({
               )}
 
               <FairytalePhotoGallery
-                currentUserId={user.id}
-                adminUserId={FAIRYTALE_GARDEN_ADMIN_USER_ID}
+                gardenId={garden.id}
+                legacyFolderId={isFairytaleGarden ? user.id : undefined}
               />
 
               <p className={styles.progress} role="status">

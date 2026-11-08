@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
+import { FAIRYTALE_GARDEN_ADMIN_USER_ID } from "@/features/garden/data/gardenThemes";
 
 type HomeAuthActionsProps = {
   actionsClassName: string;
@@ -121,6 +122,12 @@ export default function HomeAuthActions({
       <Link href="/gift" className={giftClassName}>
         Xem thử hộp quà
       </Link>
+
+      {user?.id === FAIRYTALE_GARDEN_ADMIN_USER_ID && (
+        <Link href="/admin" className={giftClassName}>
+          Trung tâm quản lý
+        </Link>
+      )}
 
       {error && (
         <p className={messageClassName} role="alert">
