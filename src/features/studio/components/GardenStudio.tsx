@@ -646,7 +646,7 @@ export default function GardenStudio() {
     const deltaX = ((event.clientX - dragging.startX) / rect.width) * 100;
     const deltaDepth = -((event.clientY - dragging.startY) / rect.height) / 0.27;
     const xStep = gridStep;
-    const depthStep = gridStep / 100;
+    const depthStep = gridStep / 27;
     const originMap = new Map(dragging.origins.map((origin) => [origin.id, origin]));
 
     setItems((current) => current.map((item) => {
@@ -670,7 +670,7 @@ export default function GardenStudio() {
     if (ids.length === 0) return;
 
     const step = snapToGrid ? gridStep : 1;
-    const depthStep = step / 100;
+    const depthStep = step / 27;
     const selectedIdSet = new Set(ids);
 
     setItems((current) => current.map((item) => {
@@ -724,11 +724,11 @@ export default function GardenStudio() {
         const shiftDepth = 0.5 - (minDepth + maxDepth) / 2;
         chosen.forEach((item) => nextPositions.set(item.id, {
           x: Math.max(2, Math.min(98, snapCoordinate(item.x + shiftX, gridStep))),
-          depth: Math.max(0, Math.min(1, snapCoordinate(item.depth + shiftDepth, gridStep / 100))),
+          depth: Math.max(0, Math.min(1, snapCoordinate(item.depth + shiftDepth, gridStep / 27))),
         }));
       } else if (mode === "row") {
         const average = chosen.reduce((sum, item) => sum + item.depth, 0) / chosen.length;
-        const depth = Math.max(0, Math.min(1, snapCoordinate(average, gridStep / 100)));
+        const depth = Math.max(0, Math.min(1, snapCoordinate(average, gridStep / 27)));
         chosen.forEach((item) => nextPositions.set(item.id, { x: item.x, depth }));
       } else if (mode === "column") {
         const average = chosen.reduce((sum, item) => sum + item.x, 0) / chosen.length;
@@ -749,7 +749,7 @@ export default function GardenStudio() {
           const value = first + ((last - first) * index) / (sorted.length - 1);
           nextPositions.set(item.id, axis === "x"
             ? { x: snapCoordinate(value, gridStep), depth: item.depth }
-            : { x: item.x, depth: snapCoordinate(value, gridStep / 100) });
+            : { x: item.x, depth: snapCoordinate(value, gridStep / 27) });
         });
       }
 
