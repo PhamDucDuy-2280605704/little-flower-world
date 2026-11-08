@@ -8,3 +8,8 @@
 .close:focus-visible,.previous:focus-visible,.next:focus-visible{outline:3px solid #f1d8a0;outline-offset:3px}
 @media(max-width:600px){.backdrop{padding:7px}.dialog{width:100%;height:min(100%,760px);border-radius:12px}.close,.previous,.next{width:39px;height:39px}.close{top:9px;right:9px}.previous{left:8px}.next{right:8px}.caption{padding:10px 12px;font-size:11px}}
 @media(prefers-reduced-motion:reduce){.backdrop{animation:none}}
+
+
+/* Keep vertical touch scrolling native while allowing horizontal swipe navigation. */
+.dialog { touch-action: pan-y; }
+.image { user-select: none; -webkit-user-drag: none; }

@@ -24,8 +24,8 @@ export default function PhotoLightbox({ images, activeIndex, onClose, onChange }
     document.body.style.overflow = "hidden";
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
-      if (event.key === "ArrowRight") onChange((activeIndex + 1) % images.length);
-      if (event.key === "ArrowLeft") onChange((activeIndex - 1 + images.length) % images.length);
+      if (event.key === "ArrowRight") onChange((currentIndex + 1) % images.length);
+      if (event.key === "ArrowLeft") onChange((currentIndex - 1 + images.length) % images.length);
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => {
@@ -35,6 +35,7 @@ export default function PhotoLightbox({ images, activeIndex, onClose, onChange }
   }, [activeIndex, activeImage, images.length, onChange, onClose]);
 
   if (!activeImage || typeof document === "undefined") return null;
+  const currentIndex = activeIndex ?? 0;
 
   return createPortal(
     <div className={styles.backdrop} role="presentation" onMouseDown={(event) => {
