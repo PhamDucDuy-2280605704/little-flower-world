@@ -271,16 +271,18 @@
 .label,
 .readLabel {
   z-index: 2;
-  padding: 4px 10px;
+  padding: 5px 11px;
   white-space: nowrap;
   border: 1px solid rgba(255, 238, 188, 0.72);
   border-radius: 999px;
   background: rgba(40, 46, 62, 0.74);
   color: #fff2c9;
   box-shadow: 0 3px 10px rgba(14, 25, 35, 0.2);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
   backdrop-filter: blur(5px);
 }
 
@@ -349,38 +351,49 @@
   justify-content: center;
   align-items: center;
   gap: 14px 30px;
-  margin-top: 5px;
+  margin-top: 10px;
 }
 
 .controlGroup {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .controlLabel {
   color: #e8d7b2;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
   font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  font-weight: 650;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
 }
 
 .controlButtons {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 7px;
+  align-items: center;
+  gap: 8px;
 }
 
 .controlButton,
 .controlActive {
-  padding: 8px 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 8px 14px;
   border: 1px solid rgba(215, 190, 145, 0.52);
   border-radius: 999px;
   background: rgba(49, 59, 77, 0.86);
   color: #eee2c8;
-  font: inherit;
-  font-size: 12px;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0;
   white-space: nowrap;
   cursor: pointer;
   transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease;
@@ -396,6 +409,7 @@
   border-color: #e3c18b;
   background: linear-gradient(135deg, #79614f, #66566a);
   color: #fff0ca;
+  font-weight: 650;
   box-shadow: 0 4px 12px rgba(9, 16, 27, 0.2);
 }
 
@@ -451,8 +465,9 @@
 
   .label,
   .readLabel {
-    padding: 3px 7px;
-    font-size: 9px;
+    padding: 4px 8px;
+    font-size: 10px;
+    line-height: 1.3;
   }
 
   .sceneCaption {
@@ -462,12 +477,27 @@
 
   .controls {
     flex-direction: column;
-    gap: 12px;
+    gap: 14px;
   }
 
   .controlGroup {
     flex-direction: column;
-    gap: 6px;
+    gap: 7px;
+  }
+
+  .controlLabel {
+    font-size: 12px;
+  }
+
+  .controlButtons {
+    gap: 7px;
+  }
+
+  .controlButton,
+  .controlActive {
+    min-height: 40px;
+    padding-inline: 13px;
+    font-size: 12px;
   }
 }
 
