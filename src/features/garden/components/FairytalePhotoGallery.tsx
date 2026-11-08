@@ -5,6 +5,8 @@ import { supabase } from "@/lib/supabase";
 import styles from "../styles/FairytalePhotoGallery.module.css";
 
 const BUCKET = "garden-photos";
+// Preserve one upload created under the old test-account folder.
+const LEGACY_TEST_FOLDER = "be6c9d98-2b4e-46a9-a6a0-30b4bbadc6b0";
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const MAX_PHOTOS = 40;
 const ALLOWED_TYPES = new Set([
@@ -15,7 +17,7 @@ const ALLOWED_TYPES = new Set([
   "image/avif",
 ]);
 
-type Photo = { name: string; path: string; url: string };
+type Photo = { name: string; path: string; url: string; createdAt: string };
 
 type Props = {
   currentUserId: string;
@@ -33,45 +35,69 @@ export default function FairytalePhotoGallery({
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
-  // Every signed-in visitor reads from the admin's shared album folder.
+  // Visitors read the shared admin album and the one preserved legacy upload.
   const loadPhotos = useCallback(async () => {
     setLoading(true);
     setError("");
 
-    const { data, error: listError } = await supabase.storage
-      .from(BUCKET)
-      .list(adminUserId, {
-        limit: MAX_PHOTOS,
-        sortBy: { column: "created_at", order: "desc" },
-      });
+    const folders = [adminUserId, LEGACY_TEST_FOLDER];
+    const listings = await Promise.all(
+      folders.map(async (folder) => {
+        const { data, error: listError } = await supabase.storage
+          .from(BUCKET)
+          .list(folder, {
+            limit: MAX_PHOTOS,
+            sortBy: { column: "created_at", order: "desc" },
+          });
+        return { folder, data, error: listError };
+      })
+    );
 
-    if (listError) {
-      console.error("Load shared garden photos error:", listError);
+    const failedListing = listings.find((listing) => listing.error);
+    if (failedListing?.error) {
+      console.error("Load shared garden photos error:", failedListing.error);
       if (isAdmin) setError("Chưa tải được album ảnh. Anh thử tải lại trang nhé.");
       setLoading(false);
       return;
     }
 
-    const files = (data ?? []).filter(
-      (file) =>
-        file.name &&
-        file.id &&
-        ALLOWED_TYPES.has(file.metadata?.mimetype ?? "")
+    const files = listings.flatMap(({ folder, data }) =>
+      (data ?? [])
+        .filter(
+          (file) =>
+            file.name &&
+            file.id &&
+            ALLOWED_TYPES.has(file.metadata?.mimetype ?? "")
+        )
+        .map((file) => ({ folder, file }))
     );
 
     const signedPhotos = await Promise.all(
-      files.map(async (file) => {
-        const path = adminUserId + "/" + file.name;
+      files.map(async ({ folder, file }) => {
+        const path = folder + "/" + file.name;
         const { data: signed, error: signedError } = await supabase.storage
           .from(BUCKET)
           .createSignedUrl(path, 60 * 60);
 
         if (signedError || !signed?.signedUrl) return null;
-        return { name: file.name, path, url: signed.signedUrl };
+        return {
+          name: file.name,
+          path,
+          url: signed.signedUrl,
+          createdAt: file.created_at ?? "",
+        };
       })
     );
 
-    setPhotos(signedPhotos.filter((photo): photo is Photo => photo !== null));
+    const visiblePhotos = signedPhotos
+      .filter((photo): photo is Photo => photo !== null)
+      .sort(
+        (a, b) =>
+          (Date.parse(b.createdAt) || 0) - (Date.parse(a.createdAt) || 0)
+      )
+      .slice(0, MAX_PHOTOS);
+
+    setPhotos(visiblePhotos);
     setLoading(false);
   }, [adminUserId, isAdmin]);
 
