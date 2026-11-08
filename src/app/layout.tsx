@@ -1,19 +1,27 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { Noto_Sans, Geist_Mono } from "next/font/google";
+import { Noto_Sans, Noto_Serif, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Noto_Sans({
-  variable: "--font-geist-sans",
+const bodyFont = Noto_Sans({
+  variable: "--font-body",
   subsets: ["latin", "vietnamese"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const displayFont = Noto_Serif({
+  variable: "--font-display",
+  subsets: ["latin", "vietnamese"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+const monoFont = Geist_Mono({
+  variable: "--font-mono",
   subsets: ["latin"],
+  display: "swap",
 });
 
-// Thông tin hiển thị trên tab trình duyệt và khi chia sẻ link.
 export const metadata: Metadata = {
   title: "Little Flower World",
   description: "Một không gian sáng tác thông điệp, thư và những cuốn sách dành riêng cho người bạn quý mến.",
@@ -21,10 +29,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    // lang="vi" báo cho trình duyệt biết website viết bằng tiếng Việt
     <html
       lang="vi"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${bodyFont.variable} ${displayFont.variable} ${monoFont.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>

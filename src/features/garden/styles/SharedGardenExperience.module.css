@@ -4,7 +4,7 @@
 .loading p{font-size:13px}
 .gateCard{width:min(100%,480px);display:grid;justify-items:center;gap:13px;padding:clamp(24px,5vw,42px);text-align:center;border:1px solid rgba(143,113,74,.2);border-radius:24px;background:#fbf8f1;box-shadow:0 22px 65px rgba(78,58,37,.12)}
 .kicker,.eyebrow{margin:0;color:#a28a62;font-size:9px;font-weight:800;letter-spacing:.17em}
-.gateCard h1{margin:0;color:#2c4031;font-family:Georgia,serif;font-size:clamp(24px,5vw,32px);font-weight:400;line-height:1.25}
+.gateCard h1{margin:0;color:#2c4031;font-family:var(--font-display),Georgia,serif;font-size:clamp(24px,5vw,32px);font-weight:400;line-height:1.25}
 .gateCard>p:not(.kicker){max-width:36ch;margin:0;color:#827563;font-size:13px;line-height:1.7}
 .gateCard form{display:grid;width:100%;gap:9px;margin-top:5px;text-align:left}
 .gateCard form label{color:#58664f;font-size:11px;font-weight:750}
@@ -17,7 +17,7 @@
 .sectionHeading{display:flex;align-items:flex-start;gap:13px;margin-bottom:18px}
 .sectionHeading>span{display:grid;place-items:center;flex:0 0 34px;height:34px;border:1px solid rgba(113,132,91,.18);border-radius:50%;background:#eeeddf;color:#6f805f;font-size:18px}
 .sectionHeading .eyebrow{margin-bottom:4px}
-.sectionHeading h2{margin:0;color:#293d2d;font-family:Georgia,serif;font-size:clamp(22px,3vw,30px);font-weight:400}
+.sectionHeading h2{margin:0;color:#293d2d;font-family:var(--font-display),Georgia,serif;font-size:clamp(22px,3vw,30px);font-weight:400}
 .sectionHeading p:not(.eyebrow){margin:4px 0 0;color:#818274;font-size:11px;line-height:1.65}
 .guestbook form{display:grid;grid-template-columns:1fr 1fr;gap:13px}
 .guestbook label{display:grid;gap:6px;color:#64715c;font-size:10px;font-weight:800;letter-spacing:.04em}
@@ -29,6 +29,6 @@
 .guestbook form>p{grid-column:1/-1;margin:0;color:#718054;font-size:11px}
 .approvedNotes{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:22px}
 .approvedNotes blockquote{margin:0;padding:14px 16px;border-left:2px solid #a7ad84;background:#efede2;color:#63543f}
-.approvedNotes blockquote p{margin:0;font-family:Georgia,serif;font-size:14px;line-height:1.7}
+.approvedNotes blockquote p{margin:0;font-family:var(--font-display),Georgia,serif;font-size:14px;line-height:1.7}
 .approvedNotes footer{margin-top:7px;color:#917a59;font-size:10px}
 @media(max-width:640px){.guestbook{margin-top:38px}.guestbook form{grid-template-columns:1fr}.guestbook label:nth-child(2){grid-column:auto;grid-row:auto}.guestbook textarea{min-height:100px}}

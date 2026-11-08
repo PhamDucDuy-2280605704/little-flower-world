@@ -9,7 +9,7 @@
     radial-gradient(circle at 3% 94%, rgba(193, 160, 112, 0.14), transparent 28%),
     #101a22;
   color: #eee9dc;
-  font-family: var(--font-geist-sans), sans-serif;
+  font-family: var(--font-body), sans-serif;
 }
 
 .orbOne,
@@ -89,7 +89,7 @@
 }
 
 .brand strong {
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-body), Arial, Helvetica, sans-serif;
   font-size: 16px;
   font-weight: 600;
   letter-spacing: 0.01em;
@@ -161,7 +161,7 @@
   border-radius: 12px;
   background: linear-gradient(145deg, #c4a16c, #647e68);
   color: #17231e;
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-body), Arial, Helvetica, sans-serif;
   font-weight: 800;
 }
 
@@ -218,7 +218,7 @@
 .topbar h1 {
   margin: 0;
   color: #f2ead9;
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-body), Arial, Helvetica, sans-serif;
   font-size: clamp(26px, 3vw, 36px);
   font-weight: 500;
   letter-spacing: 0.01em;
@@ -292,7 +292,7 @@
 .heroCopy h2 {
   margin: 15px 0 9px;
   color: #f1e5cb;
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-body), Arial, Helvetica, sans-serif;
   font-size: clamp(23px, 3vw, 34px);
   font-weight: 500;
   line-height: 1.18;
@@ -354,7 +354,7 @@
 }
 
 .statCard div { display: grid; gap: 4px; }
-.statCard strong { color: #f1e6d0; font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif; font-size: 24px; font-weight: 500; }
+.statCard strong { color: #f1e6d0; font-family: var(--font-body), Arial, Helvetica, sans-serif; font-size: 24px; font-weight: 500; }
 .statCard span:not(.statIcon) { color: #9da99f; font-size: 10px; }
 
 .workspace {
@@ -386,7 +386,7 @@
 .albumHeader h2 {
   margin: 7px 0 5px;
   color: #f1e8d7;
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-body), Arial, Helvetica, sans-serif;
   font-size: 22px;
   font-weight: 500;
 }
@@ -699,7 +699,7 @@
   padding: 24px;
   background: #101a22;
   color: #e9e2d2;
-  font-family: var(--font-geist-sans), sans-serif;
+  font-family: var(--font-body), sans-serif;
   text-align: center;
 }
 
@@ -721,7 +721,7 @@
 .deniedCard h1 {
   margin: 0;
   color: #f2ead9;
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-body), Arial, Helvetica, sans-serif;
   font-size: 28px;
   font-weight: 500;
 }
@@ -786,7 +786,7 @@
 
 /* Clear, Vietnamese-friendly typography and consistent sizing across the admin workspace. */
 .shell {
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-body), Arial, Helvetica, sans-serif;
   font-size: 14px;
   line-height: 1.55;
 }
@@ -877,13 +877,13 @@
 .avatar{border-radius:12px;background:linear-gradient(145deg,#e4c995,#aeb58a);color:#46503a}
 .accountCopy strong{color:#fff4dc}.accountCopy span{color:#d1d1ba}.adminDot{background:#d5dba4;box-shadow:0 0 9px rgba(220,224,165,.4)}
 .main{color:#4b4033}.eyebrow{color:#9a7549}.eyebrow span{color:#89916a}
-.topbar h1{color:#49382b;font-family:Georgia,"Times New Roman",serif;font-weight:500;letter-spacing:-.03em}
+.topbar h1{color:#49382b;font-family:var(--font-display),Georgia,"Times New Roman",serif;font-weight:500;letter-spacing:-.03em}
 .subtitle{color:#817565}
 .secondaryLink,.logoutButton{border-color:rgba(139,109,70,.24);color:#71583c}
 .secondaryLink{background:rgba(239,230,211,.56)}.logoutButton{background:rgba(162,103,80,.08);color:#985a49}
 .secondaryLink:hover,.logoutButton:hover{border-color:rgba(139,109,70,.55)}
 .hero{border-color:rgba(143,113,74,.2);border-radius:20px 28px 20px 25px;background:radial-gradient(ellipse at 78% 50%,rgba(255,251,226,.56),transparent 35%),linear-gradient(110deg,#e5dcc5,#d4d5b9 52%,#c7c6a7);box-shadow:inset 0 1px rgba(255,255,255,.5),0 12px 26px rgba(85,69,42,.07)}
-.heroTag{color:#80623f}.heroCopy h2{color:#4d3b29;font-family:Georgia,"Times New Roman",serif;font-weight:500;letter-spacing:-.03em}
+.heroTag{color:#80623f}.heroCopy h2{color:#4d3b29;font-family:var(--font-display),Georgia,"Times New Roman",serif;font-weight:500;letter-spacing:-.03em}
 .heroCopy h2 em{color:#8b6a43}.heroCopy p{color:#6f6c56}
 .heroMoon{background:radial-gradient(circle at 33% 30%,#fff9df,#c5a16a);box-shadow:0 0 32px rgba(191,157,99,.22)}
 .heroStem{background:linear-gradient(180deg,#a58b5b,#71805a)}
@@ -892,7 +892,7 @@
 .statCard{border:1px solid rgba(143,113,74,.17);border-radius:15px 19px 15px 18px;background:rgba(255,251,242,.82);box-shadow:0 8px 20px rgba(78,58,37,.055),inset 0 1px rgba(255,255,255,.78)}
 .statIcon{color:#9b7449}.statCard strong{color:#4b4033}.statCard span:not(.statIcon){color:#857867}
 .albumPanel{border:1px solid rgba(143,113,74,.18);border-radius:18px 24px 18px 22px;background:rgba(255,251,242,.82);box-shadow:0 12px 28px rgba(78,58,37,.06),inset 0 1px rgba(255,255,255,.75)}
-.albumHeader h2,.photoToolbar h3{color:#49382b;font-family:Georgia,"Times New Roman",serif;font-weight:500}
+.albumHeader h2,.photoToolbar h3{color:#49382b;font-family:var(--font-display),Georgia,"Times New Roman",serif;font-weight:500}
 .albumHeader p:not(.panelEyebrow),.photoToolbar p{color:#837663}
 .albumCount{background:#eee4d1;color:#75583a}
 .searchBox{border-color:rgba(139,109,70,.2);background:#fffdf7}.searchBox span{color:#94714b}.searchBox input{color:#49382b}.searchBox input::placeholder{color:#aa9d88}
@@ -913,7 +913,7 @@
 .errorBanner{background:#f8e8df;border-color:rgba(177,91,75,.22);color:#9c483b}
 .footer{color:#9a8d79}.deniedPage,.loadingPage{color:#4b4033}.deniedMark{color:#a77b4d}
 .deniedCard{border-color:rgba(143,113,74,.2);background:rgba(255,251,242,.94);box-shadow:0 24px 65px rgba(78,58,37,.12)}
-.deniedCard h1{color:#49382b;font-family:Georgia,"Times New Roman",serif;font-weight:500}.deniedCard>p:not(.eyebrow){color:#817565}
+.deniedCard h1{color:#49382b;font-family:var(--font-display),Georgia,"Times New Roman",serif;font-weight:500}.deniedCard>p:not(.eyebrow){color:#817565}
 .primaryLink{border-color:#80603e;background:linear-gradient(135deg,#a77b4d,#775638);color:#fff8e9}.backLink{color:#89643f}
 .photoOpenButton>span{background:rgba(67,49,32,.78)}.photoOpenButton:focus-visible{outline-color:#c59a61}
 @media(max-width:820px){.sidebar{background:linear-gradient(180deg,#5c634a,#48533d)}.app{border-radius:20px}}

@@ -1,6 +1,6 @@
-.statePage{min-height:100vh;display:grid;place-items:center;padding:20px;background:var(--garden-page-bg);color:#3d503e;font-family:var(--font-geist-sans),"Noto Sans",Arial,sans-serif}
+.statePage{min-height:100vh;display:grid;place-items:center;padding:20px;background:var(--garden-page-bg);color:#3d503e;font-family:var(--font-body),"Noto Sans",Arial,sans-serif}
 .stateCard{width:min(100%,480px);display:grid;justify-items:center;gap:12px;padding:clamp(26px,5vw,44px);border:1px solid rgba(89,111,79,.2);background:#fbf8f1;box-shadow:0 22px 65px rgba(62,76,50,.1);text-align:center}
 .stateKicker{margin:0;color:#a28a62;font-size:9px;font-weight:850;letter-spacing:.2em}
-.stateCard h1{margin:0;color:#293d2d;font-family:Georgia,serif;font-size:clamp(25px,5vw,34px);font-weight:400;line-height:1.25}
+.stateCard h1{margin:0;color:#293d2d;font-family:var(--font-display),Georgia,serif;font-size:clamp(25px,5vw,34px);font-weight:400;line-height:1.25}
 .stateCard p:not(.stateKicker){margin:0;color:#747b6d;font-size:13px;line-height:1.7}
 .stateCard a{margin-top:5px;color:#5d7658;font-size:11px;font-weight:800;text-underline-offset:4px}
