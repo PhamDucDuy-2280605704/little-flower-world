@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import GuestPortal from "@/features/garden/components/GuestPortal";
 
 export const metadata: Metadata = {
-  title: "Cổng khách · Little Flower World",
-  description: "Mở lời mời riêng để khám phá một khu vườn được chia sẻ.",
+  title: "Cổng người đọc · Little Flower World",
+  description: "Mở liên kết riêng để đọc thông điệp, bức thư hoặc cuốn sách được gửi tặng.",
   robots: { index: false, follow: false },
 };
 

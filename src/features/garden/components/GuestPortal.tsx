@@ -28,7 +28,7 @@ export default function GuestPortal() {
     event.preventDefault();
     const slug = extractGardenSlug(invite);
     if (!slug) {
-      setError("Anh/chị dán link lời mời dạng /g/ten-khu-vuon hoặc nhập mã khu vườn nhé.");
+      setError("Anh/chị dán link lời mời dạng /g/ten-tac-pham hoặc nhập mã lời mời nhé.");
       return;
     }
     setError("");
@@ -38,31 +38,27 @@ export default function GuestPortal() {
   return (
     <main className={styles.page}>
       <header className={styles.header}>
-        <Link href="/" className={styles.brand}><span>✿</span><strong>Little Flower World</strong></Link>
+        <Link href="/" className={styles.brand}><span>▤</span><strong>Little Flower World</strong></Link>
         <span className={styles.areaLabel}>KHU VỰC KHÁCH</span>
       </header>
       <section className={styles.card}>
-        <div className={styles.illustration} aria-hidden="true">
-          <span className={styles.moon} />
-          <span className={styles.sparkle}>✧</span>
-          <span className={styles.stem} />
-          <span className={styles.flower}>✿</span>
-          <span className={styles.ground} />
+        <div className={styles.illustration} role="img" aria-label="Ảnh một cuốn sách đang mở trên bàn gỗ dưới ánh sáng tự nhiên">
+          <span className={styles.illustrationLabel}>A STORY, WAITING TO BE READ</span>
         </div>
         <div className={styles.content}>
-          <p className={styles.eyebrow}>A PRIVATE GARDEN INVITATION</p>
+          <p className={styles.eyebrow}>A PRIVATE STORY INVITATION</p>
           <h1>Bạn nhận được một lời mời?</h1>
           <p className={styles.description}>
-            Mở đường link khu vườn mà người gửi đã chia sẻ. Bạn có thể đọc câu chuyện,
+            Mở đường link tác phẩm mà người gửi đã chia sẻ. Bạn có thể lật từng trang,
             xem album và để lại lời nhắn mà không cần tạo tài khoản.
           </p>
           <form onSubmit={handleSubmit}>
-            <label htmlFor="garden-invite">Link lời mời hoặc mã khu vườn</label>
+            <label htmlFor="story-invite">Link tác phẩm hoặc mã lời mời</label>
             <input
-              id="garden-invite"
+              id="story-invite"
               value={invite}
               onChange={(event) => { setInvite(event.target.value); setError(""); }}
-              placeholder="Dán link /g/ten-khu-vuon hoặc mã lời mời"
+              placeholder="Dán link /g/ten-tac-pham hoặc mã lời mời"
               autoComplete="url"
               aria-invalid={Boolean(error)}
               aria-describedby={error ? "invite-error" : "invite-help"}
@@ -70,7 +66,7 @@ export default function GuestPortal() {
             {error
               ? <p className={styles.error} id="invite-error" role="alert">{error}</p>
               : <p className={styles.help} id="invite-help">Nếu bạn đã có link mời, chỉ cần mở trực tiếp link đó cũng được.</p>}
-            <button type="submit" disabled={!invite.trim()}>Mở khu vườn <span aria-hidden="true">↗</span></button>
+            <button type="submit" disabled={!invite.trim()}>Mở tác phẩm <span aria-hidden="true">↗</span></button>
           </form>
           <div className={styles.footerLinks}>
             <Link href="/">Về trang chủ</Link>

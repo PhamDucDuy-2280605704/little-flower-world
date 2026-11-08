@@ -30,7 +30,6 @@ type GardenRow = {
   name: string;
   introduction: string | null;
   created_at: string;
-  garden_items: Array<{ id: string }> | null;
   garden_chapters: Array<{ chapter_id: string }> | null;
 };
 
@@ -40,7 +39,6 @@ type Garden = {
   name: string;
   introduction: string;
   createdAt: string;
-  flowerCount: number;
   chapterCount: number;
   photoCount: number;
 };
@@ -105,12 +103,12 @@ export default function AdminDashboard() {
 
     const { data, error: gardenError } = await adminSupabase
       .from("gardens")
-      .select("id, owner_id, name, introduction, created_at, garden_items(id), garden_chapters(chapter_id)")
+      .select("id, owner_id, name, introduction, created_at, garden_chapters(chapter_id)")
       .order("created_at", { ascending: false });
 
     if (gardenError) {
       console.error("Load all gardens failed:", gardenError);
-      setError("Chưa tải được danh sách khu vườn. Anh thử tải lại trang nhé.");
+      setError("Chưa tải được danh sách tác phẩm. Anh thử tải lại trang nhé.");
       setGardensLoading(false);
       return;
     }
@@ -134,7 +132,6 @@ export default function AdminDashboard() {
         name: row.name,
         introduction: row.introduction ?? "",
         createdAt: row.created_at,
-        flowerCount: row.garden_items?.length ?? 0,
         chapterCount: row.garden_chapters?.length ?? 0,
         photoCount: folderResults.reduce((sum, count) => sum + count, 0),
       } satisfies Garden;
@@ -177,7 +174,7 @@ export default function AdminDashboard() {
     const failed = listings.find((listing) => listing.error);
     if (failed?.error) {
       console.error("Load garden album failed:", failed.error);
-      setError("Không tải được kho ảnh của khu vườn này.");
+      setError("Không tải được kho ảnh của tác phẩm này.");
       setPhotos([]);
       setPhotosLoading(false);
       return;
@@ -231,7 +228,7 @@ export default function AdminDashboard() {
   }, [gardens, search]);
 
   const totalPhotos = gardens.reduce((sum, garden) => sum + garden.photoCount, 0);
-  const totalFlowers = gardens.reduce((sum, garden) => sum + garden.flowerCount, 0);
+  const totalChapters = gardens.reduce((sum, garden) => sum + garden.chapterCount, 0);
 
   async function uploadFiles(files: File[]) {
     if (!selectedGarden || files.length === 0 || uploading) return;
@@ -240,7 +237,7 @@ export default function AdminDashboard() {
     setNotice("");
 
     if (photos.length + files.length > MAX_PHOTOS) {
-      setError("Mỗi khu vườn lưu tối đa " + MAX_PHOTOS + " ảnh nhé anh.");
+      setError("Mỗi tác phẩm lưu tối đa " + MAX_PHOTOS + " ảnh nhé anh.");
       return;
     }
 
@@ -278,7 +275,7 @@ export default function AdminDashboard() {
     }
 
     setUploading(false);
-    setNotice(files.length === 1 ? "Đã thêm ảnh vào kho của khu vườn 🌷" : "Đã thêm " + files.length + " ảnh vào kho 🌷");
+    setNotice(files.length === 1 ? "Đã thêm ảnh vào kho của tác phẩm 🌷" : "Đã thêm " + files.length + " ảnh vào kho 🌷");
     await loadAlbum(selectedGarden);
     await loadGardens();
   }
@@ -298,7 +295,7 @@ export default function AdminDashboard() {
   }
 
   async function deletePhoto(photo: Photo) {
-    if (!window.confirm("Xoá ảnh này khỏi kho của khu vườn?")) return;
+    if (!window.confirm("Xoá ảnh này khỏi kho của tác phẩm?")) return;
 
     setError("");
     setNotice("");
@@ -313,7 +310,7 @@ export default function AdminDashboard() {
     }
 
     setPhotos((current) => current.filter((item) => item.path !== photo.path));
-    setNotice("Đã xoá ảnh khỏi kho của khu vườn.");
+    setNotice("Đã xoá ảnh khỏi kho của tác phẩm.");
     await loadGardens();
   }
 
@@ -329,7 +326,7 @@ export default function AdminDashboard() {
   if (authState === "checking") {
     return (
       <main className={styles.loadingPage}>
-        <div className={styles.loadingMark}>✿</div>
+        <div className={styles.loadingMark}>▤</div>
         <p>Đang mở không gian quản lý...</p>
       </main>
     );
@@ -339,7 +336,7 @@ export default function AdminDashboard() {
     return (
       <main className={styles.deniedPage}>
         <div className={styles.deniedCard}>
-          <span className={styles.deniedMark}>✿</span>
+          <span className={styles.deniedMark}>▤</span>
           <p className={styles.eyebrow}>LITTLE FLOWER WORLD</p>
           <h1>Khu vực dành riêng cho Admin</h1>
           <p>Anh cần đăng nhập bằng tài khoản quản trị để mở trung tâm này.</p>
@@ -357,7 +354,7 @@ export default function AdminDashboard() {
       <div className={styles.app}>
         <aside className={styles.sidebar}>
           <Link href="/" className={styles.brand}>
-            <span className={styles.brandMark}>✿</span>
+            <span className={styles.brandMark}>▤</span>
             <span>
               <strong>Little Flower</strong>
               <small>WORLD STUDIO</small>
@@ -367,7 +364,7 @@ export default function AdminDashboard() {
           <div className={styles.sidebarSection}>
             <p className={styles.sidebarLabel}>KHU VỰC QUẢN TRỊ</p>
             <a href="#overview" className={styles.sideLinkActive}>⌂ <span>Tổng quan</span></a>
-            <a href="#garden-list" className={styles.sideLink}>❀ <span>Quản lý khu vườn</span></a>
+            <a href="#garden-list" className={styles.sideLink}>▤ <span>Quản lý tác phẩm</span></a>
             <a href="#photo-library" className={styles.sideLink}>▧ <span>Kho ảnh riêng</span></a>
             <Link href="/studio" className={styles.sideLink}>✎ <span>Creator Studio</span></Link>
             <Link href="/" className={styles.sideLink}>⌂ <span>Trang chủ</span></Link>
@@ -376,7 +373,7 @@ export default function AdminDashboard() {
           <div className={styles.sidebarBottom}>
             <div className={styles.avatar}>D</div>
             <div className={styles.accountCopy}>
-              <strong>Garden Admin</strong>
+              <strong>Story Admin</strong>
               <span>{userEmail}</span>
             </div>
             <span className={styles.adminDot} title="Admin đang hoạt động" />
@@ -388,7 +385,7 @@ export default function AdminDashboard() {
             <div>
               <p className={styles.eyebrow}>KHU VỰC QUẢN TRỊ <span>·</span> ADMIN CENTER</p>
               <h1>Trung tâm quản lý</h1>
-              <p className={styles.subtitle}>Mỗi khu vườn có một album riêng, mọi kỷ niệm đều ở đúng nơi.</p>
+              <p className={styles.subtitle}>Mỗi tác phẩm có một album riêng, mọi kỷ niệm đều ở đúng nơi.</p>
             </div>
             <div className={styles.topActions}>
               <Link href="/studio" className={styles.secondaryLink}>Mở Creator Studio</Link>
@@ -399,24 +396,16 @@ export default function AdminDashboard() {
           <section className={styles.hero} id="overview">
             <div className={styles.heroCopy}>
               <span className={styles.heroTag}>✦ YOUR PRIVATE WORKSPACE</span>
-              <h2>Chăm chút từng khu vườn,<br /><em>lưu giữ từng khoảnh khắc.</em></h2>
-              <p>Chọn một khu vườn bên dưới để xem và quản lý kho ảnh riêng của nơi ấy.</p>
+              <h2>Quản lý những câu chuyện,<br /><em>lưu giữ từng khoảnh khắc.</em></h2>
+              <p>Chọn một tác phẩm bên dưới để quản lý kho ảnh và nội dung đã lưu.</p>
             </div>
-            <div className={styles.heroArt} aria-hidden="true">
-              <span className={styles.heroMoon} />
-              <span className={styles.heroStem} />
-              <span className={styles.heroPetalOne} />
-              <span className={styles.heroPetalTwo} />
-              <span className={styles.heroLeafOne} />
-              <span className={styles.heroLeafTwo} />
-              <span className={styles.heroSparkle}>✧</span>
-            </div>
+            <div className={styles.heroArt} role="img" aria-label="Ảnh một cuốn sách mở trên bàn dưới ánh sáng tự nhiên" />
           </section>
 
           <section className={styles.stats} aria-label="Thống kê">
             <article className={styles.statCard}>
-              <span className={styles.statIcon}>✿</span>
-              <div><strong>{gardens.length}</strong><span>Khu vườn</span></div>
+              <span className={styles.statIcon}>▤</span>
+              <div><strong>{gardens.length}</strong><span>Tác phẩm</span></div>
             </article>
             <article className={styles.statCard}>
               <span className={styles.statIcon}>▧</span>
@@ -424,7 +413,7 @@ export default function AdminDashboard() {
             </article>
             <article className={styles.statCard}>
               <span className={styles.statIcon}>✧</span>
-              <div><strong>{totalFlowers}</strong><span>Bông hoa</span></div>
+              <div><strong>{totalChapters}</strong><span>Chương truyện</span></div>
             </article>
           </section>
 
@@ -435,11 +424,11 @@ export default function AdminDashboard() {
             <div className={styles.gardenPanel}>
               <div className={styles.panelHeader}>
                 <div>
-                  <p className={styles.panelEyebrow}>GARDEN COLLECTION</p>
-                  <h2>Các khu vườn</h2>
-                  <p>Chọn khu vườn anh muốn quản lý.</p>
+                  <p className={styles.panelEyebrow}>STORY COLLECTION</p>
+                  <h2>Các tác phẩm</h2>
+                  <p>Chọn tác phẩm anh muốn quản lý.</p>
                 </div>
-                <span className={styles.countPill}>{gardens.length} vườn</span>
+                <span className={styles.countPill}>{gardens.length} tác phẩm</span>
               </div>
 
               <label className={styles.searchBox}>
@@ -447,15 +436,15 @@ export default function AdminDashboard() {
                 <input
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Tìm khu vườn..."
-                  aria-label="Tìm khu vườn"
+                  placeholder="Tìm tác phẩm..."
+                  aria-label="Tìm tác phẩm"
                 />
               </label>
 
               {gardensLoading ? (
-                <div className={styles.panelEmpty}>Đang tải danh sách vườn...</div>
+                <div className={styles.panelEmpty}>Đang tải danh sách tác phẩm...</div>
               ) : filteredGardens.length === 0 ? (
-                <div className={styles.panelEmpty}>Không tìm thấy khu vườn phù hợp.</div>
+                <div className={styles.panelEmpty}>Không tìm thấy tác phẩm phù hợp.</div>
               ) : (
                 <div className={styles.gardenList}>
                   {filteredGardens.map((garden, index) => {
@@ -469,13 +458,13 @@ export default function AdminDashboard() {
                         onClick={() => setSelectedGardenId(garden.id)}
                       >
                         <span className={styles.gardenThumb}>
-                          {isTestGarden ? "✧" : "✿"}
+                          {isTestGarden ? "▤" : "▤"}
                           <i>{String(index + 1).padStart(2, "0")}</i>
                         </span>
                         <span className={styles.gardenInfo}>
                           <strong>{garden.name}</strong>
-                          <small>{garden.ownerId === FAIRYTALE_GARDEN_ADMIN_USER_ID ? "Vườn của Admin" : "Vườn khách"}</small>
-                          <span>{garden.photoCount} ảnh <b>·</b> {garden.flowerCount} hoa</span>
+                          <small>{garden.ownerId === FAIRYTALE_GARDEN_ADMIN_USER_ID ? "Tác phẩm của Admin" : "Tác phẩm khách"}</small>
+                          <span>{garden.photoCount} ảnh <b>·</b> {garden.chapterCount} chương</span>
                         </span>
                         <span className={styles.gardenArrow}>›</span>
                       </button>
@@ -492,7 +481,7 @@ export default function AdminDashboard() {
                     <div>
                       <p className={styles.panelEyebrow}>PHOTO LIBRARY</p>
                       <h2>{selectedGarden.name}</h2>
-                      <p>{selectedGarden.introduction || "Khoảnh khắc của khu vườn này."}</p>
+                      <p>{selectedGarden.introduction || "Khoảnh khắc của tác phẩm này."}</p>
                     </div>
                     <span className={styles.albumCount}>{photos.length} / {MAX_PHOTOS} ảnh</span>
                   </div>
@@ -506,7 +495,7 @@ export default function AdminDashboard() {
                     onDrop={handleDrop}
                   >
                     <span className={styles.uploadMark}>↑</span>
-                    <strong>{uploading ? "Đang đưa ảnh vào khu vườn..." : "Thêm kỷ niệm vào khu vườn"}</strong>
+                    <strong>{uploading ? "Đang đưa ảnh vào tác phẩm..." : "Thêm kỷ niệm vào tác phẩm"}</strong>
                     <p>Kéo ảnh thả vào đây hoặc chọn trực tiếp từ máy tính.</p>
                     <label className={styles.uploadButton}>
                       Chọn ảnh từ máy
@@ -524,8 +513,8 @@ export default function AdminDashboard() {
 
                   <div className={styles.photoToolbar}>
                     <div>
-                      <h3>Ảnh trong khu vườn</h3>
-                      <p>Chỉ những ảnh thuộc khu vườn đang chọn được hiển thị ở đây.</p>
+                      <h3>Ảnh trong tác phẩm</h3>
+                      <p>Chỉ những ảnh thuộc tác phẩm đang chọn được hiển thị ở đây.</p>
                     </div>
                     <span>{photos.length} tệp</span>
                   </div>
@@ -534,9 +523,9 @@ export default function AdminDashboard() {
                     <div className={styles.photoEmpty}>Đang mở kho ảnh...</div>
                   ) : photos.length === 0 ? (
                     <div className={styles.photoEmpty}>
-                      <span>✿</span>
+                      <span>▤</span>
                       <strong>Kho ảnh còn trống</strong>
-                      <p>Thêm bức ảnh đầu tiên để lưu giữ kỷ niệm ở khu vườn này.</p>
+                      <p>Thêm bức ảnh đầu tiên để lưu giữ kỷ niệm ở tác phẩm này.</p>
                     </div>
                   ) : (
                     <div className={styles.photoGrid}>
@@ -568,8 +557,8 @@ export default function AdminDashboard() {
                 </>
               ) : (
                 <div className={styles.photoEmpty}>
-                  <span>✿</span>
-                  <strong>Chọn một khu vườn</strong>
+                  <span>▤</span>
+                  <strong>Chọn một tác phẩm</strong>
                   <p>Kho ảnh riêng sẽ mở ở đây.</p>
                 </div>
               )}
@@ -577,8 +566,8 @@ export default function AdminDashboard() {
           </section>
 
           <footer className={styles.footer}>
-            <span>✿ Little Flower World</span>
-            <span>Quản lý riêng tư · Mỗi vườn một album</span>
+            <span>▤ Little Flower World</span>
+            <span>Quản lý riêng tư · Mỗi tác phẩm một album</span>
           </footer>
         </div>
       </div>

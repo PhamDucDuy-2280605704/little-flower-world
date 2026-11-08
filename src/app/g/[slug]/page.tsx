@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import SharedGardenExperience from "@/features/garden/components/SharedGardenExperience";
 
 export const metadata: Metadata = {
-  title: "Một khu vườn đang chờ bạn · Little Flower World",
-  description: "Bước vào một khu vườn nhỏ, đánh thức hoa và khám phá câu chuyện được gửi riêng cho bạn.",
+  title: "Một tác phẩm dành riêng cho bạn · Little Flower World",
+  description: "Mở một cuốn sách riêng, lật từng trang và đọc câu chuyện được gửi tặng bạn.",
   robots: { index: false, follow: false },
 };
 

@@ -314,80 +314,12 @@
 .heroArt {
   position: absolute;
   top: 0;
-  right: 7%;
-  width: 220px;
+  right: 2%;
+  width: min(34%, 360px);
   height: 100%;
-  opacity: 0.9;
-}
-
-.heroMoon {
-  position: absolute;
-  top: 27px;
-  right: 43px;
-  width: 57px;
-  height: 57px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 33% 30%, #fff2c7, #cda56c);
-  box-shadow: 0 0 36px rgba(226, 190, 124, 0.27);
-}
-
-.heroStem {
-  position: absolute;
-  bottom: 26px;
-  left: 102px;
-  width: 2px;
-  height: 119px;
-  border-radius: 50%;
-  background: linear-gradient(180deg, #b9a276, #557b61);
-  transform: rotate(-8deg);
-}
-
-.heroPetalOne,
-.heroPetalTwo {
-  position: absolute;
-  left: 75px;
-  top: 52px;
-  width: 58px;
-  height: 83px;
-  border-radius: 80% 20% 70% 30%;
-  background: linear-gradient(145deg, #f0d9a8, #b78d61 70%);
-  box-shadow: 0 0 30px rgba(229, 194, 137, 0.13);
-  transform: rotate(-35deg);
-}
-
-.heroPetalTwo {
-  left: 104px;
-  top: 61px;
-  width: 54px;
-  height: 78px;
-  background: linear-gradient(145deg, #e2c7a1, #947a6a 75%);
-  transform: rotate(27deg) scaleX(-1);
-}
-
-.heroLeafOne,
-.heroLeafTwo {
-  position: absolute;
-  left: 50px;
-  bottom: 56px;
-  width: 68px;
-  height: 30px;
-  border-radius: 100% 0 100% 0;
-  background: linear-gradient(130deg, #8aa47c, #416d58);
-  transform: rotate(-23deg);
-}
-
-.heroLeafTwo {
-  left: 102px;
-  bottom: 72px;
-  transform: rotate(23deg) scaleX(-1);
-}
-
-.heroSparkle {
-  position: absolute;
-  top: 48px;
-  right: 20px;
-  color: #f0d69d;
-  font-size: 26px;
+  border-radius: 0 22px 22px 0;
+  background: linear-gradient(90deg, rgba(34,49,43,.12), transparent 25%), url("https://images.pexels.com/photos/19561464/pexels-photo-19561464/free-photo-of-open-book-on-desk.jpeg?auto=compress&dpr=1&h=750&w=1260") center 46% / cover no-repeat;
+  opacity: .92;
 }
 
 .stats {

@@ -1,26 +1,22 @@
-.page{min-height:100vh;display:grid;align-content:start;justify-items:center;gap:clamp(32px,7vh,76px);padding:22px clamp(14px,4vw,52px) 58px;background:radial-gradient(circle at 82% 13%,rgba(219,207,170,.22),transparent 25%),var(--garden-page-bg);color:#49382b}
+.page{min-height:100vh;display:grid;align-content:start;justify-items:center;gap:clamp(28px,6vh,65px);padding:22px clamp(14px,4vw,52px) 58px;background:radial-gradient(circle at 82% 13%,rgba(225,239,214,.55),transparent 25%),linear-gradient(180deg,#f8fbf3,#fffaf1);color:#36503a}
 .header{width:min(1040px,100%);display:flex;align-items:center;justify-content:space-between;gap:14px}
-.brand{display:inline-flex;align-items:center;gap:10px;color:#5c4831;font-size:13px;font-weight:800;text-decoration:none}
-.brand span{display:grid;place-items:center;width:36px;height:36px;border:1px solid rgba(142,112,73,.2);border-radius:12px;background:#f3ead9;color:#8d704c;font-size:20px}
-.areaLabel{padding:7px 11px;border:1px solid rgba(143,113,74,.2);border-radius:999px;background:rgba(255,251,242,.7);color:#7d835d;font-size:9px;font-weight:850;letter-spacing:.13em}
-.card{width:min(100%,960px);display:grid;grid-template-columns:minmax(230px,.8fr) minmax(0,1.2fr);overflow:hidden;border:1px solid rgba(143,113,74,.2);border-radius:28px 38px 28px 35px;background:rgba(255,251,242,.9);box-shadow:0 28px 70px rgba(78,58,37,.1)}
-.illustration{position:relative;min-height:440px;overflow:hidden;background:radial-gradient(ellipse at 50% 28%,rgba(255,247,210,.9),transparent 36%),linear-gradient(180deg,#d9ddc4,#b6c19b 58%,#788b62)}
-.moon{position:absolute;top:12%;right:16%;width:70px;aspect-ratio:1;border-radius:50%;background:#f6e8bd;box-shadow:0 0 50px rgba(248,230,177,.6)}
-.sparkle{position:absolute;top:22%;left:22%;color:rgba(255,252,231,.9);font-size:35px}
-.stem{position:absolute;left:51%;bottom:0;width:9px;height:54%;border-radius:99px;background:linear-gradient(90deg,#3e7547,#9bc27b,#47794e);transform:rotate(7deg);transform-origin:bottom}
-.flower{position:absolute;left:50%;bottom:46%;color:#fff3d0;font-size:118px;line-height:1;text-shadow:0 4px 14px rgba(80,78,48,.18);transform:translateX(-50%)}
-.ground{position:absolute;right:-20%;bottom:-22%;width:145%;height:44%;border-radius:50% 50% 0 0;background:linear-gradient(180deg,rgba(98,121,77,.55),#61764e)}
+.brand{display:inline-flex;align-items:center;gap:10px;color:#3c5b43;font-size:13px;font-weight:800;text-decoration:none}
+.brand span{display:grid;place-items:center;width:36px;height:36px;border-radius:12px;background:#e8f1e1;color:#648760;font-family:Georgia,serif;font-size:19px}
+.areaLabel{padding:7px 11px;border:1px solid rgba(103,139,96,.24);border-radius:999px;background:rgba(255,255,250,.76);color:#708566;font-size:9px;font-weight:850;letter-spacing:.13em}
+.card{width:min(100%,960px);display:grid;grid-template-columns:minmax(230px,.95fr) minmax(0,1.05fr);overflow:hidden;border:1px solid rgba(107,139,98,.22);border-radius:27px;background:rgba(255,255,250,.92);box-shadow:0 28px 70px rgba(57,86,56,.1)}
+.illustration{position:relative;min-height:440px;overflow:hidden;background:#e9e8dc url("https://images.pexels.com/photos/19561464/pexels-photo-19561464/free-photo-of-open-book-on-desk.jpeg?auto=compress&dpr=1&h=750&w=1260") 48% 48%/cover no-repeat}
+.illustration:after{content:"";position:absolute;inset:58% 0 0;background:linear-gradient(180deg,transparent,rgba(31,55,39,.42))}
+.illustrationLabel{position:absolute;z-index:1;left:16px;bottom:15px;padding:7px 11px;border-radius:999px;background:rgba(255,255,246,.88);color:#637e5c;font-size:8px;font-weight:850;letter-spacing:.14em}
 .content{display:grid;align-content:center;padding:clamp(28px,5vw,58px)}
-.eyebrow{margin:0 0 10px;color:#a27a4b;font-size:9px;font-weight:850;letter-spacing:.18em}
-.content h1{margin:0;color:#4d3929;font-family:Georgia,"Times New Roman",serif;font-size:clamp(30px,4.5vw,44px);font-weight:500;letter-spacing:-.035em;line-height:1.12}
-.description{max-width:48ch;margin:13px 0 22px;color:#827563;font-size:13px;line-height:1.8}
+.eyebrow{margin:0 0 10px;color:#b28a5a;font-size:9px;font-weight:850;letter-spacing:.18em}
+.content h1{margin:0;color:#34513d;font-family:Georgia,"Times New Roman",serif;font-size:clamp(30px,4.5vw,44px);font-weight:400;letter-spacing:-.035em;line-height:1.12}
+.description{max-width:48ch;margin:13px 0 22px;color:#748370;font-size:13px;line-height:1.8}
 .content form{display:grid;gap:9px}
-.content label{color:#715638;font-size:11px;font-weight:750}
-.content input{width:100%;min-height:46px;padding:11px 13px;border:1px solid rgba(139,109,70,.24);border-radius:11px 14px 11px 13px;background:#fffdf7;color:#4b4033;font:inherit;font-size:12px}
-.content input:focus{outline:3px solid rgba(130,146,98,.18);border-color:#9a9d76}
-.help,.error{margin:0;font-size:10px;line-height:1.5}.help{color:#93836d}.error{color:#a45143}
-.content form button{display:inline-flex;align-items:center;justify-content:center;gap:12px;min-height:44px;margin-top:3px;padding:10px 16px;border:1px solid #765638;border-radius:999px;background:linear-gradient(135deg,#9d784e,#6d5035);color:#fff8e9;font:inherit;font-size:12px;font-weight:800;cursor:pointer}
-.content form button:disabled{opacity:.45;cursor:not-allowed}
-.footerLinks{display:flex;flex-wrap:wrap;gap:12px 20px;margin-top:20px}
-.footerLinks a{color:#80613e;font-size:10px;font-weight:700;text-underline-offset:3px}
-@media(max-width:700px){.page{gap:30px;padding-top:16px}.card{grid-template-columns:1fr}.illustration{min-height:180px}.flower{bottom:19%;font-size:100px}.stem{height:44%}.content{padding:24px 20px 28px}}
+.content form label{color:#596f54;font-size:11px;font-weight:750}
+.content input{width:100%;padding:12px 14px;border:1px solid rgba(110,139,101,.28);border-radius:10px;background:#fffefb;color:#435b44;font:inherit;font-size:13px}
+.content input:focus{outline:3px solid rgba(144,183,133,.18);border-color:#92b88a}
+.content form button{display:flex;align-items:center;justify-content:center;gap:10px;min-height:42px;margin-top:5px;padding:10px 16px;border:0;border-radius:999px;background:#47734e;color:#fffdf4;font:inherit;font-size:12px;font-weight:800;cursor:pointer}
+.content form button:disabled{opacity:.5;cursor:not-allowed}
+.help,.error{margin:0;font-size:10px;line-height:1.5}.help{color:#8b9681}.error{color:#a45e50}
+.footerLinks{display:flex;gap:17px;margin-top:19px}.footerLinks a{color:#708765;font-size:10px;font-weight:750;text-decoration:none}
+@media(max-width:720px){.page{padding:17px 12px 32px}.card{grid-template-columns:1fr}.illustration{min-height:210px}.content{padding:25px 20px}.content h1{font-size:34px}}

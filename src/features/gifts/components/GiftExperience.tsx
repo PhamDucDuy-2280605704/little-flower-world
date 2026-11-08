@@ -7,12 +7,10 @@ import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { FAIRYTALE_TEST_GARDEN_ID } from "@/features/garden/data/gardenThemes";
 import { mapPersonalGarden } from "@/features/garden/data/mapPersonalGarden";
-import GardenJournal, { type GardenJournalPhoto } from "@/features/garden/components/GardenJournal";
-import ChapterReader from "@/features/stories/components/ChapterReader";
+import GardenJournal, { type GardenJournalPhoto, type JournalChapter } from "@/features/garden/components/GardenJournal";
+
 import type { PersonalGarden, PersonalGardenRow } from "@/types/personalGarden";
 import styles from "../styles/GiftExperience.module.css";
-
-type Reading = { kind: "chapter"; index: number } | { kind: "letter" } | null;
 
 const PHOTO_BUCKET = "garden-photos";
 const PHOTO_LIMIT = 40;
@@ -96,8 +94,8 @@ export default function GiftExperience() {
       <main className={styles.statePage}>
         <section className={styles.stateCard}>
           <p className={styles.stateKicker}>LITTLE FLOWER WORLD</p>
-          <h1>Khu vườn đang chờ bạn.</h1>
-          <p>Bạn cần đăng nhập để mở khu vườn riêng của tài khoản.</p>
+          <h1>Tác phẩm của bạn đang chờ.</h1>
+          <p>Bạn cần đăng nhập để mở tác phẩm riêng của tài khoản.</p>
           <Link href="/login">Đến trang đăng nhập ↗</Link>
         </section>
       </main>
@@ -116,11 +114,9 @@ function PersonalGardenJournal({ user }: { user: User }) {
   const [readIds, setReadIds] = useState<string[]>([]);
   const [progressLoading, setProgressLoading] = useState(false);
   const [progressError, setProgressError] = useState("");
-  const [reading, setReading] = useState<Reading>(null);
 
-  const chapters = garden?.chapters ?? [];
+  const chapters: JournalChapter[] = (garden?.chapters ?? []).map((chapter) => ({ id: chapter.id, title: chapter.title, paragraphs: chapter.paragraphs }));
   const allRead = chapters.length > 0 && chapters.every((chapter) => readIds.includes(chapter.id));
-  const currentChapter = reading?.kind === "chapter" ? chapters[reading.index] : null;
 
   useEffect(() => {
     let active = true;
@@ -152,7 +148,7 @@ function PersonalGardenJournal({ user }: { user: User }) {
         if (!active) return;
         if (error) {
           console.error("Load personal garden error:", error);
-          setGardenError("Chưa tải được khu vườn của bạn. Hãy thử tải lại trang nhé.");
+          setGardenError("Chưa tải được tác phẩm của bạn. Hãy thử tải lại trang nhé.");
           setGardenLoading(false);
           return;
         }
@@ -203,31 +199,23 @@ function PersonalGardenJournal({ user }: { user: User }) {
     return () => { active = false; };
   }, [user.id]);
 
-  async function openChapter(index: number) {
-    const chapter = chapters[index];
-    if (!chapter) return;
-    setReading({ kind: "chapter", index });
+  async function recordChapterRead(chapterId: string) {
+    if (!chapters.some((chapter) => chapter.id === chapterId)) return;
     setProgressError("");
-
     const { error } = await supabase.from("story_progress").upsert(
-      { user_id: user.id, chapter_id: chapter.id },
+      { user_id: user.id, chapter_id: chapterId },
       { onConflict: "user_id,chapter_id" },
     );
     if (error) {
       console.error("Save story progress error:", error);
-      setProgressError("Chưa lưu được chương này. Kiểm tra kết nối rồi thử lại nhé.");
+      setProgressError("Chưa lưu được tiến độ đọc. Kiểm tra kết nối rồi thử lại nhé.");
       return;
     }
-    setReadIds((current) => current.includes(chapter.id) ? current : [...current, chapter.id]);
-  }
-
-  function openChapterById(chapterId: string) {
-    const index = chapters.findIndex((chapter) => chapter.id === chapterId);
-    if (index >= 0) void openChapter(index);
+    setReadIds((current) => current.includes(chapterId) ? current : [...current, chapterId]);
   }
 
   if (gardenLoading) {
-    return <main className={styles.statePage}><section className={styles.stateCard}><p role="status">Đang mở nhật ký khu vườn...</p></section></main>;
+    return <main className={styles.statePage}><section className={styles.stateCard}><p role="status">Đang mở cuốn sách của bạn...</p></section></main>;
   }
 
   if (gardenError || !garden) {
@@ -235,8 +223,8 @@ function PersonalGardenJournal({ user }: { user: User }) {
       <main className={styles.statePage}>
         <section className={styles.stateCard}>
           <p className={styles.stateKicker}>LITTLE FLOWER WORLD</p>
-          <h1>{gardenError ? "Khu vườn đang gặp chút trục trặc." : "Khu vườn chưa được gieo."}</h1>
-          <p>{gardenError || "Tài khoản này chưa có khu vườn. Hãy liên hệ người quản trị để được hỗ trợ."}</p>
+          <h1>{gardenError ? "Tác phẩm đang gặp chút trục trặc." : "Chưa có tác phẩm nào."}</h1>
+          <p>{gardenError || "Tài khoản này chưa có tác phẩm. Hãy liên hệ người quản trị để được hỗ trợ."}</p>
           <Link href="/">Về trang chủ ↗</Link>
         </section>
       </main>
@@ -244,48 +232,26 @@ function PersonalGardenJournal({ user }: { user: User }) {
   }
 
   return (
-    <>
-      <GardenJournal
-        name={garden.name}
-        introduction={garden.introduction}
-        coverUrl={coverUrl}
-        photos={photos}
-        items={garden.items}
-        chapters={chapters}
-        readIds={readIds}
-        onOpenChapter={openChapterById}
-        onOpenLetter={() => setReading({ kind: "letter" })}
-        letterReady={allRead}
-        progressText={progressError || (progressLoading ? "Đang tải tiến độ..." : "Đã đọc " + readIds.length + " / " + chapters.length + " chương")}
-        returnHref="/"
-        returnLabel="Little Flower World"
-        actionHref="#the-path"
-        actionLabel="EXPLORE THE STORY"
-      />
-
-      {reading?.kind === "chapter" && currentChapter && (
-        <ChapterReader
-          eyebrow={"Chapter " + (reading.index + 1) + " of " + chapters.length}
-          title={currentChapter.title}
-          paragraphs={currentChapter.paragraphs}
-          flower={{ kind: currentChapter.flowerKind, color: currentChapter.flowerColor }}
-          navigation={{
-            onPrev: reading.index > 0 ? () => void openChapter(reading.index - 1) : undefined,
-            onNext: reading.index < chapters.length - 1 ? () => void openChapter(reading.index + 1) : undefined,
-          }}
-          onClose={() => setReading(null)}
-        />
-      )}
-
-      {reading?.kind === "letter" && allRead && (
-        <ChapterReader
-          eyebrow="THE LAST PAGE"
-          title={garden.letter.title}
-          paragraphs={garden.letter.paragraphs}
-          signature={garden.letter.signature}
-          onClose={() => setReading(null)}
-        />
-      )}
-    </>
+    <GardenJournal
+      name={garden.name}
+      introduction={garden.introduction}
+      format="book"
+      coverUrl={coverUrl}
+      photos={photos}
+      chapters={chapters}
+      readIds={readIds}
+      onOpenChapter={recordChapterRead}
+      letterTitle={garden.letter.title}
+      letterParagraphs={garden.letter.paragraphs}
+      letterSignature={garden.letter.signature}
+      letterReady={allRead}
+      returnHref="/"
+      returnLabel="Little Flower World"
+      actionHref="#the-book"
+      actionLabel="MỞ CUỐN SÁCH"
+    >
+      {progressError && <p role="alert" className={styles.stateKicker}>{progressError}</p>}
+      {progressLoading && <p role="status" className={styles.stateKicker}>Đang tải tiến độ đọc...</p>}
+    </GardenJournal>
   );
 }

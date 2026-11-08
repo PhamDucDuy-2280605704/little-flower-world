@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 // Thông tin hiển thị trên tab trình duyệt và khi chia sẻ link.
 export const metadata: Metadata = {
   title: "Little Flower World",
-  description: "Một khu vườn hoa nhỏ và những món quà dành riêng cho bạn.",
+  description: "Một không gian sáng tác thông điệp, thư và những cuốn sách dành riêng cho người bạn quý mến.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState, type KeyboardEvent, type ReactNode, type TouchEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode, type TouchEvent } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
@@ -48,6 +48,10 @@ type Props = {
   returnLabel?: string;
   actionHref?: string;
   actionLabel?: string;
+  /** Compatibility props accepted from legacy routes but deliberately never rendered. */
+  items?: unknown[];
+  onOpenLetter?: () => void;
+  progressText?: string;
   children?: ReactNode;
 };
 
@@ -78,6 +82,7 @@ export default function GardenJournal({
   const [turnDirection, setTurnDirection] = useState<"next" | "prev">("next");
   const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
   const touchStartX = useRef<number | null>(null);
+  const lastOpenedChapterRef = useRef<string>("");
   const reduceMotion = useReducedMotion();
 
   const primaryPhoto = coverUrl
@@ -141,13 +146,19 @@ export default function GardenJournal({
   const safePageIndex = Math.min(pageIndex, Math.max(0, pages.length - 1));
   const currentPage = pages[safePageIndex];
 
+  useEffect(() => {
+    const chapterId = currentPage?.chapterId;
+    if (!chapterId || lastOpenedChapterRef.current === chapterId) return;
+    lastOpenedChapterRef.current = chapterId;
+    onOpenChapter?.(chapterId);
+  }, [currentPage?.chapterId, onOpenChapter]);
+
   function goToPage(nextIndex: number) {
     const bounded = Math.max(0, Math.min(pages.length - 1, nextIndex));
     if (bounded === safePageIndex) return;
     setTurnDirection(bounded > safePageIndex ? "next" : "prev");
     setPageIndex(bounded);
-    const page = pages[bounded];
-    if (page?.chapterId) onOpenChapter?.(page.chapterId);
+
   }
 
   function openPhoto(index: number) {

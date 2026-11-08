@@ -344,6 +344,16 @@ export default function BookStudio() {
     setSaving(false);
   }
 
+  async function handleLogout() {
+    const { error: logoutError } = await adminSupabase.auth.signOut({ scope: "local" });
+    if (logoutError) {
+      setError("Đăng xuất chưa thành công. Anh thử lại nhé.");
+      return;
+    }
+    router.replace("/admin/login");
+    router.refresh();
+  }
+
   async function createWork() {
     if (!userId || saving) return;
     setSaving(true);

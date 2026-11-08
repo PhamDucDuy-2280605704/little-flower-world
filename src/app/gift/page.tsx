@@ -3,7 +3,7 @@ import GiftExperience from "@/features/gifts/components/GiftExperience";
 
 // Tiêu đề riêng cho tab trình duyệt của trang quà tặng.
 export const metadata: Metadata = {
-  title: "Món quà dành cho bạn · Little Flower World",
+  title: "Tác phẩm dành cho bạn · Little Flower World",
 };
 
 // Trang quà tặng – địa chỉ: /gift
