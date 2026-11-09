@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
-import BookStudio from "@/features/studio/components/BookStudio";
+import { permanentRedirect } from "next/navigation";
 
 export const metadata: Metadata = {
-  title: "Không gian sáng tác · Little Story World",
-  description: "Viết một thông điệp, một bức thư hoặc một cuốn sách và gửi tặng người bạn yêu quý.",
+  title: "Bàn sáng tác riêng · Little Story World",
+  description: "Không gian sáng tác dành cho tài khoản người viết.",
+  alternates: { canonical: "/account" },
+  robots: { index: false, follow: false },
 };
 
 export default function StudioPage() {
-  return <BookStudio />;
+  permanentRedirect("/account");
 }
