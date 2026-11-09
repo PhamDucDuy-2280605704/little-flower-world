@@ -27,7 +27,7 @@ export default function SiteAmbience() {
   const languageRef = useRef(language);
   const [musicEnabled, setMusicEnabled] = useState(true);
   const [playing, setPlaying] = useState(false);
-  const [volume, setVolume] = useState(0.52);
+  const [volume, setVolume] = useState(0.72);
   const [volumeOpen, setVolumeOpen] = useState(true);
   const [audioError, setAudioError] = useState("");
   const audioRef = useRef<AudioContext | null>(null);
