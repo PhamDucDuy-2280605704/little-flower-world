@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import GardenJournal, { normalizeStoryDecorations, type JournalChapter, type StoryFormat } from "./GardenJournal";
+import FamilyLetterReader from "./FamilyLetterReader";
 import styles from "../styles/SharedGardenExperience.module.css";
 import { useLanguage } from "@/features/i18n/LanguageProvider";
 
@@ -23,7 +24,7 @@ type SharedGardenPayload = {
     title: string;
     paragraphs: string[];
   }>;
-  photos: Array<{ path: string; url: string; alt: string }>;
+  photos: Array<{ path: string; url: string; alt: string; width?: number; height?: number }>;
   guestbook: Array<{ id: string; guest_name: string; message: string; created_at: string }>;
 };
 
@@ -97,7 +98,7 @@ export default function SharedGardenExperience({ slug }: { slug: string }) {
         ? t("Thiếu cấu hình kết nối tác phẩm.", "Story connection settings are missing.")
         : t("Không thể kết nối đến tác phẩm.", "Could not connect to this story."));
     }
-  }, [slug]);
+  }, [slug, t]);
 
   useEffect(() => {
     // Initial public request owns the page loading state.
@@ -162,7 +163,6 @@ export default function SharedGardenExperience({ slug }: { slug: string }) {
             {pinError && <p className={styles.pinError} role="alert">{pinError}</p>}
             <button type="submit" disabled={!pin.trim()}>{t("Mở tác phẩm", "Open story")}</button>
           </form>
-          
         </section>
       </main>
     );
@@ -172,6 +172,20 @@ export default function SharedGardenExperience({ slug }: { slug: string }) {
   }
   if (state === "error" || !garden || !payload) {
     return <main className={styles.gatePage}><section className={styles.gateCard}><span className={styles.mark}>✉</span><h1>{t("Chưa thể mở tác phẩm", "Unable to open this story")}</h1><p>{fatalError || t("Có lỗi khi tải tác phẩm.", "Something went wrong while loading the story.")}</p><button type="button" onClick={() => void requestWork()}>{t("Thử lại", "Try again")}</button></section></main>;
+  }
+
+  if (garden.experience_settings?.readOnlyStandalone === true) {
+    return (
+      <FamilyLetterReader
+        name={garden.name}
+        introduction={garden.introduction}
+        chapters={chapters}
+        photos={payload.photos}
+        letterTitle={garden.letter_title}
+        letterParagraphs={garden.letter_paragraphs}
+        letterSignature={garden.letter_signature}
+      />
+    );
   }
 
   return (
@@ -191,7 +205,6 @@ export default function SharedGardenExperience({ slug }: { slug: string }) {
       letterReady={allRead}
       returnHref="/"
       returnLabel="Little Story World"
-      standalone={garden.experience_settings?.readOnlyStandalone === true}
       actionHref={garden.guestbook_enabled ? "#guestbook" : "#the-book"}
       actionLabel={garden.guestbook_enabled ? "ĐỂ LẠI LỜI NHẮN" : "MỞ CUỐN SÁCH"}
     >
