@@ -101,7 +101,7 @@ export default function AdminReviewDashboard() {
     name: selected.name,
     introduction: selected.introduction ?? "",
     letterTitle: selected.letter_title ?? "",
-    letterText: asParagraphs(selected.letter_paragraphs).join("\\n\\n"),
+    letterText: asParagraphs(selected.letter_paragraphs).join("\n\n"),
     letterSignature: selected.letter_signature ?? "",
     guestbookEnabled: selected.guestbook_enabled,
   } : null;
@@ -169,11 +169,11 @@ export default function AdminReviewDashboard() {
       name: selected.name,
       introduction: selected.introduction ?? "",
       letterTitle: selected.letter_title ?? "",
-      letterText: asParagraphs(selected.letter_paragraphs).join("\\n\\n"),
+      letterText: asParagraphs(selected.letter_paragraphs).join("\n\n"),
       letterSignature: selected.letter_signature ?? "",
       guestbookEnabled: selected.guestbook_enabled,
     });
-  }, [selectedId]); // Keep unsaved edits while the selected row refreshes.
+  }, [selected, selectedId]); // Refresh the editor only when the selected story changes.
 
   const filteredRows = useMemo(() => {
     if (filter === "all") return rows;
@@ -269,7 +269,7 @@ export default function AdminReviewDashboard() {
       name: storyDraft.name.trim(),
       introduction: storyDraft.introduction.trim(),
       letter_title: storyDraft.letterTitle.trim(),
-      letter_paragraphs: storyDraft.letterText.split(/\\n\\s*\\n/).map((part) => part.trim()).filter(Boolean),
+      letter_paragraphs: storyDraft.letterText.split(/\n\s*\n/).map((part) => part.trim()).filter(Boolean),
       letter_signature: storyDraft.letterSignature.trim(),
       guestbook_enabled: storyDraft.guestbookEnabled,
     };
@@ -277,7 +277,7 @@ export default function AdminReviewDashboard() {
       setError(t("Tên tác phẩm không được để trống và tối đa 120 ký tự.", "Story name is required and must be 120 characters or fewer."));
       return;
     }
-    if (clean.introduction.length > 1000 || clean.letter_title.length > 180 || clean.letter_signature.length > 500 || clean.letter_paragraphs.join("\\n\\n").length > 30000) {
+    if (clean.introduction.length > 1000 || clean.letter_title.length > 180 || clean.letter_signature.length > 500 || clean.letter_paragraphs.join("\n\n").length > 30000) {
       setError(t("Một hoặc nhiều nội dung vượt quá giới hạn cho phép.", "One or more fields exceed their allowed length."));
       return;
     }
@@ -296,7 +296,7 @@ export default function AdminReviewDashboard() {
       name: clean.name,
       introduction: clean.introduction,
       letterTitle: clean.letter_title,
-      letterText: clean.letter_paragraphs.join("\\n\\n"),
+      letterText: clean.letter_paragraphs.join("\n\n"),
       letterSignature: clean.letter_signature,
       guestbookEnabled: clean.guestbook_enabled,
     });
