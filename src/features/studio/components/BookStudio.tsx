@@ -324,8 +324,7 @@ export default function BookStudio() {
       const useAdminSession = adminSessionValid && (forceAdminWorkspace || !memberUser);
       const user = useAdminSession ? adminUser : memberUser ?? adminUser;
       if (!user) {
-        const nextPath = window.location.pathname.startsWith("/account") ? "/account" : "/account";
-        router.replace("/login?next=" + encodeURIComponent(nextPath));
+        router.replace("/login?next=%2Faccount");
         setAuthReady(true);
         setLoading(false);
         return;
