@@ -958,7 +958,7 @@ export default function BookStudio() {
     return <main className={styles.loading}><span>✎</span><p>{t("Đang mở không gian sáng tác...", "Opening your writing studio...")}</p></main>;
   }
   if (!userId) {
-    return <main className={styles.loading}><p>{error || t("Bạn cần đăng nhập để bắt đầu sáng tác.", "Sign in to start writing.")}</p><Link href="/login?next=%2Fstudio">{t("Đăng nhập để sáng tác", "Sign in to write")}</Link><Link href="/">{t("Về trang chủ", "Back to home")}</Link></main>;
+    return <main className={styles.loading}><p>{error || t("Bạn cần đăng nhập để bắt đầu sáng tác.", "Sign in to start writing.")}</p><Link href="/login?next=%2Faccount">{t("Đăng nhập để sáng tác", "Sign in to write")}</Link><Link href="/">{t("Về trang chủ", "Back to home")}</Link></main>;
   }
 
   return (
