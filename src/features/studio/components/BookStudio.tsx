@@ -1001,7 +1001,7 @@ export default function BookStudio() {
       <div className={styles.workspace}>
         <aside className={styles.sidebar}>
           <div className={styles.sideHeader}>
-            <div><span className={styles.eyebrow}>MY WRITING DESK</span><h2>{t("Bản thảo của bạn", "Your drafts")}</h2></div>
+            <div><span className={styles.eyebrow}>MY ACCOUNT</span><h2>{t("Bản thảo của bạn", "Your drafts")}</h2></div>
             <button type="button" onClick={createWork} disabled={saving}>{t("＋ Tạo mới", "＋ New story")}</button>
           </div>
           {gardens.length === 0 ? <p className={styles.empty}>{t("Chưa có bản thảo nào. Bắt đầu bằng một tác phẩm mới nhé.", "No drafts yet. Start with a new story.")}</p> : gardens.map((garden) => {
