@@ -720,6 +720,7 @@ export default function AdminDashboard() {
                 letterTitle={storyPreview.letterTitle}
                 letterParagraphs={storyPreview.letterParagraphs}
                 letterSignature={storyPreview.letterSignature}
+                embedded
               />
             ) : (
               <GardenJournal
