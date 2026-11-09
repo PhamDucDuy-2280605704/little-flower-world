@@ -310,16 +310,31 @@ export default function BookStudio() {
       if (!active) return;
       const adminUser = adminResult.data.session?.user ?? null;
       const memberUser = memberResult.data.session?.user ?? null;
-      const forceAdminWorkspace = new URLSearchParams(window.location.search).get("mode") === "admin";
-      const useAdminSession = adminUser?.id === FAIRYTALE_GARDEN_ADMIN_USER_ID && (forceAdminWorkspace || !memberUser);
+      const isAdminStudioPath = window.location.pathname.startsWith("/admin/studio");
+      const forceAdminWorkspace = isAdminStudioPath || new URLSearchParams(window.location.search).get("mode") === "admin";
+      const adminSessionValid = adminUser?.id === FAIRYTALE_GARDEN_ADMIN_USER_ID;
+      const useAdminSession = adminSessionValid && (forceAdminWorkspace || !memberUser);
       const user = useAdminSession ? adminUser : memberUser ?? adminUser;
       if (!user) {
-        router.replace("/login?next=%2Fstudio");
+        const nextPath = window.location.pathname.startsWith("/account") ? "/account" : "/studio";
+        router.replace("/login?next=" + encodeURIComponent(nextPath));
+        setAuthReady(true);
+        setLoading(false);
+        return;
+      }
+      if (forceAdminWorkspace && !adminSessionValid) {
+        router.replace("/little-story-backstage-7f4c");
         setAuthReady(true);
         setLoading(false);
         return;
       }
       const adminMode = user.id === FAIRYTALE_GARDEN_ADMIN_USER_ID;
+      if (adminMode && !forceAdminWorkspace) {
+        router.replace("/admin");
+        setAuthReady(true);
+        setLoading(false);
+        return;
+      }
       activeClientRef.current = useAdminSession ? adminSupabase : memberUser ? supabase : adminSupabase;
       setIsAdmin(adminMode);
       setUserId(user.id);
@@ -944,7 +959,14 @@ export default function BookStudio() {
               <small>{isAdmin ? t("TÀI KHOẢN QUẢN TRỊ", "ADMIN ACCOUNT") : t("TÀI KHOẢN SÁNG TÁC", "WRITER ACCOUNT")}</small>
             </span>
           </span>
-          {isAdmin && <Link href="/admin">{t("Trung tâm Admin", "Admin center")}</Link>}
+          {isAdmin ? (
+            <>
+              <Link href="/admin">{t("Tổng quan Admin", "Admin overview")}</Link>
+              <Link href="/admin/review">{t("Bàn kiểm duyệt", "Review desk")}</Link>
+            </>
+          ) : (
+            <Link href="/account">{t("Khu vực tài khoản", "My account")}</Link>
+          )}
           {selectedGarden?.is_published && shareUrl && <a href={shareUrl} target="_blank" rel="noreferrer">{t("Mở bản người đọc", "Open reader view")} ↗</a>}
           <Link href="/">{t("Trang chủ", "Home")}</Link>
           <button type="button" onClick={() => void handleLogout()}>{isAdmin ? t("Thoát Admin", "Sign out Admin") : t("Đăng xuất", "Sign out")}</button>
@@ -953,9 +975,11 @@ export default function BookStudio() {
 
       <section className={styles.welcome}>
         <div className={styles.welcomeCopy}>
-          <p className={styles.eyebrow}>WRITE SOMETHING MEANINGFUL</p>
-          <h1>{isAdmin ? t("Không gian sáng tác và kiểm duyệt.", "Writing and review workspace.") : t("Câu chuyện của bạn bắt đầu từ đây.", "Your story starts here.")}</h1>
-          <p>{isAdmin ? t("Quản lý bản thảo của mọi tài khoản, kiểm duyệt nội dung và quyết định tác phẩm nào được xuất bản.", "Manage every writer's drafts, review content, and decide which stories can be published.") : t("Viết một thông điệp, một bức thư hoặc cả cuốn sách. Lưu bản nháp riêng tư rồi gửi Admin kiểm duyệt trước khi chia sẻ.", "Write a message, a letter, or a book. Save a private draft and submit it for Admin review before sharing.")}</p>
+          <p className={styles.eyebrow}>{isAdmin ? "ADMIN WORKSPACE" : "YOUR PRIVATE ACCOUNT"}</p>
+          <h1>{isAdmin ? t("Không gian chỉnh sửa đầy đủ của Admin.", "Full Admin editing workspace.") : t("Câu chuyện của riêng bạn bắt đầu từ đây.", "Your personal story space starts here.")}</h1>
+          <p>{isAdmin
+            ? t("Đây là trình chỉnh sửa chuyên sâu. Duyệt và từ chối được thực hiện tại Bàn kiểm duyệt riêng; quản lý toàn bộ tác phẩm, xuất bản, mã PIN và lưu bút được kiểm soát từ Trung tâm Admin.", "This is the advanced editor. Moderation happens in the dedicated Review Desk; all-story management, publishing, PINs, and guestbook controls remain in the Admin Center.")
+            : t("Đây là khu vực riêng của tài khoản anh: tạo và quản lý bản thảo, lưu riêng tư, thêm ảnh, xem trước, gửi Admin duyệt và đọc nhận xét. Chỉ Admin mới có quyền duyệt, từ chối hoặc xuất bản.", "This is your private account area: create drafts, save privately, add photos, preview, submit for review, and read feedback. Only Admin can approve, reject, or publish.")}</p>
         </div>
         <div className={styles.welcomePhoto} role="img" aria-label={t("Cuốn sách mở dưới ánh sáng tự nhiên", "An open book in natural light")}>
           <span>YOUR WORDS, YOUR PAGES</span>
