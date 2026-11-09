@@ -15,7 +15,6 @@ export default function Home() {
           <span><strong>Little Story World</strong><small>YOUR PERSONAL STORY STUDIO</small></span>
         </Link>
         <nav aria-label={t("Điều hướng trang chủ", "Main navigation")}>
-          <Link href="/" aria-current="page">{t("Trang chủ", "Home")}</Link>
           <Link href="/guest">{t("Dành cho người đọc", "For readers")}</Link>
           <Link href="/account">{t("Không gian sáng tác", "Writing studio")}</Link>
         </nav>
