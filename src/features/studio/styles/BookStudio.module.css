@@ -137,15 +137,30 @@
 .emptyEditor p{max-width:45ch;color:#84917d;font-size: 14px;line-height:1.7}
 .loading{min-height:100vh;display:grid;place-content:center;justify-items:center;gap:9px;background:#f7faf2;color:#678361}
 .loading>span{font-family:var(--font-display),Georgia,serif;font-size: 38px}
-.previewDialog{width:min(1300px,calc(100vw - 28px));max-width:none;max-height:calc(100dvh - 28px);padding:0;overflow:auto;border:1px solid rgba(103,132,90,.26);border-radius:20px;background:#fbfbf3;box-shadow:0 25px 80px rgba(25,45,28,.22)}
+.previewDialog {
+  display:flex;
+  flex-direction:column;
+  box-sizing:border-box;
+  width:min(1700px,calc(100vw - 16px));
+  height:calc(100dvh - 16px);
+  max-width:none;
+  max-height:none;
+  padding:0;
+  overflow:hidden;
+  border:1px solid rgba(103,132,90,.26);
+  border-radius:20px;
+  background:#fbfbf3;
+  box-shadow:0 25px 80px rgba(25,45,28,.22);
+}
 .previewDialog::backdrop{background:rgba(35,51,37,.55);backdrop-filter:blur(4px)}
-.previewDialogLetter{display:flex;flex-direction:column;width:min(1500px,calc(100vw - 32px));max-width:none;max-height:calc(100dvh - 32px);overflow:hidden;background:#f7f5ec}
-.previewDialogLetter .previewBody{flex:1;min-height:0;max-height:calc(100dvh - 92px);overflow:auto;padding:0;background:#f7f5ec}
-.previewHeader{position:sticky;z-index:10;top:0;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(103,132,90,.18);background:rgba(255,255,249,.98);backdrop-filter:blur(10px);pointer-events:auto}
+.previewDialogLetter{background:#f7f5ec}
+.previewHeader{position:relative;z-index:10;display:flex;flex:0 0 auto;justify-content:space-between;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(103,132,90,.18);background:rgba(255,255,249,.98);backdrop-filter:blur(10px);pointer-events:auto}
 .previewHeader button{position:relative;z-index:11;pointer-events:auto;touch-action:manipulation}
-.previewHeader h2{margin:0;color:#36553e;font-family:var(--font-display),Georgia,serif;font-size: 20px;font-weight:400}
-.previewHeader button{border:0;border-radius:999px;padding:8px 12px;background:#edf3e7;color:#567450;font-size: 12px;font-weight:800;cursor:pointer}
-.previewBody{background:#fffef9}
+.previewHeader h2{margin:0;color:#36553e;font-family:var(--font-display),Georgia,serif;font-size:20px;font-weight:400}
+.previewHeader button{border:0;border-radius:999px;padding:8px 12px;background:#edf3e7;color:#567450;font-size:12px;font-weight:800;cursor:pointer}
+.previewBody{flex:1;min-height:0;width:100%;max-height:none;overflow:auto;background:#fffef9}
+.previewDialogLetter .previewBody{background:#f7f5ec}
+.previewBody>div{min-height:100%}
 .previewGuestbook{width:min(850px,calc(100% - 32px));margin:22px auto;padding:20px;border:1px solid rgba(120,149,106,.18);border-radius:14px;background:#f4f8ee}
 .previewGuestbook h3{margin:0;color:#3e6245;font-family:var(--font-display),Georgia,serif;font-size: 19px;font-weight:400}
 .previewGuestbook p{margin:5px 0 0;color:#7e8a78;font-size: 13px}
@@ -157,7 +172,7 @@
  .formatGrid{grid-template-columns:1fr}.formatCard,.formatActive{min-height:unset;grid-template-columns:34px minmax(0,1fr);align-items:center}.formatMark{grid-row:span 2}.formatCard small,.formatActive small{grid-column:2}.formatCheck{grid-column:2}
  .chapterWorkspace{grid-template-columns:1fr}.uploadGrid{grid-template-columns:1fr}.guestEntry{grid-template-columns:minmax(0,1fr) auto}.guestEntry button{grid-row:2}.guestStatus{grid-column:2;grid-row:1}
  .actionCard{align-items:flex-start;flex-direction:column}.actionCard button{width:100%}.shareResult{grid-template-columns:1fr 90px}.qrCode{width:88px;height:88px}
- .previewDialog{width:calc(100vw - 10px);max-height:calc(100dvh - 10px);border-radius:14px}.previewDialogLetter{width:calc(100vw - 10px);max-height:calc(100dvh - 10px)}.previewDialogLetter .previewBody{max-height:calc(100dvh - 72px)}.previewHeader{padding:10px}.previewHeader h2{font-size:16px}
+ .previewDialog{width:calc(100vw - 8px);height:calc(100dvh - 8px);border-radius:12px}.previewHeader{padding:10px}.previewHeader h2{font-size:16px}
 }
 
 .creatorFieldset{min-width:0;margin:0;padding:0;border:0;}
