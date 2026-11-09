@@ -817,3 +817,24 @@
   .previewStoryList>button{grid-template-columns:26px minmax(0,1fr);gap:7px}
   .previewStoryList>button small{grid-column:2}
 }
+
+
+/* Garden builder surfaces: soft botanical light and clearer tactile controls. */
+.shell {
+  background:
+    radial-gradient(ellipse at 6% 5%, rgba(221,237,207,.58), transparent 31rem),
+    radial-gradient(ellipse at 96% 82%, rgba(239,220,187,.38), transparent 30rem),
+    linear-gradient(140deg,#f5f7ee,#fffaf1 58%,#f0f4e9);
+}
+.sidebar,.editor,.emptyEditor {
+  border-color: rgba(113,145,101,.19);
+  box-shadow: 0 17px 42px rgba(65,88,56,.07), inset 0 1px rgba(255,255,255,.88);
+}
+.editor { background: linear-gradient(145deg,rgba(255,255,251,.97),rgba(248,250,241,.94)); }
+.section { border-bottom-color: rgba(113,145,101,.15); }
+.section input:focus-visible,.section textarea:focus-visible,.section select:focus-visible {
+  outline: 3px solid rgba(126,158,111,.18);
+  border-color: #91ad81;
+}
+.gardenButton,.gardenActive { transition: border-color .2s ease, background .2s ease, transform .2s ease; }
+.gardenButton:hover { transform: translateX(2px); }
