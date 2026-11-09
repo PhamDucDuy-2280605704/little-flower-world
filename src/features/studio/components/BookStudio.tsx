@@ -300,11 +300,25 @@ export default function BookStudio() {
     return () => { active = false; };
   }, [selectedGarden, loadWork]);
 
+  const closePreview = useCallback(() => {
+    const dialog = previewRef.current;
+    if (dialog?.open) dialog.close();
+    setPreviewOpen(false);
+  }, []);
+
   useEffect(() => {
     const dialog = previewRef.current;
     if (!dialog) return;
-    if (previewOpen && !dialog.open) dialog.showModal();
-    if (!previewOpen && dialog.open) dialog.close();
+    if (previewOpen && !dialog.open) {
+      try {
+        dialog.showModal();
+      } catch (dialogError) {
+        console.error("Open story preview dialog failed:", dialogError);
+        setPreviewOpen(false);
+      }
+    } else if (!previewOpen && dialog.open) {
+      dialog.close();
+    }
   }, [previewOpen]);
 
   function splitText(value: string) {
@@ -1057,7 +1071,7 @@ export default function BookStudio() {
         onClose={() => setPreviewOpen(false)}
         onClick={(event) => { if (event.target === event.currentTarget) event.currentTarget.close(); }} aria-label={t("Bản xem trước tác phẩm", "Story preview")}>
         {selectedGarden && <>
-          <header className={styles.previewHeader}><div><p className={styles.eyebrow}>{t("BẢN XEM TRƯỚC · CHỈ BẠN NHÌN THẤY", "PREVIEW · ONLY YOU CAN SEE THIS")}</p><h2>{name || selectedGarden.name}</h2></div><button type="button" onClick={() => setPreviewOpen(false)}>Đóng ✕</button></header>
+          <header className={styles.previewHeader}><div><p className={styles.eyebrow}>{t("BẢN XEM TRƯỚC · CHỈ BẠN NHÌN THẤY", "PREVIEW · ONLY YOU CAN SEE THIS")}</p><h2>{name || selectedGarden.name}</h2></div><button type="button" onClick={closePreview} aria-label={t("Đóng bản xem trước", "Close preview")}>Đóng ✕</button></header>
           <div className={styles.previewBody}>
             {selectedGarden.experience_settings?.readOnlyStandalone === true ? (
               <FamilyLetterReader
