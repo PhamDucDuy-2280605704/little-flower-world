@@ -313,17 +313,19 @@ export default function BookStudio() {
       const isAdminStudioPath = window.location.pathname.startsWith("/admin/studio");
       const forceAdminWorkspace = isAdminStudioPath || new URLSearchParams(window.location.search).get("mode") === "admin";
       const adminSessionValid = adminUser?.id === FAIRYTALE_GARDEN_ADMIN_USER_ID;
-      const useAdminSession = adminSessionValid && (forceAdminWorkspace || !memberUser);
-      const user = useAdminSession ? adminUser : memberUser ?? adminUser;
-      if (!user) {
-        const nextPath = window.location.pathname.startsWith("/account") ? "/account" : "/studio";
-        router.replace("/login?next=" + encodeURIComponent(nextPath));
+
+      if (forceAdminWorkspace && !adminSessionValid) {
+        router.replace("/");
         setAuthReady(true);
         setLoading(false);
         return;
       }
-      if (forceAdminWorkspace && !adminSessionValid) {
-        router.replace("/little-story-backstage-7f4c");
+
+      const useAdminSession = adminSessionValid && (forceAdminWorkspace || !memberUser);
+      const user = useAdminSession ? adminUser : memberUser ?? adminUser;
+      if (!user) {
+        const nextPath = window.location.pathname.startsWith("/account") ? "/account" : "/account";
+        router.replace("/login?next=" + encodeURIComponent(nextPath));
         setAuthReady(true);
         setLoading(false);
         return;
