@@ -11,68 +11,63 @@ const CHORDS = [
   [7, 11, 14, 17],
 ] as const;
 
-const MELODY = [7, 11, 12, 11, 7] as const;
+const MELODY = [7, 11, 14, 12, 11, 7, 4, 7, 11, 12, 14, 19, 17, 14, 12, 11] as const;
 const CHORD_DURATION = 8;
 const ROOT_FREQUENCY = 130.8128;
+const MELODY_FREQUENCY = 261.6256;
 
 function frequencyFor(semitones: number, base = ROOT_FREQUENCY): number {
   return base * 2 ** (semitones / 12);
 }
 
+type UnlockHandler = () => void;
+
 export default function SiteAmbience() {
   const { language } = useLanguage();
+  const [musicEnabled, setMusicEnabled] = useState(true);
   const [playing, setPlaying] = useState(false);
-  const [volume, setVolume] = useState(0.24);
-  const [volumeOpen, setVolumeOpen] = useState(false);
+  const [volume, setVolume] = useState(0.52);
+  const [volumeOpen, setVolumeOpen] = useState(true);
   const [audioError, setAudioError] = useState("");
   const audioRef = useRef<AudioContext | null>(null);
   const masterGainRef = useRef<GainNode | null>(null);
   const schedulerRef = useRef<number | null>(null);
+  const unlockHandlerRef = useRef<UnlockHandler | null>(null);
   const startingRef = useRef(false);
-
-  const stopMusic = useCallback(() => {
-    if (schedulerRef.current !== null) {
-      window.clearInterval(schedulerRef.current);
-      schedulerRef.current = null;
-    }
-
-    const context = audioRef.current;
-    audioRef.current = null;
-    masterGainRef.current = null;
-
-    if (context && context.state !== "closed") {
-      void context.close().catch(() => undefined);
-    }
-
-    setPlaying(false);
-  }, []);
+  const enabledRef = useRef(true);
+  const volumeRef = useRef(volume);
+  const generationRef = useRef(0);
 
   useEffect(() => {
+    volumeRef.current = volume;
     const gain = masterGainRef.current;
     const context = audioRef.current;
-    if (!gain || !context || context.state === "closed") return;
-    gain.gain.setTargetAtTime(volume, context.currentTime, 0.24);
+    if (gain && context && context.state !== "closed") {
+      gain.gain.setTargetAtTime(volume, context.currentTime, 0.18);
+    }
   }, [volume]);
 
-  useEffect(() => () => {
-    if (schedulerRef.current !== null) {
-      window.clearInterval(schedulerRef.current);
-    }
-    const context = audioRef.current;
-    audioRef.current = null;
-    if (context && context.state !== "closed") {
-      void context.close().catch(() => undefined);
-    }
+  const removeUnlockHandlers = useCallback(() => {
+    const handler = unlockHandlerRef.current;
+    if (!handler) return;
+    window.removeEventListener("pointerdown", handler, true);
+    window.removeEventListener("keydown", handler, true);
+    unlockHandlerRef.current = null;
   }, []);
 
   const startMusic = useCallback(async () => {
-    if (audioRef.current || startingRef.current) return;
+    if (!enabledRef.current || audioRef.current || startingRef.current) return;
+
     startingRef.current = true;
     setAudioError("");
-
+    setVolumeOpen(true);
+    const generation = ++generationRef.current;
     const AudioContextConstructor = window.AudioContext;
+
     if (!AudioContextConstructor) {
       startingRef.current = false;
+      enabledRef.current = false;
+      setMusicEnabled(false);
       setAudioError(language === "vi"
         ? "Trình duyệt này chưa hỗ trợ nhạc nền."
         : "This browser does not support background music.");
@@ -83,149 +78,262 @@ export default function SiteAmbience() {
 
     try {
       context = new AudioContextConstructor();
-      await context.resume();
+      audioRef.current = context;
 
       const master = context.createGain();
       master.gain.setValueAtTime(0.0001, context.currentTime);
-      master.gain.setTargetAtTime(volume, context.currentTime, 0.9);
+      master.gain.setTargetAtTime(volumeRef.current, context.currentTime, 0.55);
 
-      const lowPass = context.createBiquadFilter();
-      lowPass.type = "lowpass";
-      lowPass.frequency.setValueAtTime(2600, context.currentTime);
-      lowPass.Q.setValueAtTime(0.45, context.currentTime);
+      const toneFilter = context.createBiquadFilter();
+      toneFilter.type = "lowpass";
+      toneFilter.frequency.setValueAtTime(4600, context.currentTime);
+      toneFilter.Q.setValueAtTime(0.32, context.currentTime);
 
-      const dryOutput = context.createGain();
-      dryOutput.gain.value = 0.92;
-      master.connect(lowPass);
-      lowPass.connect(dryOutput);
-      dryOutput.connect(context.destination);
+      const compressor = context.createDynamicsCompressor();
+      compressor.threshold.setValueAtTime(-19, context.currentTime);
+      compressor.knee.setValueAtTime(18, context.currentTime);
+      compressor.ratio.setValueAtTime(2.8, context.currentTime);
+      compressor.attack.setValueAtTime(0.018, context.currentTime);
+      compressor.release.setValueAtTime(0.28, context.currentTime);
+
+      master.connect(toneFilter);
+      toneFilter.connect(compressor);
+      compressor.connect(context.destination);
 
       const echo = context.createDelay(1.2);
-      echo.delayTime.value = 0.36;
+      echo.delayTime.value = 0.31;
       const feedback = context.createGain();
-      feedback.gain.value = 0.2;
-      const echoOutput = context.createGain();
-      echoOutput.gain.value = 0.14;
-      lowPass.connect(echo);
+      feedback.gain.value = 0.22;
+      const echoLevel = context.createGain();
+      echoLevel.gain.value = 0.16;
+      toneFilter.connect(echo);
       echo.connect(feedback);
       feedback.connect(echo);
-      echo.connect(echoOutput);
-      echoOutput.connect(context.destination);
+      echo.connect(echoLevel);
+      echoLevel.connect(compressor);
+      masterGainRef.current = master;
 
       const playPad = (frequency: number, startAt: number, duration: number, level: number) => {
         if (!context) return;
-        const oscillator = context.createOscillator();
-        const voiceGain = context.createGain();
-        oscillator.type = "sine";
-        oscillator.frequency.setValueAtTime(frequency, startAt);
-        voiceGain.gain.setValueAtTime(0.0001, startAt);
-        voiceGain.gain.linearRampToValueAtTime(level, startAt + 1.7);
-        voiceGain.gain.setValueAtTime(level * 0.82, startAt + duration - 1.5);
-        voiceGain.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
-        oscillator.connect(voiceGain);
-        voiceGain.connect(master);
-        oscillator.start(startAt);
-        oscillator.stop(startAt + duration + 0.04);
-        oscillator.onended = () => {
-          oscillator.disconnect();
-          voiceGain.disconnect();
-        };
+        const pair = [
+          { type: "triangle" as OscillatorType, detune: -5, gain: level * 0.72 },
+          { type: "sine" as OscillatorType, detune: 5, gain: level * 0.42 },
+        ];
+        pair.forEach((voice) => {
+          const oscillator = context!.createOscillator();
+          const voiceGain = context!.createGain();
+          oscillator.type = voice.type;
+          oscillator.frequency.setValueAtTime(frequency, startAt);
+          oscillator.detune.setValueAtTime(voice.detune, startAt);
+          voiceGain.gain.setValueAtTime(0.0001, startAt);
+          voiceGain.gain.linearRampToValueAtTime(voice.gain, startAt + 1.9);
+          voiceGain.gain.setValueAtTime(voice.gain * 0.78, startAt + duration - 1.7);
+          voiceGain.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
+          oscillator.connect(voiceGain);
+          voiceGain.connect(master);
+          oscillator.start(startAt);
+          oscillator.stop(startAt + duration + 0.05);
+          oscillator.onended = () => {
+            oscillator.disconnect();
+            voiceGain.disconnect();
+          };
+        });
       };
 
-      const playBell = (frequency: number, startAt: number) => {
+      const playPianoNote = (frequency: number, startAt: number, duration: number, level: number, pan: number) => {
         if (!context) return;
-        const oscillator = context.createOscillator();
-        const overtone = context.createOscillator();
-        const voiceGain = context.createGain();
-        const overtoneGain = context.createGain();
+        const panner = context.createStereoPanner();
+        panner.pan.setValueAtTime(pan, startAt);
+        panner.connect(master);
 
-        oscillator.type = "sine";
-        overtone.type = "sine";
-        oscillator.frequency.setValueAtTime(frequency, startAt);
-        overtone.frequency.setValueAtTime(frequency * 2.01, startAt);
-        voiceGain.gain.setValueAtTime(0.0001, startAt);
-        voiceGain.gain.linearRampToValueAtTime(0.052, startAt + 0.025);
-        voiceGain.gain.exponentialRampToValueAtTime(0.0001, startAt + 1.32);
-        overtoneGain.gain.setValueAtTime(0.0001, startAt);
-        overtoneGain.gain.linearRampToValueAtTime(0.013, startAt + 0.02);
-        overtoneGain.gain.exponentialRampToValueAtTime(0.0001, startAt + 0.72);
+        const fundamental = context.createOscillator();
+        const harmonic = context.createOscillator();
+        const fundamentalGain = context.createGain();
+        const harmonicGain = context.createGain();
 
-        oscillator.connect(voiceGain);
-        overtone.connect(overtoneGain);
-        voiceGain.connect(master);
-        overtoneGain.connect(master);
-        oscillator.start(startAt);
-        overtone.start(startAt);
-        oscillator.stop(startAt + 1.36);
-        overtone.stop(startAt + 0.76);
-        oscillator.onended = () => {
-          oscillator.disconnect();
-          voiceGain.disconnect();
+        fundamental.type = "triangle";
+        harmonic.type = "sine";
+        fundamental.frequency.setValueAtTime(frequency, startAt);
+        harmonic.frequency.setValueAtTime(frequency * 2.002, startAt);
+        fundamentalGain.gain.setValueAtTime(0.0001, startAt);
+        fundamentalGain.gain.linearRampToValueAtTime(level, startAt + 0.018);
+        fundamentalGain.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
+        harmonicGain.gain.setValueAtTime(0.0001, startAt);
+        harmonicGain.gain.linearRampToValueAtTime(level * 0.18, startAt + 0.012);
+        harmonicGain.gain.exponentialRampToValueAtTime(0.0001, startAt + duration * 0.62);
+
+        fundamental.connect(fundamentalGain);
+        harmonic.connect(harmonicGain);
+        fundamentalGain.connect(panner);
+        harmonicGain.connect(panner);
+        fundamental.start(startAt);
+        harmonic.start(startAt);
+        fundamental.stop(startAt + duration + 0.04);
+        harmonic.stop(startAt + duration * 0.65);
+        fundamental.onended = () => {
+          fundamental.disconnect();
+          fundamentalGain.disconnect();
         };
-        overtone.onended = () => {
-          overtone.disconnect();
-          overtoneGain.disconnect();
+        harmonic.onended = () => {
+          harmonic.disconnect();
+          harmonicGain.disconnect();
         };
+        panner.onended = null;
+        window.setTimeout(() => panner.disconnect(), Math.ceil((duration + 0.2) * 1000));
       };
 
-      const scheduleBlock = (startAt: number, chordIndex: number) => {
-        const chord = CHORDS[chordIndex % CHORDS.length];
-        chord.forEach((note, index) => {
-          const octave = index === 0 ? 0 : index === 3 ? 12 : 0;
-          const level = index === 0 ? 0.105 : index === 3 ? 0.035 : 0.07;
-          playPad(frequencyFor(note + octave), startAt, CHORD_DURATION + 0.35, level);
+      let schedulerStarted = false;
+      const startScheduler = () => {
+        if (schedulerStarted || !context || context.state !== "running") return;
+        schedulerStarted = true;
+        let nextBlockAt = context.currentTime + 0.12;
+        let chordIndex = 0;
+
+        const scheduleBlock = (startAt: number, index: number) => {
+          const chord = CHORDS[index % CHORDS.length];
+          chord.forEach((note, voiceIndex) => {
+            const octave = voiceIndex === 3 ? 12 : 0;
+            const level = voiceIndex === 0 ? 0.105 : voiceIndex === 3 ? 0.041 : 0.064;
+            playPad(frequencyFor(note + octave), startAt, CHORD_DURATION + 0.45, level);
+          });
+
+          MELODY.forEach((note, noteIndex) => {
+            const octave = noteIndex === 11 ? 12 : 0;
+            const notePan = Math.sin(noteIndex * 0.78) * 0.34;
+            const melodyFrequency = frequencyFor(chord[0] + note + octave, MELODY_FREQUENCY);
+            playPianoNote(melodyFrequency, startAt + 0.48 + noteIndex * 0.46, 1.62, 0.086, notePan);
+          });
+        };
+
+        const scheduleAhead = () => {
+          if (!context || context.state !== "running" || !enabledRef.current) return;
+          if (nextBlockAt < context.currentTime - CHORD_DURATION) {
+            const skippedBlocks = Math.floor((context.currentTime - nextBlockAt) / CHORD_DURATION);
+            nextBlockAt += skippedBlocks * CHORD_DURATION;
+            chordIndex = (chordIndex + skippedBlocks) % CHORDS.length;
+          }
+          while (nextBlockAt < context.currentTime + 10) {
+            scheduleBlock(nextBlockAt, chordIndex);
+            nextBlockAt += CHORD_DURATION;
+            chordIndex = (chordIndex + 1) % CHORDS.length;
+          }
+        };
+
+        scheduleAhead();
+        schedulerRef.current = window.setInterval(scheduleAhead, 650);
+      };
+
+      const activateAfterGesture = () => {
+        if (!context || !enabledRef.current || audioRef.current !== context) return;
+        void context.resume().then(() => {
+          if (
+            context &&
+            context.state === "running" &&
+            enabledRef.current &&
+            audioRef.current === context &&
+            generationRef.current === generation
+          ) {
+            removeUnlockHandlers();
+            startScheduler();
+            setPlaying(true);
+          }
+        }).catch((resumeError: unknown) => {
+          console.warn("Ambient audio is still waiting for browser permission:", resumeError);
         });
-
-        MELODY.forEach((note, index) => {
-          const melodyFrequency = frequencyFor(chord[0] + note + (index === 2 ? 12 : 0), 261.6256);
-          playBell(melodyFrequency, startAt + 0.75 + index * 1.42);
-        });
       };
 
-      audioRef.current = context;
-      masterGainRef.current = master;
+      let timeoutId: number | undefined;
+      const resumeAttempt = context.resume().catch(() => undefined);
+      await Promise.race([
+        resumeAttempt,
+        new Promise<void>((resolve) => {
+          timeoutId = window.setTimeout(resolve, 850);
+        }),
+      ]);
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
 
-      let nextBlockAt = context.currentTime + 0.12;
-      let chordIndex = 0;
-      const scheduleAhead = () => {
-        if (!context || context.state !== "running") return;
-        if (nextBlockAt < context.currentTime - CHORD_DURATION) {
-          const skippedBlocks = Math.floor((context.currentTime - nextBlockAt) / CHORD_DURATION);
-          nextBlockAt += skippedBlocks * CHORD_DURATION;
-          chordIndex = (chordIndex + skippedBlocks) % CHORDS.length;
-        }
-        while (nextBlockAt < context.currentTime + 10) {
-          scheduleBlock(nextBlockAt, chordIndex);
-          nextBlockAt += CHORD_DURATION;
-          chordIndex = (chordIndex + 1) % CHORDS.length;
-        }
-      };
+      if (generationRef.current !== generation || !enabledRef.current || audioRef.current !== context) {
+        return;
+      }
 
-      scheduleAhead();
-      schedulerRef.current = window.setInterval(scheduleAhead, 700);
-      setPlaying(true);
-      setVolumeOpen(true);
-      startingRef.current = false;
+      if (context.state === "running") {
+        startScheduler();
+        setPlaying(true);
+      } else {
+        setPlaying(false);
+        setAudioError("");
+        removeUnlockHandlers();
+        unlockHandlerRef.current = activateAfterGesture;
+        window.addEventListener("pointerdown", activateAfterGesture, true);
+        window.addEventListener("keydown", activateAfterGesture, true);
+      }
     } catch (error) {
-      startingRef.current = false;
+      if (generationRef.current !== generation) return;
       console.error("Start ambient music failed:", error);
       if (context && context.state !== "closed") {
         void context.close().catch(() => undefined);
       }
       audioRef.current = null;
       masterGainRef.current = null;
+      enabledRef.current = false;
+      setMusicEnabled(false);
+      setPlaying(false);
       setAudioError(language === "vi"
-        ? "Chưa bật được nhạc. Anh thử bấm lại nhé."
-        : "Music could not start. Please try again.");
+        ? "Chưa bật được nhạc. Anh thử nhấn nút phát lại nhé."
+        : "Music could not start. Please try the play button again.");
+    } finally {
+      if (generationRef.current === generation) startingRef.current = false;
     }
-  }, [language, volume]);
+  }, [language, removeUnlockHandlers]);
+
+  const stopMusic = useCallback(() => {
+    enabledRef.current = false;
+    generationRef.current += 1;
+    startingRef.current = false;
+    removeUnlockHandlers();
+    if (schedulerRef.current !== null) {
+      window.clearInterval(schedulerRef.current);
+      schedulerRef.current = null;
+    }
+    const context = audioRef.current;
+    audioRef.current = null;
+    masterGainRef.current = null;
+    if (context && context.state !== "closed") {
+      void context.close().catch(() => undefined);
+    }
+    setMusicEnabled(false);
+    setPlaying(false);
+  }, [removeUnlockHandlers]);
+
+  useEffect(() => {
+    void startMusic();
+    return () => {
+      enabledRef.current = false;
+      generationRef.current += 1;
+      startingRef.current = false;
+      removeUnlockHandlers();
+      if (schedulerRef.current !== null) {
+        window.clearInterval(schedulerRef.current);
+        schedulerRef.current = null;
+      }
+      const context = audioRef.current;
+      audioRef.current = null;
+      masterGainRef.current = null;
+      if (context && context.state !== "closed") {
+        void context.close().catch(() => undefined);
+      }
+    };
+  }, [startMusic, removeUnlockHandlers]);
 
   const toggleMusic = () => {
-    if (playing) {
+    if (enabledRef.current) {
       stopMusic();
       setVolumeOpen(false);
       return;
     }
+    enabledRef.current = true;
+    setMusicEnabled(true);
+    setPlaying(false);
     void startMusic();
   };
 
@@ -245,21 +353,23 @@ export default function SiteAmbience() {
         <div className={styles.musicControls}>
           <button
             type="button"
-            className={playing ? styles.musicButtonActive : styles.musicButton}
+            className={musicEnabled ? styles.musicButtonActive : styles.musicButton}
             onClick={toggleMusic}
-            aria-pressed={playing}
-            aria-label={playing
+            aria-pressed={musicEnabled}
+            aria-label={musicEnabled
               ? (isVietnamese ? "Tắt nhạc nền" : "Turn background music off")
               : (isVietnamese ? "Bật nhạc nền" : "Turn background music on")}
           >
-            <span className={styles.musicIcon} aria-hidden="true">{playing ? "♫" : "♪"}</span>
-            <span>{playing
-              ? (isVietnamese ? "Đang phát" : "Playing")
-              : (isVietnamese ? "Nhạc nền" : "Ambient music")}</span>
-            {playing && <span className={styles.equalizer} aria-hidden="true"><i /><i /><i /></span>}
+            <span className={styles.musicIcon} aria-hidden="true">{musicEnabled ? "♫" : "♪"}</span>
+            <span>{!musicEnabled
+              ? (isVietnamese ? "Nhạc nền đang tắt" : "Music is off")
+              : playing
+                ? (isVietnamese ? "Đang phát" : "Playing")
+                : (isVietnamese ? "Nhạc đã sẵn sàng" : "Music is ready")}</span>
+            {musicEnabled && <span className={styles.equalizer} aria-hidden="true"><i /><i /><i /></span>}
           </button>
 
-          {playing && (
+          {musicEnabled && (
             <button
               type="button"
               className={volumeOpen ? styles.volumeButtonActive : styles.volumeButton}
@@ -272,7 +382,7 @@ export default function SiteAmbience() {
           )}
         </div>
 
-        {playing && volumeOpen && (
+        {musicEnabled && volumeOpen && (
           <div className={styles.volumePanel}>
             <label htmlFor="ambient-volume">
               <span>{isVietnamese ? "Âm lượng" : "Volume"}</span>
@@ -282,12 +392,18 @@ export default function SiteAmbience() {
               id="ambient-volume"
               type="range"
               min="0"
-              max="0.65"
+              max="1"
               step="0.01"
               value={volume}
               onChange={(event) => setVolume(Number(event.target.value))}
             />
-            <p>{isVietnamese ? "Giai điệu chuông gió và âm thanh thiên nhiên dịu nhẹ" : "Soft wind chimes and nature ambience"}</p>
+            <p>{isVietnamese
+              ? playing
+                ? "Nhạc piano êm dịu cùng hòa âm và tiếng chuông ngân nhẹ"
+                : "Trình duyệt có thể cần một lần chạm để cho phép tự phát âm thanh"
+              : playing
+                ? "Gentle piano melody, warm chords, and soft chimes"
+                : "Your browser may need one tap to allow background audio"}</p>
           </div>
         )}
 
