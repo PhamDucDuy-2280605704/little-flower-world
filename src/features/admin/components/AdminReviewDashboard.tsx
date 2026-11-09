@@ -35,6 +35,7 @@ type ReviewRow = {
   created_at: string;
 };
 type FilterKey = "pending" | "all" | "rejected" | "approved";
+type StoryOwnerDirectoryRow = { owner_id: string; display_name: string; email: string | null; story_count: number };
 type StoryEditDraft = {
   name: string;
   introduction: string;
@@ -84,6 +85,7 @@ export default function AdminReviewDashboard() {
   const previewRef = useRef<HTMLDialogElement>(null);
   const [authState, setAuthState] = useState<"checking" | "admin" | "denied">("checking");
   const [rows, setRows] = useState<ReviewRow[]>([]);
+  const [ownerDirectory, setOwnerDirectory] = useState<StoryOwnerDirectoryRow[]>([]);
   const [selectedId, setSelectedId] = useState("");
   const [filter, setFilter] = useState<FilterKey>("pending");
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
@@ -117,8 +119,12 @@ export default function AdminReviewDashboard() {
   const draftCount = rows.filter((row) => row.approval_status === "draft").length;
   const approvedCount = rows.filter((row) => row.approval_status === "approved").length;
   const rejectedCount = rows.filter((row) => row.approval_status === "rejected").length;
+  const ownerFor = (ownerId: string) => ownerId === FAIRYTALE_GARDEN_ADMIN_USER_ID
+    ? { display_name: t("Admin · Chủ hệ thống", "Admin · System owner"), email: null as string | null }
+    : ownerDirectory.find((entry) => entry.owner_id === ownerId)
+      ?? { display_name: t("User · Tài khoản người viết", "User · Writer account"), email: null as string | null };
 
-  const loadRows = useCallback(async () => {
+  const loadRows = useCallback(async (): Promise<ReviewRow[]> => {
     setLoading(true);
     setError("");
     const { data, error: queryError } = await adminSupabase
@@ -130,6 +136,9 @@ export default function AdminReviewDashboard() {
       console.error("Load Admin review queue failed:", queryError);
       setError(t("Chưa tải được danh sách tác phẩm. Anh thử tải lại nhé.", "Could not load the story queue. Please reload."));
       setRows([]);
+      setOwnerDirectory([]);
+      setLoading(false);
+      return [];
     } else {
       const normalized = (data ?? []).map((row) => ({
         ...row,
@@ -137,12 +146,20 @@ export default function AdminReviewDashboard() {
         letter_paragraphs: asParagraphs(row.letter_paragraphs),
         experience_settings: (row.experience_settings ?? {}) as Record<string, unknown>,
       })) as ReviewRow[];
+      const { data: owners, error: ownerError } = await adminSupabase.rpc("admin_story_owner_directory");
+      if (ownerError) {
+        console.error("Load Admin writer directory failed:", ownerError);
+        setOwnerDirectory([]);
+      } else {
+        setOwnerDirectory((owners ?? []) as StoryOwnerDirectoryRow[]);
+      }
       setRows(normalized);
       setSelectedId((current) => normalized.some((row) => row.id === current)
         ? current
         : normalized.find((row) => row.approval_status === "pending")?.id ?? normalized[0]?.id ?? "");
+      setLoading(false);
+      return normalized;
     }
-    setLoading(false);
   }, [t]);
 
   useEffect(() => {
@@ -334,10 +351,14 @@ export default function AdminReviewDashboard() {
       setSaving(false);
       return;
     }
-    await loadRows();
+    const reviewedTitle = selected.name;
+    const refreshed = await loadRows();
+    const nextPending = refreshed.find((row) => row.id !== selected.id && row.approval_status === "pending");
+    setFilter("pending");
+    setSelectedId(nextPending?.id ?? "");
     setNotice(status === "approved"
-      ? t("Đã duyệt tác phẩm. Anh có thể mở trình chỉnh sửa Admin để xuất bản sau.", "Story approved. Open the Admin editor when you're ready to publish it.")
-      : t("Đã từ chối tác phẩm và lưu lý do để người viết xem lại.", "Story rejected and the reason has been saved for the writer."));
+      ? t("Đã duyệt “" + reviewedTitle + "”. Tác phẩm đã rời hàng chờ; User nhận thông báo và có thể tự xuất bản khi sẵn sàng.", "Approved “" + reviewedTitle + "”. It has left the queue; the User was notified and can publish when ready.")
+      : t("Đã từ chối “" + reviewedTitle + "”. Tác phẩm đã rời hàng chờ; User nhận được lý do để chỉnh sửa.", "Rejected “" + reviewedTitle + "”. It has left the queue; the User received the reason for changes."));
     setSaving(false);
   }
 
@@ -408,6 +429,7 @@ export default function AdminReviewDashboard() {
                     <span className={styles.queueCopy}>
                       <strong>{row.name}</strong>
                       <small>{formatLabel(row.experience_settings, t)} · {statusLabel(row.approval_status, t)}</small>
+                      <small>{t("Người viết: ", "Writer: ")}{ownerFor(row.owner_id).display_name}</small>
                       <small>{new Date(row.created_at).toLocaleDateString()}</small>
                     </span>
                     <span className={styles.queueArrow}>›</span>
@@ -424,10 +446,11 @@ export default function AdminReviewDashboard() {
                   <p className={styles.eyebrow}>{t("TÁC PHẨM ĐANG CHỌN", "SELECTED STORY")}</p>
                   <h2>{selected.name}</h2>
                   <p>{statusLabel(selected.approval_status, t)} · {formatLabel(selected.experience_settings, t)}</p>
+                  <p className={styles.ownerIdentity}>{t("Chủ sở hữu: ", "Owner: ")}<strong>{ownerFor(selected.owner_id).display_name}</strong>{ownerFor(selected.owner_id).email ? <span> · {ownerFor(selected.owner_id).email}</span> : null}</p>
                 </div>
                 <div className={styles.detailActions}>
                   <button type="button" onClick={() => void openPreview(selected)} disabled={previewLoading}>{previewLoading ? t("Đang mở...", "Opening...") : t("◉ Xem trước toàn màn hình", "◉ Full preview")}</button>
-                  <Link href={"/admin/studio?mode=admin&garden=" + encodeURIComponent(selected.id)}>{t("Studio đầy đủ ↗", "Full Studio ↗")}</Link>
+                  <Link href={"/admin/studio?mode=admin&garden=" + encodeURIComponent(selected.id)}>{selected.owner_id === FAIRYTALE_GARDEN_ADMIN_USER_ID ? t("Mở Studio Admin ↗", "Open Admin Studio ↗") : t("✎ Sửa tác phẩm User ↗", "✎ Edit User story ↗")}</Link>
                   <button type="button" onClick={() => document.getElementById("admin-story-update")?.scrollIntoView({ behavior: "smooth", block: "center" })} className={storyDirty ? styles.updateActionDirty : undefined}>
                     {storyDirty ? "✦ " + t("Có thay đổi", "Changes") : "✎ " + t("Cập nhật", "Update")}
                   </button>
@@ -435,7 +458,7 @@ export default function AdminReviewDashboard() {
               </div>
 
               <div className={styles.storyFacts}>
-                <div><small>{t("Chủ sở hữu", "Owner")}</small><strong>{selected.owner_id === FAIRYTALE_GARDEN_ADMIN_USER_ID ? t("Admin", "Admin") : t("Tài khoản sáng tác", "Creator account")}</strong></div>
+                <div><small>{t("Chủ sở hữu", "Owner")}</small><strong>{ownerFor(selected.owner_id).display_name}</strong></div>
                 <div><small>{t("Ngày tạo", "Created")}</small><strong>{new Date(selected.created_at).toLocaleDateString()}</strong></div>
                 <div><small>{t("Xuất bản", "Published")}</small><strong>{selected.is_published ? t("Đang công khai", "Published") : t("Chưa xuất bản", "Not published")}</strong></div>
               </div>
@@ -471,7 +494,7 @@ export default function AdminReviewDashboard() {
               </label>
 
               <div className={styles.decisionBar}>
-                <div><strong>{t("Quyết định kiểm duyệt", "Moderation decision")}</strong><p>{t("Duyệt không tự động xuất bản. Admin vẫn kiểm soát bước chia sẻ riêng.", "Approval does not publish automatically. Admin controls sharing separately.")}</p></div>
+                <div><strong>{t("Quyết định kiểm duyệt", "Moderation decision")}</strong><p>{t("Admin quyết định duyệt hoặc từ chối. Khi được duyệt, User sẽ nhận thông báo và tự xuất bản khi sẵn sàng.", "Admin decides approval or rejection. Once approved, the User receives a notice and can publish when ready.")}</p></div>
                 <div className={styles.decisionButtons}>
                   <button type="button" className={styles.rejectButton} onClick={() => void moderate("rejected")} disabled={saving}>{saving ? t("Đang lưu...", "Saving...") : t("Từ chối & gửi lý do", "Reject with reason")}</button>
                   <button type="button" className={styles.approveButton} onClick={() => void moderate("approved")} disabled={saving}>{saving ? t("Đang lưu...", "Saving...") : t("Duyệt tác phẩm", "Approve story")}</button>
