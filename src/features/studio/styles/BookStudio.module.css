@@ -413,3 +413,75 @@
 .previewDialog:not([open]) {
   display: none;
 }
+
+
+/* Full-viewport story preview: no fixed desktop cap or leftover page margins. */
+.previewDialog[open] {
+  position: fixed;
+  inset: 0;
+  box-sizing: border-box;
+  width: 100vw;
+  max-width: none;
+  height: 100vh;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  overscroll-behavior: contain;
+}
+.previewDialog[open] .previewBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  overscroll-behavior: contain;
+}
+
+/* Inline sticker set shared by messages, letters, introductions and chapters. */
+.inlineStickerPicker {
+  display: grid;
+  gap: 9px;
+  margin: 10px 0 14px;
+  padding: 12px 13px;
+  border: 1px solid rgba(116, 143, 102, .2);
+  border-radius: 13px;
+  background: linear-gradient(135deg, #f7f9f1, #fffdf7);
+}
+.inlineStickerHeading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 5px 12px;
+}
+.inlineStickerHeading strong { color: #536d4e; font-size: 12px; font-weight: 800; }
+.inlineStickerHeading span { color: #929b87; font-size: 11px; }
+.inlineStickerChoices { display: flex; flex-wrap: wrap; gap: 7px; }
+.inlineStickerChoices button {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid rgba(120, 150, 105, .2);
+  border-radius: 11px;
+  background: #fffefa;
+  cursor: pointer;
+  transition: transform .16s ease, background .16s ease, border-color .16s ease;
+}
+.inlineStickerChoices button span { font-size: 21px; line-height: 1; }
+.inlineStickerChoices button:hover {
+  transform: translateY(-2px);
+  border-color: #9bb58e;
+  background: #eff6e9;
+}
+.inlineStickerChoices button:focus-visible {
+  outline: 3px solid rgba(115, 153, 102, .32);
+  outline-offset: 2px;
+}
+@media(max-width:600px) {
+  .inlineStickerPicker { padding: 10px; }
+  .inlineStickerChoices { gap: 6px; }
+  .inlineStickerChoices button { width: 36px; height: 36px; }
+}

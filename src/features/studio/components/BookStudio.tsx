@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type Dispatch, type SetStateAction } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -125,6 +125,36 @@ function initialsFor(label: string): string {
   return parts.slice(0, 2).map((part) => part[0]?.toUpperCase() ?? "").join("") || "TK";
 }
 
+
+function insertStickerAtCursor(textarea: HTMLTextAreaElement | null, setValue: Dispatch<SetStateAction<string>>, emoji: string) {
+  if (!textarea) {
+    setValue((current) => current + (current && !/\s$/u.test(current) ? " " : "") + emoji);
+    return;
+  }
+
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  let nextCursor = start;
+
+  setValue((current) => {
+    const safeStart = Math.max(0, Math.min(start, current.length));
+    const safeEnd = Math.max(safeStart, Math.min(end, current.length));
+    const before = current.slice(0, safeStart);
+    const after = current.slice(safeEnd);
+    const leadingSpace = before && !/\s$/u.test(before) ? " " : "";
+    const trailingSpace = after && !/^\s/u.test(after) ? " " : "";
+    const insertion = leadingSpace + emoji + trailingSpace;
+    nextCursor = safeStart + insertion.length;
+    return before + insertion + after;
+  });
+
+  window.requestAnimationFrame(() => {
+    if (!textarea.isConnected) return;
+    textarea.focus({ preventScroll: true });
+    textarea.setSelectionRange(nextCursor, nextCursor);
+  });
+}
+
 function statusForReview(
   status: GardenRow["approval_status"],
   translate: (vietnamese: string, english: string) => string,
@@ -138,6 +168,12 @@ export default function BookStudio() {
   const router = useRouter();
   const { t } = useLanguage();
   const previewRef = useRef<HTMLDialogElement>(null);
+  const messageTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const letterTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const bookIntroTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const chapterTextDraftRef = useRef<HTMLTextAreaElement>(null);
+  const newChapterTextRef = useRef<HTMLTextAreaElement>(null);
+  const finalLetterTextareaRef = useRef<HTMLTextAreaElement>(null);
   const [authReady, setAuthReady] = useState(false);
   const [userId, setUserId] = useState("");
   const [accountLabel, setAccountLabel] = useState("Tài khoản");
@@ -433,6 +469,31 @@ export default function BookStudio() {
       ...current,
       stickers: active ? current.stickers.filter((item) => item !== stickerId) : [...current.stickers, stickerId],
     }));
+  }
+
+  function renderWritingStickerPicker(getTextarea: () => HTMLTextAreaElement | null, setValue: Dispatch<SetStateAction<string>>) {
+    return (
+      <div className={styles.inlineStickerPicker} aria-label={t("Bộ sticker chèn vào nội dung", "Writing sticker set")}>
+        <div className={styles.inlineStickerHeading}>
+          <strong>{t("Chèn sticker vào lời viết", "Insert a sticker into your writing")}</strong>
+          <span>{t("Đặt con trỏ tại vị trí muốn chèn", "Place the cursor where you want it")}</span>
+        </div>
+        <div className={styles.inlineStickerChoices}>
+          {STORY_STICKERS.map((sticker) => (
+            <button
+              key={sticker.id}
+              type="button"
+              onPointerDown={(event) => event.preventDefault()}
+              onClick={() => insertStickerAtCursor(getTextarea(), setValue, sticker.emoji)}
+              aria-label={t("Chèn sticker " + sticker.label, "Insert " + sticker.labelEn + " sticker")}
+              title={t(sticker.label, sticker.labelEn)}
+            >
+              <span aria-hidden="true">{sticker.emoji}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   function contentReady() {
@@ -1094,7 +1155,8 @@ export default function BookStudio() {
               {format === "message" && (
                 <div className={styles.writerPanel}>
                   <div className={styles.writerHeading}><span>✎</span><div><strong>{t("Thông điệp của bạn", "Your message")}</strong><small>{t("Một trang ngắn gọn và chân thành.", "A short and heartfelt page.")}</small></div></div>
-                  <label className={styles.field}>{t("Nội dung thông điệp", "Message")}<textarea value={introduction} onChange={(event) => setIntroduction(event.target.value)} rows={10} maxLength={7000} placeholder={t("Bạn muốn nói điều gì với người nhận? Cứ viết tự nhiên như đang trò chuyện...", "What would you like to tell the reader? Write naturally, as if you were talking.")}/></label>
+                  <label className={styles.field}>{t("Nội dung thông điệp", "Message")}<textarea ref={messageTextareaRef} value={introduction} onChange={(event) => setIntroduction(event.target.value)} rows={10} maxLength={7000} placeholder={t("Bạn muốn nói điều gì với người nhận? Cứ viết tự nhiên như đang trò chuyện...", "What would you like to tell the reader? Write naturally, as if you were talking.")}/></label>
+                  {renderWritingStickerPicker(() => messageTextareaRef.current, setIntroduction)}
                   <p className={styles.helper}>{t("Mỗi dòng trống sẽ tách thành một đoạn văn riêng.", "A blank line starts a new paragraph.")}</p>
                 </div>
               )}
@@ -1104,7 +1166,8 @@ export default function BookStudio() {
                   <div className={styles.writerHeading}><span>✉</span><div><strong>{t("Bức thư của bạn", "Your letter")}</strong><small>{t("Một lá thư với lời mở đầu và chữ ký.", "A letter with an opening and a signature.")}</small></div></div>
                   <label className={styles.field}>{t("Lời dẫn ngắn", "Short introduction")}<input value={introduction} onChange={(event) => setIntroduction(event.target.value)} maxLength={300} placeholder={t("Một câu giới thiệu để người nhận mở thư...", "A sentence to introduce the letter...")}/></label>
                   <label className={styles.field}>{t("Tiêu đề thư", "Letter title")}<input value={letterTitle} maxLength={100} onChange={(event) => setLetterTitle(event.target.value)} placeholder="Gửi em, vào một ngày thật đẹp..."/></label>
-                  <label className={styles.field}>{t("Nội dung thư", "Letter content")}<textarea value={letterText} onChange={(event) => setLetterText(event.target.value)} rows={12} maxLength={12000} placeholder={t("Bắt đầu viết bức thư của bạn tại đây...", "Start writing your letter here...")}/></label>
+                  <label className={styles.field}>{t("Nội dung thư", "Letter content")}<textarea ref={letterTextareaRef} value={letterText} onChange={(event) => setLetterText(event.target.value)} rows={12} maxLength={12000} placeholder={t("Bắt đầu viết bức thư của bạn tại đây...", "Start writing your letter here...")}/></label>
+                  {renderWritingStickerPicker(() => letterTextareaRef.current, setLetterText)}
                   <label className={styles.field}>{t("Chữ ký", "Signature")}<input value={signature} maxLength={80} onChange={(event) => setSignature(event.target.value)} placeholder={t("Thân thương, ...", "With affection, ...")}/></label>
                 </div>
               )}
@@ -1112,7 +1175,8 @@ export default function BookStudio() {
               {format === "book" && (
                 <div className={styles.writerPanel}>
                   <div className={styles.writerHeading}><span>▤</span><div><strong>{t("Cuốn sách của bạn", "Your book")}</strong><small>{t("Viết lời giới thiệu và thêm từng chương theo mạch truyện.", "Write an introduction and add chapters in the order of your story.")}</small></div></div>
-                  <label className={styles.field}>{t("Lời giới thiệu", "Introduction")}<textarea value={introduction} onChange={(event) => setIntroduction(event.target.value)} rows={3} maxLength={700} placeholder="Một vài dòng dẫn người đọc bước vào câu chuyện..."/></label>
+                  <label className={styles.field}>{t("Lời giới thiệu", "Introduction")}<textarea ref={bookIntroTextareaRef} value={introduction} onChange={(event) => setIntroduction(event.target.value)} rows={3} maxLength={700} placeholder="Một vài dòng dẫn người đọc bước vào câu chuyện..."/></label>
+                  {renderWritingStickerPicker(() => bookIntroTextareaRef.current, setIntroduction)}
                   <div className={styles.chapterWorkspace}>
                     <div className={styles.chapterPanel}>
                       <div className={styles.chapterPanelHeading}><strong>{t("Mục lục bản thảo", "Draft contents")}</strong><span>{chapters.length} chương</span></div>
@@ -1130,7 +1194,8 @@ export default function BookStudio() {
                         <>
                           <div className={styles.chapterFormHeading}><strong>{t("Chỉnh sửa chương", "Edit chapter")}</strong><span>Chương {selectedChapter.sort_order}</span></div>
                           <label className={styles.field}>{t("Tên chương", "Chapter title")}<input value={chapterTitleDraft} onChange={(event) => setChapterTitleDraft(event.target.value)} maxLength={120}/></label>
-                          <label className={styles.field}>{t("Nội dung", "Content")}<textarea value={chapterTextDraft} onChange={(event) => setChapterTextDraft(event.target.value)} rows={8} maxLength={16000}/></label>
+                          <label className={styles.field}>{t("Nội dung", "Content")}<textarea ref={chapterTextDraftRef} value={chapterTextDraft} onChange={(event) => setChapterTextDraft(event.target.value)} rows={8} maxLength={16000}/></label>
+                          {renderWritingStickerPicker(() => chapterTextDraftRef.current, setChapterTextDraft)}
                           <button type="button" className={styles.secondaryButton} onClick={() => void saveChapter()} disabled={saving}>{saving ? t("Đang lưu...", "Saving...") : t("Lưu chương này", "Save chapter")}</button>
                         </>
                       ) : (
@@ -1145,12 +1210,14 @@ export default function BookStudio() {
                     <div className={styles.chapterFormHeading}><strong>{t("＋ Thêm chương mới", "＋ Add a chapter")}</strong><span>Chương {t("Chương", "Chapter")} {Math.max(0, ...chapters.map((chapter) => chapter.sort_order)) + 1}</span></div>
                     
                     <label className={styles.field}>{t("Tên chương", "Chapter title")}<input value={newChapterTitle} onChange={(event) => setNewChapterTitle(event.target.value)} maxLength={120} placeholder={t("Ví dụ: Ngày mình gặp nhau...", "For example: The day we met...")}/></label>
-                    <label className={styles.field}>{t("Nội dung chương", "Chapter content")}<textarea value={newChapterText} onChange={(event) => setNewChapterText(event.target.value)} rows={6} maxLength={16000} placeholder={t("Viết nội dung chương tiếp theo...", "Write the next chapter...")}/></label>
+                    <label className={styles.field}>{t("Nội dung chương", "Chapter content")}<textarea ref={newChapterTextRef} value={newChapterText} onChange={(event) => setNewChapterText(event.target.value)} rows={6} maxLength={16000} placeholder={t("Viết nội dung chương tiếp theo...", "Write the next chapter...")}/></label>
+                    {renderWritingStickerPicker(() => newChapterTextRef.current, setNewChapterText)}
                     <button type="button" className={styles.primaryButton} onClick={() => void addChapter()} disabled={saving || !newChapterTitle.trim()}>{saving ? t("Đang thêm...", "Adding...") : t("Thêm chương vào sách", "Add chapter")}</button>
                   </div>
                   <div className={styles.writerInset}>
                     <label className={styles.field}>{t("Tiêu đề lá thư cuối (không bắt buộc)", "Final letter title (optional)")}<input value={letterTitle} maxLength={100} onChange={(event) => setLetterTitle(event.target.value)}/></label>
-                    <label className={styles.field}>{t("Nội dung lá thư cuối", "Final letter")}<textarea value={letterText} onChange={(event) => setLetterText(event.target.value)} rows={4} maxLength={5000} placeholder={t("Có thể để dành một lời nhắn đặc biệt cho trang cuối...", "Save a special note for the final page...")}/></label>
+                    <label className={styles.field}>{t("Nội dung lá thư cuối", "Final letter")}<textarea ref={finalLetterTextareaRef} value={letterText} onChange={(event) => setLetterText(event.target.value)} rows={4} maxLength={5000} placeholder={t("Có thể để dành một lời nhắn đặc biệt cho trang cuối...", "Save a special note for the final page...")}/></label>
+                    {renderWritingStickerPicker(() => finalLetterTextareaRef.current, setLetterText)}
                     <label className={styles.field}>{t("Chữ ký", "Signature")}<input value={signature} maxLength={80} onChange={(event) => setSignature(event.target.value)} placeholder={t("Người viết", "Author")}/></label>
                     <p className={styles.helper}>{t("Lá thư cuối sẽ xuất hiện sau khi người đọc hoàn thành các chương.", "The final letter appears after the reader finishes the chapters.")}</p>
                   </div>

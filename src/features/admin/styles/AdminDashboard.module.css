@@ -1119,3 +1119,32 @@
 .storyPreviewDialog:not([open]) {
   display: none;
 }
+
+
+/* Admin story previews occupy the complete viewport at every screen size. */
+.storyPreviewDialog[open] {
+  position: fixed;
+  inset: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  max-width: none;
+  height: 100vh;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+.storyPreviewDialog[open] .storyPreviewBody,
+.storyPreviewDialog[open] .storyPreviewBodyLetter {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
