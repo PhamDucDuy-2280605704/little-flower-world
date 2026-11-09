@@ -202,3 +202,9 @@
   .topActions { width:100%; }
   .topActions a,.topActions button { flex:1; }
 }
+
+
+/* Native dialogs must leave layout completely when the open attribute is removed. */
+.previewDialog:not([open]) {
+  display: none;
+}
