@@ -14,6 +14,7 @@ type Props = {
   letterTitle: string;
   letterParagraphs: string[];
   letterSignature: string;
+  embedded?: boolean;
 };
 
 export default function FamilyLetterReader({
@@ -24,6 +25,7 @@ export default function FamilyLetterReader({
   letterTitle,
   letterParagraphs,
   letterSignature,
+  embedded = false,
 }: Props) {
   const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
   const [brokenPhotoPaths, setBrokenPhotoPaths] = useState<Set<string>>(() => new Set());
@@ -83,8 +85,10 @@ export default function FamilyLetterReader({
     );
   }
 
+  const ReaderRoot = embedded ? "div" : "main";
+
   return (
-    <main className={styles.page}>
+    <ReaderRoot className={styles.page}>
       <article className={styles.letter}>
         <header className={styles.letterHeader}>
           <p className={styles.kicker}>MỘT TÂM THƯ GỬI BA MẸ</p>
@@ -121,12 +125,12 @@ export default function FamilyLetterReader({
                 ))}
               </div>
               {index === 0 && oldPhoto && renderPhoto(oldPhoto, "Một khung hình từ những năm tháng con còn bé.")}
-              {index === 3 && todayPhoto && renderPhoto(todayPhoto, "Gia đình mình hôm nay — một khoảnh khắc con muốn giữ thật lâu.")}
+              {index === chapters.length - 1 && todayPhoto && todayPhoto.path !== oldPhoto?.path && renderPhoto(todayPhoto, "Gia đình mình hôm nay — một khoảnh khắc con muốn giữ thật lâu.")}
             </section>
           ))}
 
           {chapters.length === 0 && oldPhoto && renderPhoto(oldPhoto, "Một kỷ niệm gia đình con luôn trân trọng.")}
-          {chapters.length === 0 && todayPhoto && renderPhoto(todayPhoto, "Gia đình mình hôm nay.")}
+          {chapters.length === 0 && todayPhoto && todayPhoto.path !== oldPhoto?.path && renderPhoto(todayPhoto, "Gia đình mình hôm nay.")}
 
           <section className={styles.closing}>
             <p className={styles.closingLabel}>ĐIỀU CON MUỐN NÓI</p>
@@ -147,6 +151,6 @@ export default function FamilyLetterReader({
         onClose={() => setActivePhotoIndex(null)}
         onChange={setActivePhotoIndex}
       />
-    </main>
+    </ReaderRoot>
   );
 }
