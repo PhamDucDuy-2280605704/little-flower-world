@@ -277,7 +277,7 @@ export default function SiteAmbience() {
               value={volume}
               onChange={(event) => setVolume(Number(event.target.value))}
             />
-            <p>{isVietnamese ? "Giai điệu piano và chuông gió dịu nhẹ" : "Soft piano and wind-chime ambience"}</p>
+            <p>{isVietnamese ? "Giai điệu chuông gió và âm thanh thiên nhiên dịu nhẹ" : "Soft wind chimes and nature ambience"}</p>
           </div>
         )}
 
