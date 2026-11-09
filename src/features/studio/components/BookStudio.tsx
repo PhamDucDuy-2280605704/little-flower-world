@@ -108,12 +108,29 @@ async function makePinHash(pin: string) {
   return { salt, hash: b64(new Uint8Array(bits)) };
 }
 
+function accountNameFor(user: { email?: string; user_metadata?: Record<string, unknown> }): string {
+  const metadata = user.user_metadata ?? {};
+  for (const key of ["full_name", "name", "display_name", "user_name"]) {
+    const value = metadata[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  const emailPrefix = user.email?.split("@")[0]?.replace(/[._-]+/g, " ").trim();
+  return emailPrefix || "Tài khoản";
+}
+
+function initialsFor(label: string): string {
+  const parts = label.split(/[\s._-]+/).filter(Boolean);
+  return parts.slice(0, 2).map((part) => part[0]?.toUpperCase() ?? "").join("") || "TK";
+}
+
 export default function BookStudio() {
   const router = useRouter();
   const { t } = useLanguage();
   const previewRef = useRef<HTMLDialogElement>(null);
   const [authReady, setAuthReady] = useState(false);
   const [userId, setUserId] = useState("");
+  const [accountLabel, setAccountLabel] = useState("Tài khoản");
+  const accountInitials = initialsFor(accountLabel);
   const [isAdmin, setIsAdmin] = useState(false);
   const activeClientRef = useRef(supabase);
   const [gardens, setGardens] = useState<GardenRow[]>([]);
@@ -293,6 +310,7 @@ export default function BookStudio() {
       activeClientRef.current = useAdminSession ? adminSupabase : memberUser ? supabase : adminSupabase;
       setIsAdmin(adminMode);
       setUserId(user.id);
+      setAccountLabel(accountNameFor(user));
       try {
         const loadedGardens = await loadGardens(user.id, adminMode);
         const requestedGardenId = new URLSearchParams(window.location.search).get("garden");
@@ -833,6 +851,13 @@ export default function BookStudio() {
       <header className={styles.topbar}>
         <Link href="/" className={styles.brand}><span>✎</span><strong>Little Story World <small>WRITING STUDIO</small></strong></Link>
         <nav aria-label={t("Điều hướng không gian sáng tác", "Writing studio navigation")}>
+          <span className={styles.accountBadge} title={accountLabel}>
+            <span className={styles.accountAvatar} aria-hidden="true">{accountInitials}</span>
+            <span className={styles.accountText}>
+              <strong>{accountLabel}</strong>
+              <small>{isAdmin ? t("TÀI KHOẢN QUẢN TRỊ", "ADMIN ACCOUNT") : t("TÀI KHOẢN SÁNG TÁC", "WRITER ACCOUNT")}</small>
+            </span>
+          </span>
           {isAdmin && <Link href="/admin">{t("Trung tâm Admin", "Admin center")}</Link>}
           {selectedGarden?.is_published && shareUrl && <a href={shareUrl} target="_blank" rel="noreferrer">{t("Mở bản người đọc", "Open reader view")} ↗</a>}
           <Link href="/">{t("Trang chủ", "Home")}</Link>
