@@ -1102,10 +1102,12 @@ export default function BookStudio() {
       setSaving(false);
       return;
     }
-    await loadGardens(userId, true);
+    const refreshed = await loadGardens(userId, true);
+    const nextPending = refreshed.find((garden) => garden.id !== selectedGarden.id && garden.approval_status === "pending");
+    setSelectedId(nextPending?.id ?? "");
     setNotice(status === "approved"
-      ? t("Đã duyệt tác phẩm và lưu nhận xét của Admin.", "Story approved and Admin feedback saved.")
-      : t("Đã từ chối tác phẩm và lưu lý do để người viết xem lại.", "Story rejected and the reason saved for the writer."));
+      ? t("Thông báo Admin: Đã duyệt tác phẩm. Yêu cầu đã rời hàng chờ; User có thể tự xuất bản.", "Admin notice: Story approved and removed from the review queue. The User can now publish it.")
+      : t("Thông báo Admin: Đã từ chối tác phẩm. Yêu cầu đã rời hàng chờ; User đã nhận lý do chỉnh sửa.", "Admin notice: Story rejected and removed from the review queue. The User has received the reason for changes."));
     setSaving(false);
   }
 
@@ -1180,8 +1182,8 @@ export default function BookStudio() {
           <p className={styles.eyebrow}>{isAdmin ? "ADMIN WORKSPACE" : "BÀN SÁNG TÁC RIÊNG"}</p>
           <h1>{isAdmin ? t("Không gian chỉnh sửa đầy đủ của Admin.", "Full Admin editing workspace.") : t("Nơi bạn viết và chăm chút câu chuyện của mình.", "A quiet place to write and shape your stories.")}</h1>
           <p>{isAdmin
-            ? t("Đây là trình chỉnh sửa chuyên sâu. Duyệt và từ chối được thực hiện tại Bàn kiểm duyệt riêng; quản lý toàn bộ tác phẩm, xuất bản, mã PIN và lưu bút được kiểm soát từ Trung tâm Admin.", "This is the advanced editor. Moderation happens in the dedicated Review Desk; all-story management, publishing, PINs, and guestbook controls remain in the Admin Center.")
-            : t("Đây là bàn sáng tác dành cho tài khoản người viết: tạo và quản lý bản thảo, thêm ảnh, xem trước, gửi Admin kiểm duyệt và đọc phản hồi. Đây không phải trang cài đặt hồ sơ. Bản thảo được lưu riêng tư; chỉ Admin mới có quyền duyệt và xuất bản.", "This writing desk is for writer accounts: create and manage drafts, add photos, preview, submit for review, and read feedback. It is not a profile settings page. Drafts stay private; only Admin can approve and publish.")}</p>
+            ? t("Admin là chủ hệ thống: quản lý tác phẩm của mình, xem và chỉnh sửa tác phẩm của từng User, duyệt hoặc từ chối tại Bàn kiểm duyệt. User có thể tự xuất bản sau khi được Admin duyệt.", "Admin is the system owner: manage personal stories, inspect and edit each User's stories, and approve or reject in the Review Desk. Users can publish their own stories after approval.")
+            : t("Đây là bàn sáng tác dành cho User: tạo tác phẩm, thêm ảnh, trang trí, gửi Admin kiểm duyệt và nhận thông báo. Khi được duyệt, User có thể tự xuất bản, đặt PIN và bật lời nhắn cho Khách đọc.", "This writing desk is for Users: create stories, add photos, decorate, submit for Admin review, and receive notices. Once approved, Users can publish, set a PIN, and enable notes from reader Guests.")}</p>
         </div>
         <div className={styles.welcomePhoto} role="img" aria-label={t("Cuốn sách mở dưới ánh sáng tự nhiên", "An open book in natural light")}>
           <span>YOUR WORDS, YOUR PAGES</span>
@@ -1193,7 +1195,7 @@ export default function BookStudio() {
           <div><span>▤</span><strong>{t("Quản lý bản thảo", "Manage drafts")}</strong><small>{t("Tạo, sửa và xóa bản thảo riêng tư hoặc bản bị từ chối.", "Create, edit, and delete private or rejected drafts.")}</small></div>
           <div><span>▧</span><strong>{t("Quản lý hình ảnh", "Manage photos")}</strong><small>{t("Thêm ảnh và xem kho ảnh của từng tác phẩm.", "Add photos and manage each story's album.")}</small></div>
           <div><span>✉</span><strong>{t("Gửi Admin kiểm duyệt", "Submit for review")}</strong><small>{t("Theo dõi trạng thái và đọc nhận xét từ Admin.", "Track review status and read Admin feedback.")}</small></div>
-          <div><span>🔒</span><strong>{t("Quyền xuất bản do Admin giữ", "Admin controls publishing")}</strong><small>{t("Tài khoản sáng tác không thể tự duyệt, từ chối hoặc tạo link công khai.", "Creator accounts cannot approve, reject, or publish public links.")}</small></div>
+          <div><span>✉</span><strong>{t("Admin duyệt · User xuất bản", "Admin approves · User publishes")}</strong><small>{t("User chỉ được tạo liên kết công khai sau khi Admin duyệt tác phẩm.", "Users can create a public link only after Admin approval.")}</small></div>
         </section>
       )}
 
@@ -1242,7 +1244,7 @@ export default function BookStudio() {
           <section className={styles.editor} id="writing-editor">
             <div className={styles.editorHeading}>
               <div>
-                <p className={styles.eyebrow}>{isAdmin && selectedGarden.owner_id !== FAIRYTALE_GARDEN_ADMIN_USER_ID ? t("ADMIN · ĐANG SỬA TÁC PHẨM CỦA USER", "ADMIN · EDITING A USER STORY") : isAdmin ? t("ADMIN · TÁC PHẨM CHỦ HỆ THỐNG", "ADMIN · SYSTEM OWNER STORY") : t("YOUR WRITING DESK", "YOUR WRITING DESK")}</p>
+                <p className={styles.eyebrow}>{isAdmin && selectedGarden.owner_id !== FAIRYTALE_GARDEN_ADMIN_USER_ID ? t("ADMIN · ĐANG SỬA TÁC PHẨM CỦA USER", "ADMIN · EDITING A USER STORY") : isAdmin ? t("ADMIN · TÁC PHẨM CHỦ HỆ THỐNG", "ADMIN · SYSTEM OWNER STORY") : t("USER · WRITING DESK", "USER · WRITING DESK")}</p>
                 <h2>{name || selectedGarden.name}</h2>
                 {isAdmin && <small className={styles.selectedOwnerLabel}>{t("Chủ sở hữu: ", "Owner: ")}{selectedOwnerName}</small>}
               </div>
@@ -1421,8 +1423,7 @@ export default function BookStudio() {
                   <div className={styles.stickerPicker}>
                     {STORY_STICKERS.map((sticker) => {
                       const active = decorations.stickers.includes(sticker.id);
-                      const limitReached = false;
-                      return <button key={sticker.id} type="button" className={active ? styles.stickerChoiceActive : styles.stickerChoice} onClick={() => toggleSticker(sticker.id)} disabled={limitReached}>
+                      return <button key={sticker.id} type="button" className={active ? styles.stickerChoiceActive : styles.stickerChoice} onClick={() => toggleSticker(sticker.id)}>
                         <span>{sticker.emoji}</span><strong>{t(sticker.label, sticker.labelEn)}</strong>{active && <small>{t("✓ Đã thêm", "✓ Added")}</small>}
                       </button>;
                     })}
