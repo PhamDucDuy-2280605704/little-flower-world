@@ -236,3 +236,37 @@
   overflow: auto;
   overscroll-behavior: contain;
 }
+
+/* Independent content update panel; visually separate from moderation decisions. */
+.storyEditor {
+  margin: 18px 0;
+  padding: 17px;
+  border: 1px solid rgba(112,145,100,.2);
+  border-radius: 15px;
+  background: linear-gradient(145deg, #fffef9, #f7faef);
+}
+.editorHeading { display:flex; justify-content:space-between; align-items:flex-start; gap:14px; margin-bottom:14px; }
+.editorHeading h3 { margin:0; color:#31553a; font-family:var(--font-display),Georgia,serif; font-size:23px; font-weight:400; }
+.editorHeading p:last-child { margin:5px 0 0; color:#87917c; font-size:11px; line-height:1.6; }
+.dirtyIndicator,.cleanIndicator { flex:0 0 auto; padding:7px 10px; border-radius:999px; background:#fff0dc; color:#9a713e; font-size:10px; font-weight:900; }
+.cleanIndicator { background:#edf4e6; color:#5e7b54; }
+.updateActionDirty { border-color:#d7b77d !important; background:#fff4df !important; color:#936b36 !important; }
+.storyEditor .commentField { margin-top:12px; }
+.storyEditor .commentField input,.storyEditor .commentField textarea {
+  width:100%; box-sizing:border-box; padding:11px 12px; border:1px solid rgba(112,145,100,.23);
+  border-radius:11px; outline:none; background:#fffefa; color:#405641; font:inherit;
+  font-size:13px; font-weight:450; line-height:1.7;
+}
+.storyEditor .commentField input:focus,.storyEditor .commentField textarea:focus { border-color:#8fb082; box-shadow:0 0 0 3px rgba(143,176,130,.14); }
+.editorToggle { display:flex; align-items:center; gap:9px; margin-top:14px; color:#587250; font-size:12px; font-weight:750; }
+.editorToggle input { width:16px; height:16px; accent-color:#527b50; }
+.editorFooter { display:flex; justify-content:space-between; align-items:center; gap:14px; margin-top:16px; padding-top:14px; border-top:1px solid rgba(112,145,100,.15); }
+.editorFooter small { color:#8c967f; font-size:10px; line-height:1.5; }
+.updateButton { min-height:39px; padding:0 15px; border:0; border-radius:999px; background:#4d7852; color:#fffdf5; font:inherit; font-size:11px; font-weight:900; cursor:pointer; }
+.updateButton:hover { background:#3f6946; }
+.updateButton:disabled { opacity:.45; cursor:not-allowed; }
+@media(max-width:560px) {
+  .editorHeading,.editorFooter { align-items:stretch; flex-direction:column; }
+  .dirtyIndicator,.cleanIndicator { align-self:flex-start; }
+  .editorFooter .updateButton { width:100%; }
+}
