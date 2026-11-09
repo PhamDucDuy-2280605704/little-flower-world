@@ -459,9 +459,9 @@ export default function BookStudio() {
         table: "gardens",
         filter: "owner_id=eq." + userId,
       }, (payload) => {
-        const previous = payload.old as Partial<GardenRow>;
         const updated = payload.new as Partial<GardenRow>;
-        if (previous.approval_status === updated.approval_status) return;
+        const current = gardens.find((garden) => garden.id === updated.id);
+        if (!updated.id || !current || current.approval_status === updated.approval_status) return;
         if (updated.approval_status === "approved" || updated.approval_status === "rejected") {
           void loadGardens(userId, false).then(() => {
             setNotice(updated.approval_status === "approved"
@@ -472,7 +472,7 @@ export default function BookStudio() {
       })
       .subscribe();
     return () => { void supabase.removeChannel(channel); };
-  }, [authReady, isAdmin, userId, loadGardens, t]);
+  }, [authReady, isAdmin, userId, gardens, loadGardens, t]);
 
   const closePreview = useCallback(() => {
     const dialog = previewRef.current;
