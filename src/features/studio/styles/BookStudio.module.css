@@ -407,3 +407,9 @@
   .accountCapabilities strong { font-size: 10px; }
   .accountCapabilities small { font-size: 8px; }
 }
+
+
+/* Native dialogs must leave layout completely when the open attribute is removed. */
+.previewDialog:not([open]) {
+  display: none;
+}
