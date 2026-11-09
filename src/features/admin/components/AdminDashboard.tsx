@@ -529,9 +529,8 @@ export default function AdminDashboard() {
         <div className={styles.deniedCard}>
           <span className={styles.deniedMark}>▤</span>
           <p className={styles.eyebrow}>LITTLE STORY WORLD</p>
-          <h1>{t("Khu vực dành riêng cho Admin", "Private Admin area")}</h1>
-          <p>{t("Anh cần đăng nhập bằng tài khoản quản trị để mở trung tâm này.", "Sign in with an administrator account to open this center.")}</p>
-          <Link href="/little-story-backstage-7f4c" className={styles.primaryLink}>{t("Đăng nhập quản trị", "Admin sign-in")}</Link>
+          <h1>{t("Trang hiện không khả dụng", "Page unavailable")}</h1>
+          <p>{t("Không thể mở nội dung tại địa chỉ này.", "This page is not available at this address.")}</p>
           <Link href="/" className={styles.backLink}>{t("Về trang chủ", "Back to home")}</Link>
         </div>
       </main>
