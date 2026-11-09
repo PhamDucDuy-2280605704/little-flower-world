@@ -99,6 +99,7 @@ type Props = {
   returnHref?: string;
   returnLabel?: string;
   standalone?: boolean;
+  embedded?: boolean;
   actionHref?: string;
   actionLabel?: string;
   /** Compatibility props accepted from legacy routes but deliberately never rendered. */
@@ -129,6 +130,7 @@ export default function GardenJournal({
   returnHref = "/",
   returnLabel = "Little Story World",
   standalone = false,
+  embedded = false,
   actionHref = "#the-book",
   actionLabel = "MỞ CUỐN SÁCH",
   children,
@@ -253,9 +255,10 @@ export default function GardenJournal({
   const totalNumber = String(pages.length).padStart(2, "0");
   const readPercent = chapters.length > 0 ? Math.round((readIds.length / chapters.length) * 100) : 0;
   const formatLabel = format === "message" ? t("THÔNG ĐIỆP", "MESSAGE") : format === "letter" ? t("BỨC THƯ", "LETTER") : t("CUỐN SÁCH", "BOOK");
+  const Root = embedded ? "div" : "main";
 
   return (
-    <main className={styles.page}>
+    <Root className={embedded ? styles.page + " " + styles.embeddedPage : styles.page}>
       {!standalone && (
         <header className={styles.siteHeader}>
           <Link className={styles.brand} href={returnHref}>
@@ -263,11 +266,23 @@ export default function GardenJournal({
             <span>LITTLE STORY WORLD</span>
           </Link>
           <nav aria-label={t("Điều hướng tác phẩm", "Story navigation")}>
-            <a href="#the-book">{t("Cuốn sách", "Book")}</a>
-            <a href="#contents">{t("Mục lục", "Contents")}</a>
+            {format === "book" ? (
+              <>
+                <a href="#the-book">{t("Cuốn sách", "Book")}</a>
+                <a href="#contents">{t("Mục lục", "Contents")}</a>
+              </>
+            ) : (
+              <a href="#the-book">{format === "letter" ? t("Bức thư", "Letter") : t("Thông điệp", "Message")}</a>
+            )}
             {secondaryPhotos.length > 0 && <a href="#memories">{t("Hình ảnh", "Photos")}</a>}
           </nav>
-          <a className={styles.headerAction} href={actionHref}>{actionLabel === "MỞ CUỐN SÁCH" || actionLabel === "MỞ TÁC PHẨM" ? t(actionLabel, "OPEN STORY") : actionLabel === "ĐỂ LẠI LỜI NHẮN" ? t(actionLabel, "LEAVE A NOTE") : actionLabel}</a>
+          <a className={styles.headerAction} href={actionHref}>
+            {actionLabel === "MỞ CUỐN SÁCH" || actionLabel === "MỞ TÁC PHẨM"
+              ? t(actionLabel, "OPEN STORY")
+              : actionLabel === "ĐỂ LẠI LỜI NHẮN"
+                ? t(actionLabel, "LEAVE A NOTE")
+                : actionLabel}
+          </a>
         </header>
       )}
 
@@ -280,11 +295,24 @@ export default function GardenJournal({
       <section className={styles.hero}>
         <div className={styles.heroCopy}>
           <p className={styles.entryLabel}>{t("MỘT ĐIỀU NHỎ ĐỂ LƯU GIỮ", "A LITTLE SOMETHING TO KEEP")}</p>
-          <h2>{t("Mỗi trang là một điều muốn gửi trao.", "Every page holds something worth sharing.")}</h2>
-          <p>{introduction || t("Có những điều thật đẹp khi được viết thành lời và lưu lại trong một cuốn sách nhỏ.", "Some things are beautiful when written down and kept in a little book.")}</p>
-          <a href="#the-book" className={styles.readButton}>{t("Bắt đầu lật trang", "Start reading")} <span aria-hidden="true">↗</span></a>
+          <h2>{format === "book"
+            ? t("Mỗi trang là một điều muốn gửi trao.", "Every page holds something worth sharing.")
+            : format === "letter"
+              ? t("Có những điều chỉ muốn viết riêng cho em.", "Some words are meant for one person only.")
+              : t("Một lời nhắn nhỏ, gửi bằng tất cả chân thành.", "A little message, sent with all sincerity.")}</h2>
+          <p>{introduction || (format === "book"
+            ? t("Có những điều thật đẹp khi được viết thành lời và lưu lại trong một cuốn sách nhỏ.", "Some things are beautiful when written down and kept in a little book.")
+            : format === "letter"
+              ? t("Một lá thư nhỏ để gom những điều đôi khi khó nói thành lời.", "A little letter for the things that are hard to say aloud.")
+              : t("Một vài dòng ngắn, nhưng chứa điều bạn thật sự muốn nói.", "A few short lines for what you truly want to say."))}</p>
+          <a href="#the-book" className={styles.readButton}>
+            {format === "book" ? t("Bắt đầu lật trang", "Start reading") : format === "letter" ? t("Mở bức thư", "Read the letter") : t("Đọc lời nhắn", "Read message")}
+            <span aria-hidden="true">↗</span>
+          </a>
           <div className={styles.heroMeta}>
-            <span>{chapters.length || (format === "book" ? 0 : 1)} {format === "book" ? t("CHƯƠNG", "CHAPTERS") : t("TRANG NỘI DUNG", "PAGES")}</span>
+            <span>{format === "book"
+              ? chapters.length + " " + t("CHƯƠNG", "CHAPTERS")
+              : format === "letter" ? t("MỘT BỨC THƯ RIÊNG", "A PERSONAL LETTER") : t("MỘT THÔNG ĐIỆP", "A PERSONAL MESSAGE")}</span>
             <span>{t("ĐỌC THEO NHỊP CỦA BẠN", "READ AT YOUR OWN PACE")}</span>
           </div>
         </div>
@@ -324,6 +352,7 @@ export default function GardenJournal({
         </div>
       </section>
 
+      {format === "book" ? (
       <section
         className={styles.bookSection}
         id="the-book"
@@ -467,6 +496,57 @@ export default function GardenJournal({
           <p className={styles.readProgress}>{readIds.length} / {chapters.length} {t("chương đã đọc", "chapters read")} · {readPercent}% {t("hành trình", "complete")}</p>
         )}
       </section>
+      ) : (
+        <section className={styles.singleStorySection} id="the-book" aria-label={format === "letter" ? t("Bức thư riêng", "Personal letter") : t("Thông điệp", "Personal message")}>
+          <div className={styles.singleStoryHeading}>
+            <p className={styles.entryLabel}>{format === "letter" ? t("A LETTER FOR YOU", "A LETTER FOR YOU") : t("A NOTE FROM THE HEART", "A NOTE FROM THE HEART")}</p>
+            <h2>{format === "letter" ? t("Một lá thư dành riêng cho em", "A letter just for you") : t("Điều anh muốn gửi em", "A message for you")}</h2>
+          </div>
+          <article className={[styles.singlePaper, themeClass, paperClass, effectClass].join(" ")}>
+            {decorations.stickers.length > 0 && (
+              <div className={styles.stickerLayer} aria-hidden="true">
+                {decorations.stickers.map((stickerId, index) => {
+                  const sticker = STORY_STICKERS.find((item) => item.id === stickerId);
+                  return sticker ? <span key={stickerId} className={[styles.sticker, stickerPositions[index % stickerPositions.length]].join(" ")}>{sticker.emoji}</span> : null;
+                })}
+              </div>
+            )}
+            <div className={styles.singlePaperTop}>
+              <span>{format === "letter" ? t("PRIVATE LETTER", "PRIVATE LETTER") : t("A LITTLE MESSAGE", "A LITTLE MESSAGE")}</span>
+              <span aria-hidden="true">✦</span>
+              <span>LITTLE STORY WORLD</span>
+            </div>
+            {format === "letter" ? (
+              <>
+                <p className={styles.singleSalutation}>{t("Gửi em,", "Dear you,")}</p>
+                <h3>{letterTitle || name}</h3>
+                {introduction && <p className={styles.singleOpening}>{introduction}</p>}
+                <div className={styles.singleParagraphs}>
+                  {letterParagraphs.length > 0
+                    ? letterParagraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)
+                    : <p>{t("Lá thư này đang chờ những dòng đầu tiên.", "This letter is waiting for its first words.")}</p>}
+                </div>
+                {letterSignature && <p className={styles.singleSignature}>{letterSignature}</p>}
+              </>
+            ) : (
+              <>
+                <p className={styles.singleSalutation}>{t("Gửi bạn,", "A note for you,")}</p>
+                <h3>{name || t("Một lời nhắn dành cho bạn", "A message for you")}</h3>
+                <div className={styles.singleParagraphs}>
+                  {introduction.split(/\n\s*\n/).map((part) => part.trim()).filter(Boolean).length > 0
+                    ? introduction.split(/\n\s*\n/).map((part) => part.trim()).filter(Boolean).map((paragraph, index) => <p key={index}>{paragraph}</p>)
+                    : <p>{t("Thông điệp này đang chờ những dòng đầu tiên.", "This message is waiting for its first words.")}</p>}
+                </div>
+                {letterSignature && <p className={styles.singleSignature}>{letterSignature}</p>}
+              </>
+            )}
+            <div className={styles.singlePaperFooter}>
+              <span>{name}</span>
+              <span aria-hidden="true">✧</span>
+            </div>
+          </article>
+        </section>
+      )}
 
       {secondaryPhotos.length > 0 && (
         <section className={styles.memories} id="memories">
@@ -506,6 +586,6 @@ export default function GardenJournal({
         onClose={() => setActivePhotoIndex(null)}
         onChange={setActivePhotoIndex}
       />
-    </main>
+    </Root>
   );
 }
