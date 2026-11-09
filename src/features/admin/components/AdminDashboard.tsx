@@ -146,51 +146,54 @@ export default function AdminDashboard() {
     setGardensLoading(true);
     setError("");
 
-    const { data, error: gardenError } = await adminSupabase
-      .from("gardens")
-      .select("id, owner_id, name, introduction, created_at, approval_status, garden_chapters(chapter_id)")
-      .order("created_at", { ascending: false });
+    try {
+      const { data, error: gardenError } = await adminSupabase
+        .from("gardens")
+        .select("id, owner_id, name, introduction, created_at, approval_status, garden_chapters(chapter_id)")
+        .order("created_at", { ascending: false });
 
-    if (gardenError) {
-      console.error("Load all gardens failed:", gardenError);
-      setError(t("Chưa tải được danh sách tác phẩm. Anh thử tải lại trang nhé.", "Could not load stories. Please reload the page."));
-      setGardensLoading(false);
-      return;
-    }
+      if (gardenError) throw gardenError;
 
-    const rows = (data ?? []) as unknown as GardenRow[];
-    const results = await Promise.all(rows.map(async (row) => {
-      const folderResults = await Promise.all(photoFolders(row.id).map(async (folder) => {
-        const { data: files, error: listError } = await adminSupabase.storage
-          .from(BUCKET)
-          .list(folder, { limit: MAX_PHOTOS });
-        if (listError) {
-          console.error("Count garden photos failed:", listError);
-          return 0;
-        }
-        return (files ?? []).filter((file) => file.id && ALLOWED_TYPES.has(file.metadata?.mimetype ?? "")).length;
+      const rows = (data ?? []) as unknown as GardenRow[];
+      const results = await Promise.all(rows.map(async (row) => {
+        const folderResults = await Promise.all(photoFolders(row.id).map(async (folder) => {
+          const { data: files, error: listError } = await adminSupabase.storage
+            .from(BUCKET)
+            .list(folder, { limit: MAX_PHOTOS });
+          if (listError) {
+            console.error("Count garden photos failed:", listError);
+            return 0;
+          }
+          return (files ?? []).filter((file) =>
+            file.id && imageMimeType(file.name, file.metadata?.mimetype)
+          ).length;
+        }));
+
+        return {
+          id: row.id,
+          ownerId: row.owner_id,
+          name: row.name,
+          introduction: row.introduction ?? "",
+          createdAt: row.created_at,
+          chapterCount: row.garden_chapters?.length ?? 0,
+          photoCount: folderResults.reduce((sum, count) => sum + count, 0),
+          approvalStatus: row.approval_status,
+        } satisfies Garden;
       }));
 
-      return {
-        id: row.id,
-        ownerId: row.owner_id,
-        name: row.name,
-        introduction: row.introduction ?? "",
-        createdAt: row.created_at,
-        chapterCount: row.garden_chapters?.length ?? 0,
-        photoCount: folderResults.reduce((sum, count) => sum + count, 0),
-        approvalStatus: row.approval_status,
-      } satisfies Garden;
-    }));
-
-    setGardens(results);
-    setSelectedGardenId((current) =>
-      results.some((garden) => garden.id === current)
-        ? current
-        : results[0]?.id ?? ""
-    );
-    setGardensLoading(false);
-  }, []);
+      setGardens(results);
+      setSelectedGardenId((current) =>
+        results.some((garden) => garden.id === current)
+          ? current
+          : results[0]?.id ?? ""
+      );
+    } catch (loadError) {
+      console.error("Load all gardens failed:", loadError);
+      setError(t("Chưa tải được danh sách tác phẩm. Anh thử tải lại trang nhé.", "Could not load stories. Please reload the page."));
+    } finally {
+      setGardensLoading(false);
+    }
+  }, [t]);
 
   useEffect(() => {
     if (authState === "admin") {
@@ -451,8 +454,8 @@ export default function AdminDashboard() {
       }
 
       if (uploadedCount > 0) {
-        await loadAlbum(garden);
         await loadGardens();
+        await loadAlbum(garden);
         setNotice(uploadedCount === 1
           ? t("Đã thêm ảnh vào kho của tác phẩm 🌷", "Photo added to the story library 🌷")
           : t("Đã thêm ", "Added ") + uploadedCount + t(" ảnh vào kho 🌷", " photos to the library 🌷"));
