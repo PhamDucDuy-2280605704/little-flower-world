@@ -133,8 +133,8 @@ function insertStickerAtCursor(textarea: HTMLInputElement | HTMLTextAreaElement 
     return;
   }
 
-  const start = textarea.selectionStart;
-  const end = textarea.selectionEnd;
+  const start = textarea.selectionStart ?? textarea.value.length;
+  const end = textarea.selectionEnd ?? start;
   let nextCursor = start;
 
   setValue((current) => {
@@ -1224,6 +1224,9 @@ export default function BookStudio() {
                   : t("Admin chưa duyệt tác phẩm. Hãy xem lý do, chỉnh sửa bản thảo rồi gửi lại để được xem xét.", "Admin did not approve this story. Review the reason, edit your draft, and resubmit it.")}</p>
                 {selectedGarden.review_comment && <blockquote>{selectedGarden.review_comment}</blockquote>}
                 {selectedGarden.reviewed_at && <small>{t("Thời gian phản hồi: ", "Decision time: ")}{new Date(selectedGarden.reviewed_at).toLocaleString()}</small>}
+                {selectedGarden.approval_status === "approved" && <button type="button" className={styles.secondaryButton} onClick={() => void startEditingApprovedStory()} disabled={saving}>
+                  {saving ? t("Đang mở...", "Opening...") : t("✎ Mở chỉnh sửa tác phẩm", "✎ Reopen story for editing")}
+                </button>}
               </aside>
             )}
             <fieldset className={styles.creatorFieldset} disabled={isCreatorReviewLocked}>
