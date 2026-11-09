@@ -181,6 +181,25 @@ export default function AdminReviewDashboard() {
   }, [loadRows]);
 
   useEffect(() => {
+    if (authState !== "admin") return;
+    const channel = adminSupabase.channel("admin-incoming-story-reviews")
+      .on("postgres_changes", {
+        event: "UPDATE",
+        schema: "public",
+        table: "gardens",
+      }, (payload) => {
+        const previous = payload.old as Partial<ReviewRow>;
+        const updated = payload.new as Partial<ReviewRow>;
+        if (updated.approval_status === "pending" && previous.approval_status !== "pending") {
+          setNotice(t("✉ Có tác phẩm mới được gửi đến Bàn kiểm duyệt. Danh sách đã được cập nhật.", "✉ A new story was submitted for review. The queue has been refreshed."));
+        }
+        void loadRows();
+      })
+      .subscribe();
+    return () => { void adminSupabase.removeChannel(channel); };
+  }, [authState, loadRows, t]);
+
+  useEffect(() => {
     if (!selected) {
       // The editor draft is intentionally synchronized when the selected database row changes.
       // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -393,6 +412,12 @@ export default function AdminReviewDashboard() {
           <Link href="/admin/studio?mode=admin">{t("Mở Studio Admin", "Open Admin Studio")} ↗</Link>
         </div>
       </header>
+
+      {pendingCount > 0 && (
+        <aside className={styles.notice} role="status">
+          ✉ {t("Thông báo Admin: ", "Admin notice: ")}{pendingCount} {t("tác phẩm đang chờ kiểm duyệt. Chọn mục “Chờ duyệt” để xử lý; tác phẩm sẽ tự rời danh sách sau khi duyệt hoặc từ chối.", "stories are awaiting review. Open “Pending” to process them; each story leaves the queue after approval or rejection.")}
+        </aside>
+      )}
 
       <section className={styles.metrics}>
         <article className={styles.metricPending}><span>◷</span><div><strong>{pendingCount}</strong><small>{t("Đang chờ duyệt", "Awaiting review")}</small></div></article>
