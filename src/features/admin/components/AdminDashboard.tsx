@@ -693,7 +693,11 @@ export default function AdminDashboard() {
           </footer>
         </div>
       </div>
-      <dialog ref={storyPreviewRef} className={styles.storyPreviewDialog} aria-label={t("Xem toàn bộ tác phẩm", "Read complete story")}
+      <dialog ref={storyPreviewRef}
+        className={storyPreview?.readOnlyStandalone
+          ? styles.storyPreviewDialog + " " + styles.storyPreviewDialogLetter
+          : styles.storyPreviewDialog}
+        aria-label={t("Xem toàn bộ tác phẩm", "Read complete story")}
         onClose={() => setStoryPreview(null)}
         onClick={(event) => { if (event.target === event.currentTarget) event.currentTarget.close(); }}>
         {storyPreview && <>
