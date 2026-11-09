@@ -12,6 +12,8 @@ export type GardenJournalPhoto = {
   path: string;
   url: string;
   alt: string;
+  width?: number;
+  height?: number;
 };
 
 export type JournalChapter = {

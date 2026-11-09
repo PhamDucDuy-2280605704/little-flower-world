@@ -196,8 +196,8 @@ async function viewGarden(garden: Record<string, unknown>, pin: string, slug: st
       alt: typeof inlinePhotoAlts[index] === "string"
         ? inlinePhotoAlts[index] as string
         : "Một kỷ niệm gia đình",
-      width: index === 0 ? 800 : 600,
-      height: index === 0 ? 600 : 800,
+      width: index === 0 ? 720 : 600,
+      height: index === 0 ? 540 : 800,
     }));
 
   const [itemsResult, chaptersResult, albumResult, guestbookResult, storageCoverUrl] = await Promise.all([
