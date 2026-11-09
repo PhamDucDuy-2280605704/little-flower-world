@@ -610,8 +610,9 @@ export default function BookStudio() {
   async function publishWork(publish: boolean) {
     if (!selectedGarden || saving) return;
     if (!isAdmin && selectedGarden.owner_id !== userId) return;
-    if (publish && selectedGarden.approval_status !== "approved") {
-      setError(t("Admin cần duyệt tác phẩm trước khi xuất bản.", "Admin must approve the story before publishing."));
+    const adminOwnStory = isAdmin && selectedGarden.owner_id === FAIRYTALE_GARDEN_ADMIN_USER_ID;
+    if (publish && selectedGarden.approval_status !== "approved" && !adminOwnStory) {
+      setError(t("Tác phẩm cần được Admin duyệt trước khi xuất bản.", "The story must be approved by Admin before publishing."));
       return;
     }
     if (publish && !contentReady()) {
@@ -631,7 +632,11 @@ export default function BookStudio() {
     setSaving(true);
     setError("");
     if (isAdmin) {
-      const { error: saveError } = await activeClientRef.current.from("gardens").update(draftPayload()).eq("id", selectedGarden.id);
+      const adminSavePayload = {
+        ...draftPayload(),
+        ...(adminOwnStory ? { approval_status: "approved" as const } : {}),
+      };
+      const { error: saveError } = await activeClientRef.current.from("gardens").update(adminSavePayload).eq("id", selectedGarden.id);
       if (saveError) {
         setError(t("Chưa lưu được nội dung trước khi xuất bản.", "Could not save the content before publishing."));
         setSaving(false);
@@ -715,6 +720,7 @@ export default function BookStudio() {
       letter_signature: "",
       experience_settings: { storyFormat: "book" },
       guestbook_enabled: false,
+      ...(isAdmin ? { approval_status: "approved" as const } : {}),
     }).select("id").single();
     if (createError || !data) {
       console.error("Create writing failed:", createError);
@@ -1429,9 +1435,11 @@ export default function BookStudio() {
               <div className={styles.publishPanel}>
                 <div className={styles.publishHeading}><span>✉</span><div><strong>{isAdmin ? t("Quản lý xuất bản", "Publishing management") : t("Kiểm duyệt và xuất bản", "Review and publish")}</strong><p>{selectedGarden.approval_status === "approved"
                   ? t("Admin đã duyệt. Chủ sở hữu tác phẩm có thể xuất bản và chia sẻ khi sẵn sàng.", "Admin approved this story. Its owner can publish and share it when ready.")
-                  : t("Tác phẩm phải được Admin duyệt trước khi có thể xuất bản.", "A story must be approved by Admin before it can be published.")}</p></div></div>
+                  : isAdmin && selectedGarden.owner_id === FAIRYTALE_GARDEN_ADMIN_USER_ID
+                    ? t("Tác phẩm của Admin có thể xuất bản trực tiếp. Khi xuất bản, hệ thống sẽ đánh dấu đã duyệt.", "Admin-owned stories can be published directly and will be marked approved.")
+                    : t("Tác phẩm phải được Admin duyệt trước khi có thể xuất bản.", "A story must be approved by Admin before it can be published.")}</p></div></div>
                 <div className={styles.actionCard}><div><strong>{t("Trạng thái hiện tại", "Current status")}</strong><p>{selectedGarden.is_published ? t("Đang công khai", "Published") : selectedGarden.approval_status === "approved" ? t("Đã duyệt · Chưa xuất bản", "Approved · Not published") : selectedGarden.approval_status === "pending" ? t("Đang chờ Admin duyệt", "Awaiting Admin review") : selectedGarden.approval_status === "rejected" ? t("Chưa được duyệt · Cần chỉnh sửa", "Not approved · Changes needed") : t("Bản nháp riêng tư", "Private draft")}</p></div></div>
-                {selectedGarden.approval_status === "approved" && (
+                {(selectedGarden.approval_status === "approved" || (isAdmin && selectedGarden.owner_id === FAIRYTALE_GARDEN_ADMIN_USER_ID)) && (
                   <>
                     <label className={styles.toggle}><input type="checkbox" checked={guestbookEnabled} onChange={(event) => setGuestbookEnabled(event.target.checked)}/> {t("Cho phép người đọc để lại lời nhắn", "Allow readers to leave notes")}</label>
                     <label className={styles.toggle}><input type="checkbox" checked={pinEnabled} onChange={(event) => setPinEnabled(event.target.checked)}/> {t("Đặt mã PIN riêng cho người nhận (không bắt buộc)", "Set an optional PIN for readers")}</label>
