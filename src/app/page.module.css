@@ -52,3 +52,61 @@
  .formats{padding:35px 0}.formatGrid{grid-template-columns:1fr}.formatCard{min-height:unset;padding:17px}.howItWorks{grid-template-columns:1fr;margin:15px auto 42px}.howPhoto{min-height:225px;order:2}
  .footer{align-items:flex-start;flex-direction:column}.footer span{text-align:left}
 }
+
+/* Botanical finishing touches — warmth, depth and movement without visual noise. */
+.page {
+  background:
+    radial-gradient(ellipse at 4% 8%, rgba(220, 235, 207, .62), transparent 30rem),
+    radial-gradient(ellipse at 94% 74%, rgba(242, 224, 195, .54), transparent 31rem),
+    linear-gradient(180deg, #f7f8ef 0%, #fffaf1 54%, #f3f6ed 100%);
+}
+.brandMark { box-shadow: 0 7px 18px rgba(73, 105, 68, .09), inset 0 1px rgba(255,255,255,.75); }
+.heroVisual::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: -22px;
+  right: -12px;
+  width: 72%;
+  height: 76%;
+  border: 1px solid rgba(125, 154, 108, .2);
+  border-radius: 45% 55% 48% 52%;
+  transform: rotate(8deg);
+}
+.photoFrame {
+  border: 1px solid rgba(255,255,255,.62);
+  box-shadow: 0 26px 60px rgba(48,76,49,.14), 0 4px 14px rgba(73,93,60,.06);
+  transition: transform .65s cubic-bezier(.2,.7,.25,1), box-shadow .4s ease;
+}
+.heroVisual:hover .photoFrame { transform: translateY(-3px) scale(1.008); box-shadow: 0 30px 68px rgba(48,76,49,.18); }
+.photoCaption { animation: caption-float 7s ease-in-out infinite; }
+.formatCard {
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(109,143,98,.18);
+  background: linear-gradient(145deg, rgba(255,255,250,.96), rgba(246,248,238,.84));
+}
+.formatCard::after {
+  content: "";
+  position: absolute;
+  right: -28px;
+  bottom: -38px;
+  width: 100px;
+  height: 100px;
+  border: 1px solid rgba(128,154,110,.13);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.formatCard:hover { border-color: rgba(115,151,104,.38); }
+.formatIcon { box-shadow: inset 0 1px rgba(255,255,255,.85); }
+.howPhoto {
+  border: 1px solid rgba(255,255,255,.65);
+  box-shadow: 0 22px 48px rgba(55,78,50,.12);
+  transition: transform .6s ease, box-shadow .4s ease;
+}
+.howPhoto:hover { transform: translateY(-3px); box-shadow: 0 28px 56px rgba(55,78,50,.16); }
+@keyframes caption-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@media (prefers-reduced-motion: reduce) {
+  .photoCaption { animation: none; }
+  .photoFrame,.howPhoto { transition: none; }
+}
