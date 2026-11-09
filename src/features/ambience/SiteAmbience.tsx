@@ -24,6 +24,7 @@ type UnlockHandler = () => void;
 
 export default function SiteAmbience() {
   const { language } = useLanguage();
+  const languageRef = useRef(language);
   const [musicEnabled, setMusicEnabled] = useState(true);
   const [playing, setPlaying] = useState(false);
   const [volume, setVolume] = useState(0.52);
@@ -37,6 +38,10 @@ export default function SiteAmbience() {
   const enabledRef = useRef(true);
   const volumeRef = useRef(volume);
   const generationRef = useRef(0);
+
+  useEffect(() => {
+    languageRef.current = language;
+  }, [language]);
 
   useEffect(() => {
     volumeRef.current = volume;
@@ -68,7 +73,7 @@ export default function SiteAmbience() {
       startingRef.current = false;
       enabledRef.current = false;
       setMusicEnabled(false);
-      setAudioError(language === "vi"
+      setAudioError(languageRef.current === "vi"
         ? "Trình duyệt này chưa hỗ trợ nhạc nền."
         : "This browser does not support background music.");
       return;
@@ -178,8 +183,11 @@ export default function SiteAmbience() {
           harmonic.disconnect();
           harmonicGain.disconnect();
         };
-        panner.onended = null;
-        window.setTimeout(() => panner.disconnect(), Math.ceil((duration + 0.2) * 1000));
+        fundamental.onended = () => {
+          fundamental.disconnect();
+          fundamentalGain.disconnect();
+          panner.disconnect();
+        };
       };
 
       let schedulerStarted = false;
@@ -278,13 +286,13 @@ export default function SiteAmbience() {
       enabledRef.current = false;
       setMusicEnabled(false);
       setPlaying(false);
-      setAudioError(language === "vi"
+      setAudioError(languageRef.current === "vi"
         ? "Chưa bật được nhạc. Anh thử nhấn nút phát lại nhé."
         : "Music could not start. Please try the play button again.");
     } finally {
       if (generationRef.current === generation) startingRef.current = false;
     }
-  }, [language, removeUnlockHandlers]);
+  }, [removeUnlockHandlers]);
 
   const stopMusic = useCallback(() => {
     enabledRef.current = false;
@@ -337,7 +345,7 @@ export default function SiteAmbience() {
     void startMusic();
   };
 
-  const isVietnamese = language === "vi";
+  const isVietnamese = languageRef.current === "vi";
 
   return (
     <>
