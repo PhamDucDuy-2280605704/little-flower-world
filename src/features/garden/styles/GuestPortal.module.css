@@ -20,3 +20,21 @@
 .help,.error{margin:0;font-size: 12px;line-height:1.5}.help{color:#8b9681}.error{color:#a45e50}
 .footerLinks{display:flex;gap:17px;margin-top:19px}.footerLinks a{color:#708765;font-size: 12px;font-weight:750;text-decoration:none}
 @media(max-width:720px){.page{padding:17px 12px 32px}.card{grid-template-columns:1fr}.illustration{min-height:210px}.content{padding:25px 20px}.content h1{font-size: 34px}}
+
+
+/* Invitation page: a quiet welcome with paper-like depth. */
+.page {
+  background:
+    radial-gradient(ellipse at 8% 8%, rgba(221,237,207,.7), transparent 28rem),
+    radial-gradient(ellipse at 94% 86%, rgba(242,222,190,.46), transparent 30rem),
+    linear-gradient(135deg,#f5f8ef,#fffaf2 56%,#f2f4e9);
+}
+.card {
+  border-color: rgba(107,139,98,.19);
+  box-shadow: 0 30px 76px rgba(57,86,56,.11), inset 0 1px rgba(255,255,255,.85);
+}
+.illustration { filter: saturate(.92); }
+.content input:focus-visible { outline-offset: 2px; }
+.content form button { box-shadow: 0 10px 23px rgba(62,103,68,.14); transition: transform .2s ease, box-shadow .2s ease, background .2s ease; }
+.content form button:not(:disabled):hover { transform: translateY(-2px); box-shadow: 0 14px 27px rgba(62,103,68,.18); background: #3d6845; }
+@media(prefers-reduced-motion:reduce) { .content form button { transition: none; } }
