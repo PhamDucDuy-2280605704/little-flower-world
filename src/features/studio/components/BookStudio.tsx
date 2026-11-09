@@ -288,7 +288,7 @@ export default function BookStudio() {
       if (secretError) throw secretError;
       hasPin = Boolean(secret);
     }
-    if (isAdmin) {
+    if (isAdmin || garden.owner_id === userId) {
       const { data: notes, error: notesError } = await activeClientRef.current
         .from("garden_guestbook").select("id,guest_name,message,status,created_at")
         .eq("garden_id", garden.id).order("created_at", { ascending: false }).limit(60);
@@ -1001,7 +1001,7 @@ export default function BookStudio() {
   }
 
   async function reviewGuestbook(entry: GuestbookRow, status: "approved" | "rejected") {
-    if (!isAdmin) return;
+    if (!selectedGarden || (!isAdmin && selectedGarden.owner_id !== userId)) return;
     const { error: updateError } = await activeClientRef.current.from("garden_guestbook").update({ status }).eq("id", entry.id);
     if (updateError) {
       setError(t("Chưa cập nhật được lời nhắn.", "Could not update the reader note."));
@@ -1400,36 +1400,35 @@ export default function BookStudio() {
             </section>
 
             </fieldset>
-            {isAdmin ? (
-              <section className={styles.section} id="write-05">
-                <div className={styles.sectionTitle}><span>05</span><div><h3>{t("Lời nhắn từ người đọc", "Reader notes")}</h3><p>{t("Khách là người đọc; Admin kiểm duyệt lời nhắn trước khi hiển thị công khai.", "Guests are readers; Admin reviews their notes before they appear publicly.")}</p></div></div>
-                <label className={styles.toggle}><input type="checkbox" checked={guestbookEnabled} onChange={(event) => setGuestbookEnabled(event.target.checked)}/> {t("Cho phép người đọc để lại lời nhắn", "Allow readers to leave notes")}</label>
-                <div className={styles.guestStats}><span>{pendingCount} {t("chờ duyệt", "pending")}</span><span>{approvedCount} {t("đã duyệt", "approved")}</span></div>
-                {guestbook.map((entry) => <div className={styles.guestEntry} key={entry.id}>
-                  <div><strong>{entry.guest_name}</strong><small>{new Date(entry.created_at).toLocaleString("vi-VN")}</small><p>{entry.message}</p></div>
-                  <span className={styles.guestStatus}>{entry.status === "pending" ? t("Chờ duyệt", "Pending") : entry.status === "approved" ? t("Đã duyệt", "Approved") : t("Đã ẩn", "Hidden")}</span>
-                  {entry.status !== "approved" && <button type="button" onClick={() => void reviewGuestbook(entry, "approved")}>{t("Duyệt", "Approve")}</button>}
-                  {entry.status !== "rejected" && <button type="button" className={styles.textDanger} onClick={() => void reviewGuestbook(entry, "rejected")}>{t("Ẩn", "Hide")}</button>}
-                </div>)}
-                {guestbook.length === 0 && <p className={styles.chapterEmpty}>{t("Chưa có lời nhắn nào.", "No reader notes yet.")}</p>}
-              </section>
-            ) : selectedGarden.approval_status === "approved" ? (
-              <section className={styles.section} id="write-05">
-                <div className={styles.sectionTitle}><span>05</span><div><h3>{t("Lời nhắn từ người đọc", "Reader notes")}</h3><p>{t("Khách là người đọc tác phẩm và có thể để lại lời nhắn. Bạn chọn bật hoặc tắt mục này.", "Guests can read your story and leave a note. Choose whether to enable this section.")}</p></div></div>
-                <label className={styles.toggle}><input type="checkbox" checked={guestbookEnabled} onChange={(event) => setGuestbookEnabled(event.target.checked)}/> {t("Cho phép người đọc để lại lời nhắn", "Allow readers to leave notes")}</label>
-                <label className={styles.toggle}><input type="checkbox" checked={pinEnabled} onChange={(event) => setPinEnabled(event.target.checked)}/> {t("Đặt mã PIN riêng cho người nhận (không bắt buộc)", "Set an optional PIN for readers")}</label>
-                {pinEnabled && <label className={styles.field}>{t("Mã PIN · tối thiểu 6 ký tự", "PIN · at least 6 characters")}<input type="password" value={pinDraft} onChange={(event) => setPinDraft(event.target.value)} placeholder={pinExists ? t("Để trống để giữ mã PIN hiện tại", "Leave blank to keep the current PIN") : t("Tạo mã PIN cho người đọc", "Create a PIN for readers")}/></label>}
-                <div className={styles.readerSettingsActions}>
-                  <p className={styles.helper}>{t("Admin vẫn là người duyệt hoặc ẩn lời nhắn của khách. User không thể tự duyệt bình luận.", "Admin remains responsible for approving or hiding guest notes. Writers cannot moderate comments themselves.")}</p>
-                  <button type="button" className={styles.secondaryButton} onClick={() => void saveApprovedReaderSettings()} disabled={saving}>{saving ? t("Đang lưu...", "Saving...") : t("Lưu cài đặt người đọc", "Save reader settings")}</button>
-                </div>
-              </section>
-            ) : (
-              <section className={styles.section} id="write-05">
-                <div className={styles.sectionTitle}><span>05</span><div><h3>{t("Lời nhắn từ người đọc", "Reader notes")}</h3><p>{t("Sau khi được duyệt, bạn có thể bật lời nhắn cho khách đọc và đặt mã PIN nếu muốn.", "After approval, you can enable guest notes and set a PIN if you wish.")}</p></div></div>
-                <p className={styles.chapterEmpty}>{t("Mục lời nhắn và mã PIN sẽ mở sau khi Admin duyệt tác phẩm.", "Reader notes and PIN settings become available after Admin approves the story.")}</p>
-              </section>
-            )}
+            <section className={styles.section} id="write-05">
+              <div className={styles.sectionTitle}><span>05</span><div><h3>{t("Lời nhắn từ người đọc", "Reader notes")}</h3><p>{isAdmin
+                ? t("Admin là chủ hệ thống và có thể kiểm duyệt lời nhắn trên tất cả tác phẩm.", "Admin is the system owner and can moderate notes on every story.")
+                : t("Khách chỉ đọc và gửi lời nhắn. Bạn duyệt hoặc ẩn lời nhắn trên tác phẩm của chính mình.", "Guests can only read and send notes. You can approve or hide notes on your own story.")}</p></div></div>
+              {selectedGarden.approval_status === "approved" ? (
+                <>
+                  <label className={styles.toggle}><input type="checkbox" checked={guestbookEnabled} onChange={(event) => setGuestbookEnabled(event.target.checked)}/> {t("Cho phép người đọc để lại lời nhắn", "Allow readers to leave notes")}</label>
+                  {!isAdmin && <>
+                    <label className={styles.toggle}><input type="checkbox" checked={pinEnabled} onChange={(event) => setPinEnabled(event.target.checked)}/> {t("Đặt mã PIN riêng cho người nhận (không bắt buộc)", "Set an optional PIN for readers")}</label>
+                    {pinEnabled && <label className={styles.field}>{t("Mã PIN · tối thiểu 6 ký tự", "PIN · at least 6 characters")}<input type="password" value={pinDraft} onChange={(event) => setPinDraft(event.target.value)} placeholder={pinExists ? t("Để trống để giữ mã PIN hiện tại", "Leave blank to keep the current PIN") : t("Tạo mã PIN cho người đọc", "Create a PIN for readers")}/></label>}
+                    <div className={styles.readerSettingsActions}>
+                      <p className={styles.helper}>{t("PIN chỉ bảo vệ liên kết người đọc. Admin vẫn có quyền quản trị toàn bộ tác phẩm và lời nhắn.", "The PIN only protects the reader link. Admin retains system-wide control of stories and notes.")}</p>
+                      <button type="button" className={styles.secondaryButton} onClick={() => void saveApprovedReaderSettings()} disabled={saving}>{saving ? t("Đang lưu...", "Saving...") : t("Lưu cài đặt người đọc", "Save reader settings")}</button>
+                    </div>
+                  </>}
+                  {isAdmin && <p className={styles.helper}>{t("Thay đổi cài đặt lưu bút sẽ được lưu cùng lần cập nhật nội dung hoặc xuất bản.", "Reader-note settings are saved with the next content update or publishing action.")}</p>}
+                </>
+              ) : (
+                <p className={styles.chapterEmpty}>{t("Cài đặt lời nhắn và mã PIN chỉ thay đổi được khi tác phẩm đã được Admin duyệt. Các lời nhắn cũ vẫn có thể được duyệt hoặc ẩn.", "Reader-note and PIN settings can be changed after Admin approval. Existing notes can still be approved or hidden.")}</p>
+              )}
+              <div className={styles.guestStats}><span>{pendingCount} {t("chờ duyệt", "pending")}</span><span>{approvedCount} {t("đã duyệt", "approved")}</span></div>
+              {guestbook.map((entry) => <div className={styles.guestEntry} key={entry.id}>
+                <div><strong>{entry.guest_name}</strong><small>{new Date(entry.created_at).toLocaleString("vi-VN")}</small><p>{entry.message}</p></div>
+                <span className={styles.guestStatus}>{entry.status === "pending" ? t("Chờ duyệt", "Pending") : entry.status === "approved" ? t("Đã duyệt", "Approved") : t("Đã ẩn", "Hidden")}</span>
+                {entry.status !== "approved" && <button type="button" onClick={() => void reviewGuestbook(entry, "approved")}>{t("Duyệt", "Approve")}</button>}
+                {entry.status !== "rejected" && <button type="button" className={styles.textDanger} onClick={() => void reviewGuestbook(entry, "rejected")}>{t("Ẩn", "Hide")}</button>}
+              </div>)}
+              {guestbook.length === 0 && <p className={styles.chapterEmpty}>{t("Chưa có lời nhắn nào.", "No reader notes yet.")}</p>}
+            </section>
 
             <section className={styles.section} id="write-06">
               <div className={styles.sectionTitle}><span>{isAdmin ? "06" : "05"}</span><div><h3>{t("Xem trước và gửi tác phẩm", "Preview and submit")}</h3><p>{t("Kiểm tra trải nghiệm lật trang, mục lục và hình ảnh trước khi gửi.", "Check page turns, contents, and photos before submitting.")}</p></div></div>
