@@ -12,7 +12,7 @@ function extractGardenSlug(value: string): string | null {
 
   let pathname = input;
   try {
-    const isAbsoluteUrl = /^[a-z][a-z\\d+.-]*:/i.test(input);
+    const isAbsoluteUrl = /^[a-z][a-z\d+.-]*:/i.test(input);
     const parsed = new URL(input, window.location.origin);
     const isCurrentSite = parsed.origin === window.location.origin;
     const isCanonicalSite = parsed.protocol === "https:" && parsed.hostname.toLowerCase() === "little-story-world.vercel.app";
@@ -26,8 +26,8 @@ function extractGardenSlug(value: string): string | null {
     return null;
   }
 
-  const match = pathname.match(/(?:^|\\/)g\\/([a-z0-9-]+)\\/?$/i);
-  const candidate = match?.[1] ?? pathname.replace(/^\\/+|\\/+$/g, "").replace(/^g\\//i, "");
+  const match = pathname.match(/(?:^|\/)g\/([a-z0-9-]+)\/?$/i);
+  const candidate = match?.[1] ?? pathname.replace(/^\/+|\/+$/g, "").replace(/^g\//i, "");
   return /^[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(candidate) ? candidate : null;
 }
 
