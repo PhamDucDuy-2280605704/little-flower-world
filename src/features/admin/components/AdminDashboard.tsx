@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import PhotoLightbox from "@/features/garden/components/PhotoLightbox";
+import FamilyLetterReader from "@/features/garden/components/FamilyLetterReader";
 import GardenJournal, {
   normalizeStoryDecorations,
   type GardenJournalPhoto,
@@ -72,6 +73,7 @@ type AdminStoryPreview = {
   letterTitle: string;
   letterParagraphs: string[];
   letterSignature: string;
+  readOnlyStandalone: boolean;
 };
 
 function photoFolders(gardenId: string): string[] {
@@ -300,6 +302,7 @@ export default function AdminDashboard() {
         letterTitle: row.letter_title ?? t("Một lá thư dành riêng cho bạn", "A letter just for you"),
         letterParagraphs,
         letterSignature: row.letter_signature ?? "",
+        readOnlyStandalone: settings.readOnlyStandalone === true,
       });
     } catch (previewError) {
       console.error("Load full story preview failed:", previewError);
@@ -690,7 +693,11 @@ export default function AdminDashboard() {
           </footer>
         </div>
       </div>
-      <dialog ref={storyPreviewRef} className={styles.storyPreviewDialog} aria-label={t("Xem toàn bộ tác phẩm", "Read complete story")}
+      <dialog ref={storyPreviewRef}
+        className={storyPreview?.readOnlyStandalone
+          ? styles.storyPreviewDialog + " " + styles.storyPreviewDialogLetter
+          : styles.storyPreviewDialog}
+        aria-label={t("Xem toàn bộ tác phẩm", "Read complete story")}
         onClose={() => setStoryPreview(null)}
         onClick={(event) => { if (event.target === event.currentTarget) event.currentTarget.close(); }}>
         {storyPreview && <>
@@ -701,27 +708,41 @@ export default function AdminDashboard() {
               <button type="button" onClick={() => setStoryPreview(null)}>{t("Đóng ✕", "Close ✕")}</button>
             </div>
           </div>
-          <div className={styles.storyPreviewBody}>
-            <GardenJournal
-              key={storyPreview.id}
-              name={storyPreview.name}
-              introduction={storyPreview.introduction}
-              format={storyPreview.format}
-              decorations={storyPreview.decorations}
-              coverUrl={storyPreview.coverUrl}
-              coverPath={storyPreview.coverPath}
-              photos={storyPreview.photos}
-              chapters={storyPreview.chapters}
-              readIds={[]}
-              letterTitle={storyPreview.letterTitle}
-              letterParagraphs={storyPreview.letterParagraphs}
-              letterSignature={storyPreview.letterSignature}
-              letterReady={storyPreview.letterParagraphs.length > 0}
-              returnHref="/admin"
-              returnLabel={t("Quay lại trung tâm Admin", "Back to Admin center")}
-              actionHref="#the-book"
-              actionLabel={t("ĐỌC TÁC PHẨM", "READ STORY")}
-            />
+          <div className={storyPreview.readOnlyStandalone
+            ? styles.storyPreviewBody + " " + styles.storyPreviewBodyLetter
+            : styles.storyPreviewBody}>
+            {storyPreview.readOnlyStandalone ? (
+              <FamilyLetterReader
+                name={storyPreview.name}
+                introduction={storyPreview.introduction}
+                chapters={storyPreview.chapters}
+                photos={storyPreview.photos}
+                letterTitle={storyPreview.letterTitle}
+                letterParagraphs={storyPreview.letterParagraphs}
+                letterSignature={storyPreview.letterSignature}
+              />
+            ) : (
+              <GardenJournal
+                key={storyPreview.id}
+                name={storyPreview.name}
+                introduction={storyPreview.introduction}
+                format={storyPreview.format}
+                decorations={storyPreview.decorations}
+                coverUrl={storyPreview.coverUrl}
+                coverPath={storyPreview.coverPath}
+                photos={storyPreview.photos}
+                chapters={storyPreview.chapters}
+                readIds={[]}
+                letterTitle={storyPreview.letterTitle}
+                letterParagraphs={storyPreview.letterParagraphs}
+                letterSignature={storyPreview.letterSignature}
+                letterReady={storyPreview.letterParagraphs.length > 0}
+                returnHref="/admin"
+                returnLabel={t("Quay lại trung tâm Admin", "Back to Admin center")}
+                actionHref="#the-book"
+                actionLabel={t("ĐỌC TÁC PHẨM", "READ STORY")}
+              />
+            )}
           </div>
         </>}
       </dialog>

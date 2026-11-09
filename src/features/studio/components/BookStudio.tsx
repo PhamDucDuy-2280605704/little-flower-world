@@ -16,6 +16,7 @@ import GardenJournal, {
   type StoryPaper,
   type StoryEffect,
 } from "@/features/garden/components/GardenJournal";
+import FamilyLetterReader from "@/features/garden/components/FamilyLetterReader";
 import { adminSupabase } from "@/lib/adminSupabase";
 import { supabase } from "@/lib/supabase";
 import { FAIRYTALE_GARDEN_ADMIN_USER_ID } from "@/features/garden/data/gardenThemes";
@@ -950,18 +951,34 @@ export default function BookStudio() {
         )}
       </div>
 
-      <dialog ref={previewRef} className={styles.previewDialog} onClose={() => setPreviewOpen(false)}
+      <dialog ref={previewRef}
+        className={selectedGarden?.experience_settings?.readOnlyStandalone === true
+          ? styles.previewDialog + " " + styles.previewDialogLetter
+          : styles.previewDialog}
+        onClose={() => setPreviewOpen(false)}
         onClick={(event) => { if (event.target === event.currentTarget) event.currentTarget.close(); }} aria-label={t("Bản xem trước tác phẩm", "Story preview")}>
         {selectedGarden && <>
           <header className={styles.previewHeader}><div><p className={styles.eyebrow}>{t("BẢN XEM TRƯỚC · CHỈ BẠN NHÌN THẤY", "PREVIEW · ONLY YOU CAN SEE THIS")}</p><h2>{name || selectedGarden.name}</h2></div><button type="button" onClick={() => setPreviewOpen(false)}>Đóng ✕</button></header>
           <div className={styles.previewBody}>
-            <GardenJournal key={selectedGarden.id + "-" + format} name={name || selectedGarden.name} introduction={introduction} format={format}
-              coverUrl={coverUrl} coverPath={coverPath} photos={photos} chapters={journalChapters} readIds={previewReadIds}
-              decorations={decorations} onOpenChapter={markPreviewRead} letterTitle={letterTitle} letterParagraphs={splitText(letterText)}
-              letterSignature={signature} letterReady={chapters.length > 0 && chapters.every((chapter) => previewReadIds.includes(chapter.chapter_id))}
-              returnHref="/" returnLabel="Little Story World" actionHref="#the-book" actionLabel={t("MỞ TÁC PHẨM", "OPEN STORY")}>
-              {guestbookEnabled && <section className={styles.previewGuestbook}><h3>{t("Lời nhắn từ người đọc", "Reader notes")}</h3><p>{t("Biểu mẫu gửi lời nhắn sẽ xuất hiện sau khi tác phẩm được xuất bản.", "The reader note form appears after this story is published.")}</p></section>}
-            </GardenJournal>
+            {selectedGarden.experience_settings?.readOnlyStandalone === true ? (
+              <FamilyLetterReader
+                name={name || selectedGarden.name}
+                introduction={introduction}
+                chapters={journalChapters}
+                photos={photos}
+                letterTitle={letterTitle}
+                letterParagraphs={splitText(letterText)}
+                letterSignature={signature}
+              />
+            ) : (
+              <GardenJournal key={selectedGarden.id + "-" + format} name={name || selectedGarden.name} introduction={introduction} format={format}
+                coverUrl={coverUrl} coverPath={coverPath} photos={photos} chapters={journalChapters} readIds={previewReadIds}
+                decorations={decorations} onOpenChapter={markPreviewRead} letterTitle={letterTitle} letterParagraphs={splitText(letterText)}
+                letterSignature={signature} letterReady={chapters.length > 0 && chapters.every((chapter) => previewReadIds.includes(chapter.chapter_id))}
+                returnHref="/" returnLabel="Little Story World" actionHref="#the-book" actionLabel={t("MỞ TÁC PHẨM", "OPEN STORY")}>
+                {guestbookEnabled && <section className={styles.previewGuestbook}><h3>{t("Lời nhắn từ người đọc", "Reader notes")}</h3><p>{t("Biểu mẫu gửi lời nhắn sẽ xuất hiện sau khi tác phẩm được xuất bản.", "The reader note form appears after this story is published.")}</p></section>}
+              </GardenJournal>
+            )}
           </div>
         </>}
       </dialog>
