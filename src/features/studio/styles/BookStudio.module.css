@@ -485,3 +485,46 @@
   .inlineStickerChoices { gap: 6px; }
   .inlineStickerChoices button { width: 36px; height: 36px; }
 }
+
+
+/* Admin inventory: split the system owner's stories from each writer account. */
+.storyCollections{display:grid;gap:18px;margin-top:10px}
+.storyCollection{display:grid;gap:8px;padding-top:13px;border-top:1px solid rgba(102,127,91,.13)}
+.storyCollection>h3{margin:0 0 2px;color:#75856c;font-size:10px;font-weight:900;letter-spacing:.12em;line-height:1.5}
+.ownerStoryGroup{display:grid;gap:4px;margin-top:8px;padding:10px;border:1px solid rgba(112,144,101,.17);border-radius:13px;background:rgba(255,255,249,.72)}
+.ownerStoryHeading{display:grid;gap:2px;padding:2px 3px 6px}
+.ownerStoryHeading strong{color:#3d5b43;font-size:13px;font-weight:850}
+.ownerStoryHeading small{overflow-wrap:anywhere;color:#8d987f;font-size:10px}
+.collectionEmpty{margin:0;padding:8px 3px;color:#8a957f;font-size:12px;line-height:1.6}
+.editStoryButton{flex:0 0 auto;min-height:32px;padding:6px 9px;border:1px solid rgba(86,128,81,.24);border-radius:9px;background:#edf4e8;color:#4e714d;font:inherit;font-size:10px;font-weight:850;white-space:nowrap;cursor:pointer;transition:background .18s ease,transform .18s ease}
+.editStoryButton:hover{transform:translateY(-1px);background:#e1eed9}
+.selectedOwnerLabel{display:block;margin-top:5px;color:#829078;font-size:11px;font-weight:750}
+
+/* Persistent moderation messages are backed by the saved review decision. */
+.reviewNotification{display:grid;gap:8px;margin:0 0 15px;padding:15px 17px;border:1px solid rgba(108,148,96,.25);border-left:4px solid #70946b;border-radius:14px;background:linear-gradient(135deg,#f4faef,#fffdf5)}
+.reviewNotification[data-state="rejected"]{border-color:rgba(177,118,94,.27);border-left-color:#b67863;background:linear-gradient(135deg,#fff5ef,#fffdf8)}
+.reviewNotificationHeading{display:flex;align-items:center;gap:9px;color:#456b49}
+.reviewNotification[data-state="rejected"] .reviewNotificationHeading{color:#9b6254}
+.reviewNotificationHeading>span{display:grid;width:27px;height:27px;place-items:center;border-radius:50%;background:#e4f0dc;font-weight:900}
+.reviewNotification[data-state="rejected"] .reviewNotificationHeading>span{background:#f6e5dc}
+.reviewNotification p{margin:0;color:#64765d;font-size:13px;line-height:1.7}
+.reviewNotification blockquote{margin:0;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.72);color:#765f4d;font-size:13px;line-height:1.7;white-space:pre-wrap}
+.reviewNotification>small{color:#929a85;font-size:10px}
+.readerSettingsActions{display:grid;gap:8px;margin-top:12px}
+.readerSettingsActions p{margin:0}
+.readerSettingsActions button{justify-self:start}
+
+/* Hover previews show a small illustration for themes, paper and reading effects. */
+.decorationChoice,.decorationChoiceActive,.decorationPill,.decorationPillActive,.effectChoice,.effectChoiceActive{position:relative;overflow:visible}
+.hoverIllustration{position:absolute;top:calc(100% + 7px);left:0;display:grid;align-content:center;justify-items:center;gap:8px;width:min(260px,78vw);min-height:112px;padding:12px;z-index:40;border:1px solid rgba(111,143,98,.26);border-radius:16px;background:linear-gradient(145deg,#fffef9,#f1f5e9);box-shadow:0 16px 36px rgba(49,73,46,.19);opacity:0;visibility:hidden;transform:translateY(-5px);pointer-events:none;transition:opacity .18s ease,transform .18s ease,visibility .18s ease}
+.hoverIllustration>span:first-child{display:grid;place-items:center;min-height:65px;width:100%;border-radius:11px;background:radial-gradient(circle at 50% 25%,rgba(255,255,255,.85),transparent 60%),linear-gradient(135deg,#eaf2e1,#f7f0df);font-size:30px;letter-spacing:.08em}
+.hoverIllustration>small{color:#71846b;font-size:10px;font-weight:850}
+.hoverIllustration .paperArtwork{background:linear-gradient(145deg,#fffdf6,#f3e9d6);font-size:42px;filter:drop-shadow(0 5px 3px rgba(88,72,50,.13))}
+.decorationChoice:hover .hoverIllustration,.decorationChoiceActive:hover .hoverIllustration,.decorationPill:hover .hoverIllustration,.decorationPillActive:hover .hoverIllustration,.effectChoice:hover .hoverIllustration,.effectChoiceActive:hover .hoverIllustration,.decorationChoice:focus-visible .hoverIllustration,.decorationChoiceActive:focus-visible .hoverIllustration,.decorationPill:focus-visible .hoverIllustration,.decorationPillActive:focus-visible .hoverIllustration,.effectChoice:focus-visible .hoverIllustration,.effectChoiceActive:focus-visible .hoverIllustration{opacity:1;visibility:visible;transform:translateY(0)}
+.decorationChoice:hover,.decorationPill:hover,.effectChoice:hover{z-index:25}
+.reviewNotification,.storyCollections,.ownerStoryGroup{min-width:0}
+@media(max-width:680px){
+ .storyCollections{gap:14px}.ownerStoryGroup{padding:8px}.workRow{flex-wrap:wrap}.editStoryButton{margin-left:44px}
+ .hoverIllustration{display:none}
+ .selectedOwnerLabel{font-size:10px}
+}
