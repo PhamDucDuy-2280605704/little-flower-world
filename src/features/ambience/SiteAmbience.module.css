@@ -51,81 +51,192 @@
   bottom: 18px;
   display: grid;
   justify-items: start;
-  gap: 8px;
+  gap: 9px;
   pointer-events: none;
 }
 .musicControls {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   padding: 5px;
-  border: 1px solid rgba(104, 132, 92, .23);
-  border-radius: 999px;
-  background: rgba(255, 253, 246, .95);
-  box-shadow: 0 9px 28px rgba(53, 73, 47, .15), inset 0 1px rgba(255,255,255,.9);
+  border: 1px solid rgba(104, 132, 92, .24);
+  border-radius: 20px;
+  background: rgba(255, 253, 246, .97);
+  box-shadow: 0 10px 30px rgba(53, 73, 47, .17), inset 0 1px rgba(255,255,255,.95);
   backdrop-filter: blur(16px);
   pointer-events: auto;
 }
-.musicButton,
-.musicButtonActive {
+.musicToggleActive,
+.musicToggleOff {
   display: inline-flex;
+  min-width: 142px;
   align-items: center;
-  justify-content: center;
   gap: 9px;
-  min-height: 38px;
-  padding: 0 14px;
+  min-height: 48px;
+  padding: 5px 12px 5px 7px;
   border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: #62795d;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 800;
+  border-radius: 15px;
+  text-align: left;
   cursor: pointer;
-  transition: background .2s ease, color .2s ease, transform .2s ease;
+  transition: background .2s ease, color .2s ease, transform .2s ease, box-shadow .2s ease;
 }
-.musicButton:hover { background: #edf3e7; color: #3e6446; }
-.musicButtonActive {
-  background: linear-gradient(135deg, #527653, #3f6848);
+.musicToggleActive {
+  background: linear-gradient(135deg, #4f7854, #3c6645);
   color: #fffdf5;
+  box-shadow: 0 5px 14px rgba(58, 97, 62, .18);
 }
-.musicButtonActive:hover { background: linear-gradient(135deg, #466d49, #345a3c); transform: translateY(-1px); }
-.musicIcon { font-family: var(--font-display), Georgia, serif; font-size: 19px; line-height: 1; }
-.equalizer { display: inline-flex; align-items: center; gap: 2px; height: 14px; }
-.equalizer i { width: 2px; height: 5px; border-radius: 2px; background: currentColor; animation: equalize .8s ease-in-out infinite alternate; }
-.equalizer i:nth-child(2) { height: 11px; animation-delay: -.3s; }
-.equalizer i:nth-child(3) { height: 7px; animation-delay: -.55s; }
-.volumeButton,
-.volumeButtonActive {
+.musicToggleActive:hover {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, #466e4b, #335b3d);
+}
+.musicToggleOff {
+  background: #f1f0e7;
+  color: #68745f;
+}
+.musicToggleOff:hover { background: #e9eddf; color: #45674b; }
+.musicToggleIcon {
   display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
   place-items: center;
-  width: 36px;
-  height: 36px;
-  border: 0;
-  border-radius: 50%;
-  background: #edf2e7;
-  color: #557250;
-  font-size: 17px;
-  cursor: pointer;
+  border: 1px solid rgba(255,255,255,.26);
+  border-radius: 11px;
+  background: rgba(255,255,255,.13);
+  color: inherit;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 21px;
+  line-height: 1;
 }
-.volumeButtonActive { background: #e2ecd9; color: #3f6847; }
-.volumePanel {
-  width: 252px;
-  padding: 14px 15px 12px;
+.musicToggleOff .musicToggleIcon {
+  border-color: rgba(93, 117, 84, .16);
+  background: #e3e8da;
+}
+.musicToggleLabels {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+.musicToggleLabels strong {
+  color: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+.musicToggleLabels small {
+  color: inherit;
+  opacity: .78;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+.equalizer { display: inline-flex; align-items: center; gap: 2px; height: 16px; margin-left: auto; }
+.equalizer i { width: 2px; height: 6px; border-radius: 2px; background: currentColor; animation: equalize .9s ease-in-out infinite alternate; }
+.equalizer i:nth-child(2) { height: 12px; animation-delay: -.32s; }
+.equalizer i:nth-child(3) { height: 8px; animation-delay: -.58s; }
+.musicChoiceButton {
+  display: inline-flex;
+  max-width: 176px;
+  min-height: 42px;
+  align-items: center;
+  gap: 7px;
+  padding: 0 10px;
+  border: 1px solid rgba(104, 132, 92, .15);
+  border-radius: 14px;
+  background: #fffef9;
+  color: #587451;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 850;
+  cursor: pointer;
+  transition: background .18s ease, border-color .18s ease;
+}
+.musicChoiceButton:hover,
+.musicChoiceButton[aria-expanded="true"] {
+  border-color: rgba(104, 132, 92, .34);
+  background: #f1f6ea;
+}
+.musicChoiceButton>span:first-child { color: #a27c50; font-family: var(--font-display), Georgia, serif; font-size: 18px; }
+.musicChoiceButton>span:nth-child(2) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.choiceChevron { color: #9a9d89; font-size: 13px; }
+.musicPanel {
+  width: min(352px, calc(100vw - 28px));
+  padding: 15px;
   border: 1px solid rgba(104, 132, 92, .22);
-  border-radius: 17px;
-  background: rgba(255, 253, 246, .98);
-  box-shadow: 0 12px 32px rgba(53, 73, 47, .14);
-  backdrop-filter: blur(16px);
+  border-radius: 19px;
+  background: rgba(255, 253, 246, .985);
+  box-shadow: 0 14px 36px rgba(53, 73, 47, .17);
+  backdrop-filter: blur(18px);
   pointer-events: auto;
   animation: panel-arrive .2s ease-out both;
 }
-.volumePanel label { display: flex; justify-content: space-between; gap: 12px; color: #526b4e; font-size: 12px; font-weight: 800; }
-.volumePanel output { color: #a27e51; font-variant-numeric: tabular-nums; }
-.volumePanel input { display: block; width: 100%; margin: 12px 0 6px; accent-color: #5f8058; cursor: pointer; }
-.volumePanel p { margin: 0; color: #8b927f; font-size: 10px; line-height: 1.5; }
-.audioError { max-width: 260px; margin: 0; padding: 8px 11px; border: 1px solid #e7c9bd; border-radius: 10px; background: #fff6f0; color: #985845; font-size: 11px; }
-
+.musicPanelHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.musicPanelHeading strong { color: #3f5d43; font-family: var(--font-display), Georgia, serif; font-size: 17px; font-weight: 500; }
+.musicPanelHeading p { margin: 3px 0 0; color: #89917e; font-size: 10px; line-height: 1.45; }
+.musicPanelHeading button {
+  display: grid;
+  width: 27px;
+  height: 27px;
+  flex: 0 0 27px;
+  place-items: center;
+  border: 1px solid rgba(104,132,92,.16);
+  border-radius: 50%;
+  background: #f4f5eb;
+  color: #72816a;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+.trackOptions { display: grid; gap: 7px; }
+.trackOption,
+.trackOptionActive {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border: 1px solid rgba(104, 132, 92, .17);
+  border-radius: 13px;
+  background: #fffefb;
+  color: #526c4e;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .18s ease, background .18s ease, transform .18s ease;
+}
+.trackOption:hover,
+.trackOptionActive {
+  transform: translateY(-1px);
+  border-color: #a4bd97;
+  background: #f1f6e9;
+}
+.trackOptionIcon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  place-items: center;
+  border-radius: 11px;
+  background: #edf2e5;
+  color: #9c7b53;
+  font-size: 18px;
+}
+.trackOptionText { display: grid; min-width: 0; gap: 3px; }
+.trackOptionText strong { color: #405e44; font-size: 12px; font-weight: 850; }
+.trackOptionText small { color: #89917f; font-size: 9px; line-height: 1.4; }
+.trackCheck { margin-left: auto; color: #5c8258; font-size: 14px; font-weight: 900; }
+.musicVolume { margin-top: 13px; padding-top: 12px; border-top: 1px solid rgba(104,132,92,.13); }
+.musicVolume label { display: flex; justify-content: space-between; gap: 12px; color: #526b4e; font-size: 11px; font-weight: 850; }
+.musicVolume output { color: #a27e51; font-variant-numeric: tabular-nums; }
+.musicVolume input { display: block; width: 100%; margin: 11px 0 7px; accent-color: #5f8058; cursor: pointer; }
+.musicVolume p { margin: 0; color: #8b927f; font-size: 9px; line-height: 1.5; }
+.audioError { max-width: 300px; margin: 0; padding: 8px 11px; border: 1px solid #e7c9bd; border-radius: 10px; background: #fff6f0; color: #985845; font-size: 11px; }
 @keyframes leaf-drift {
   from { margin-top: 0; }
   to { margin-top: 13px; }
@@ -139,13 +250,18 @@
   to { opacity: 1; transform: translateY(0); }
 }
 @media(max-width:600px) {
-  .musicDock { left: 10px; bottom: 10px; }
-  .musicButton,.musicButtonActive { min-height: 36px; padding: 0 11px; font-size: 11px; }
-  .volumePanel { width: min(252px, calc(100vw - 24px)); }
+  .musicDock { left: 10px; bottom: 10px; gap: 7px; }
+  .musicControls { gap: 4px; padding: 4px; }
+  .musicToggleActive,.musicToggleOff { min-width: 128px; min-height: 43px; padding: 4px 8px 4px 5px; gap: 7px; }
+  .musicToggleIcon { width: 31px; height: 31px; flex-basis: 31px; }
+  .musicToggleLabels strong { font-size: 11px; }
+  .musicToggleLabels small { font-size: 8px; }
+  .musicChoiceButton { max-width: min(150px, 42vw); min-height: 39px; padding: 0 8px; font-size: 10px; }
+  .musicPanel { width: min(352px, calc(100vw - 20px)); padding: 12px; }
   .leafOne { right: 2%; opacity: .55; }
   .leafTwo { right: 4%; }
 }
 @media(prefers-reduced-motion: reduce) {
-  .leafOne,.leafTwo,.leafThree,.equalizer i,.volumePanel { animation: none !important; }
-  .musicButton,.musicButtonActive { transition: none; }
+  .leafOne,.leafTwo,.leafThree,.equalizer i,.musicPanel { animation: none !important; }
+  .musicToggleActive,.musicToggleOff,.musicChoiceButton,.trackOption,.trackOptionActive { transition: none; }
 }
