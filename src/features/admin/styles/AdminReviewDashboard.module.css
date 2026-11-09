@@ -270,3 +270,7 @@
   .dirtyIndicator,.cleanIndicator { align-self:flex-start; }
   .editorFooter .updateButton { width:100%; }
 }
+
+.ownerIdentity{margin-top:5px!important;color:#74866f!important;font-size:12px!important}
+.ownerIdentity strong{color:#456348;font-weight:850}
+.ownerIdentity span{color:#929b87;font-size:11px;overflow-wrap:anywhere}
