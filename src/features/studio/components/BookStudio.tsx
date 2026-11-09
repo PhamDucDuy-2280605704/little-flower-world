@@ -156,15 +156,6 @@ function insertStickerAtCursor(textarea: HTMLInputElement | HTMLTextAreaElement 
   });
 }
 
-function statusForReview(
-  status: GardenRow["approval_status"],
-  translate: (vietnamese: string, english: string) => string,
-): string {
-  if (status === "rejected") return translate("Lý do từ chối là bắt buộc để người viết có hướng chỉnh sửa.", "A rejection reason is required so the writer knows what to improve.");
-  if (status === "approved") return translate("Có thể cập nhật lời nhắn duyệt mà không đổi trạng thái.", "You can update the approval note without changing the status.");
-  return translate("Nhận xét duyệt là tùy chọn; lý do từ chối cần được ghi rõ.", "Approval notes are optional; rejection reasons must be clear.");
-}
-
 export default function BookStudio() {
   const router = useRouter();
   const { t } = useLanguage();
@@ -197,7 +188,6 @@ export default function BookStudio() {
   const [previewReadIds, setPreviewReadIds] = useState<string[]>([]);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [reviewCommentDraft, setReviewCommentDraft] = useState("");
 
   const [format, setFormat] = useState<StoryFormat>("book");
   const [decorations, setDecorations] = useState<StoryDecorations>(() => normalizeStoryDecorations(null));
@@ -319,7 +309,6 @@ export default function BookStudio() {
     setDecorations(normalizeStoryDecorations(settings.storyDecorations));
     setName(garden.name);
     setIntroduction(garden.introduction ?? "");
-    setReviewCommentDraft(garden.review_comment ?? "");
     setLetterTitle(garden.letter_title || t("Một lá thư dành riêng cho bạn", "A letter just for you"));
     setLetterText(paragraphs(garden.letter_paragraphs).join("\n\n"));
     setSignature(garden.letter_signature ?? "");
@@ -1072,42 +1061,6 @@ export default function BookStudio() {
     }
     await loadGardens(userId, false);
     setNotice(t("Đã rút yêu cầu duyệt. Bạn có thể tiếp tục chỉnh sửa bản thảo.", "Review request withdrawn. You can continue editing your draft."));
-    setSaving(false);
-  }
-
-  async function setApprovalStatus(status: "approved" | "rejected") {
-    if (!isAdmin || !selectedGarden || saving) return;
-    if (status === "approved" && !contentReady()) {
-      setError(t("Tác phẩm cần có tên và nội dung hoàn chỉnh trước khi duyệt.", "The story needs a title and complete content before approval."));
-      return;
-    }
-    const comment = reviewCommentDraft.trim();
-    if (status === "rejected" && !comment) {
-      setError(t("Anh hãy ghi lý do từ chối để người viết biết cần điều chỉnh điều gì nhé.", "Add a rejection reason so the writer knows what to improve."));
-      return;
-    }
-    if (comment.length > 3000) {
-      setError(t("Nhận xét tối đa 3.000 ký tự.", "Feedback must be 3,000 characters or fewer."));
-      return;
-    }
-
-    setSaving(true);
-    setError("");
-    const { error: reviewError } = await activeClientRef.current.from("gardens")
-      .update({ approval_status: status, review_comment: comment || null })
-      .eq("id", selectedGarden.id);
-    if (reviewError) {
-      console.error("Story moderation failed:", reviewError);
-      setError(t("Chưa cập nhật được trạng thái và nhận xét kiểm duyệt.", "Could not update the review status and feedback."));
-      setSaving(false);
-      return;
-    }
-    const refreshed = await loadGardens(userId, true);
-    const nextPending = refreshed.find((garden) => garden.id !== selectedGarden.id && garden.approval_status === "pending");
-    setSelectedId(nextPending?.id ?? "");
-    setNotice(status === "approved"
-      ? t("Thông báo Admin: Đã duyệt tác phẩm. Yêu cầu đã rời hàng chờ; User có thể tự xuất bản.", "Admin notice: Story approved and removed from the review queue. The User can now publish it.")
-      : t("Thông báo Admin: Đã từ chối tác phẩm. Yêu cầu đã rời hàng chờ; User đã nhận lý do chỉnh sửa.", "Admin notice: Story rejected and removed from the review queue. The User has received the reason for changes."));
     setSaving(false);
   }
 
