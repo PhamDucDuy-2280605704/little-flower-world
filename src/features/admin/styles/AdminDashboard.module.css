@@ -1113,3 +1113,9 @@
   }
   .storyPreviewToolbar { padding: 10px 11px; }
 }
+
+
+/* Native dialogs must leave layout completely when the open attribute is removed. */
+.storyPreviewDialog:not([open]) {
+  display: none;
+}
