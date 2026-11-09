@@ -450,6 +450,30 @@ export default function BookStudio() {
     return () => { active = false; };
   }, [selectedGarden, loadWork]);
 
+  useEffect(() => {
+    if (!authReady || isAdmin || !userId) return;
+    const channel = supabase.channel("writer-review-status-" + userId)
+      .on("postgres_changes", {
+        event: "UPDATE",
+        schema: "public",
+        table: "gardens",
+        filter: "owner_id=eq." + userId,
+      }, (payload) => {
+        const previous = payload.old as Partial<GardenRow>;
+        const updated = payload.new as Partial<GardenRow>;
+        if (previous.approval_status === updated.approval_status) return;
+        if (updated.approval_status === "approved" || updated.approval_status === "rejected") {
+          void loadGardens(userId, false).then(() => {
+            setNotice(updated.approval_status === "approved"
+              ? t("✉ Admin đã duyệt tác phẩm của bạn. Bạn có thể xuất bản khi sẵn sàng.", "✉ Admin approved your story. You can publish it when ready.")
+              : t("✉ Admin đã phản hồi tác phẩm. Hãy xem nhận xét và chỉnh sửa trước khi gửi lại.", "✉ Admin reviewed your story. Read the feedback, make changes, and resubmit."));
+          }).catch((loadError) => console.error("Refresh writer review notice failed:", loadError));
+        }
+      })
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [authReady, isAdmin, userId, loadGardens, t]);
+
   const closePreview = useCallback(() => {
     const dialog = previewRef.current;
     if (dialog?.open) dialog.close();
