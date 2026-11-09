@@ -979,7 +979,7 @@ export default function BookStudio() {
               <Link href="/admin/review">{t("Bàn kiểm duyệt", "Review desk")}</Link>
             </>
           ) : (
-            <Link href="/account">{t("Khu vực tài khoản", "My account")}</Link>
+            <Link href="/account">{t("Bàn sáng tác", "Writing desk")}</Link>
           )}
           {selectedGarden?.is_published && shareUrl && <a href={shareUrl} target="_blank" rel="noreferrer">{t("Mở bản người đọc", "Open reader view")} ↗</a>}
           <Link href="/">{t("Trang chủ", "Home")}</Link>
@@ -989,11 +989,11 @@ export default function BookStudio() {
 
       <section className={styles.welcome}>
         <div className={styles.welcomeCopy}>
-          <p className={styles.eyebrow}>{isAdmin ? "ADMIN WORKSPACE" : "YOUR PRIVATE ACCOUNT"}</p>
-          <h1>{isAdmin ? t("Không gian chỉnh sửa đầy đủ của Admin.", "Full Admin editing workspace.") : t("Câu chuyện của riêng bạn bắt đầu từ đây.", "Your personal story space starts here.")}</h1>
+          <p className={styles.eyebrow}>{isAdmin ? "ADMIN WORKSPACE" : "BÀN SÁNG TÁC RIÊNG"}</p>
+          <h1>{isAdmin ? t("Không gian chỉnh sửa đầy đủ của Admin.", "Full Admin editing workspace.") : t("Nơi bạn viết và chăm chút câu chuyện của mình.", "A quiet place to write and shape your stories.")}</h1>
           <p>{isAdmin
             ? t("Đây là trình chỉnh sửa chuyên sâu. Duyệt và từ chối được thực hiện tại Bàn kiểm duyệt riêng; quản lý toàn bộ tác phẩm, xuất bản, mã PIN và lưu bút được kiểm soát từ Trung tâm Admin.", "This is the advanced editor. Moderation happens in the dedicated Review Desk; all-story management, publishing, PINs, and guestbook controls remain in the Admin Center.")
-            : t("Đây là khu vực riêng của tài khoản anh: tạo và quản lý bản thảo, lưu riêng tư, thêm ảnh, xem trước, gửi Admin duyệt và đọc nhận xét. Chỉ Admin mới có quyền duyệt, từ chối hoặc xuất bản.", "This is your private account area: create drafts, save privately, add photos, preview, submit for review, and read feedback. Only Admin can approve, reject, or publish.")}</p>
+            : t("Đây là bàn sáng tác dành cho tài khoản người viết: tạo và quản lý bản thảo, thêm ảnh, xem trước, gửi Admin kiểm duyệt và đọc phản hồi. Đây không phải trang cài đặt hồ sơ. Bản thảo được lưu riêng tư; chỉ Admin mới có quyền duyệt và xuất bản.", "This writing desk is for writer accounts: create and manage drafts, add photos, preview, submit for review, and read feedback. It is not a profile settings page. Drafts stay private; only Admin can approve and publish.")}</p>
         </div>
         <div className={styles.welcomePhoto} role="img" aria-label={t("Cuốn sách mở dưới ánh sáng tự nhiên", "An open book in natural light")}>
           <span>YOUR WORDS, YOUR PAGES</span>
@@ -1015,7 +1015,7 @@ export default function BookStudio() {
       <div className={styles.workspace}>
         <aside className={styles.sidebar}>
           <div className={styles.sideHeader}>
-            <div><span className={styles.eyebrow}>MY ACCOUNT</span><h2>{t("Bản thảo của bạn", "Your drafts")}</h2></div>
+            <div><span className={styles.eyebrow}>{t("TÁC PHẨM CỦA TÔI", "MY STORIES")}</span><h2>{t("Bản thảo của bạn", "Your drafts")}</h2></div>
             <button type="button" onClick={createWork} disabled={saving}>{t("＋ Tạo mới", "＋ New story")}</button>
           </div>
           {gardens.length === 0 ? <p className={styles.empty}>{t("Chưa có bản thảo nào. Bắt đầu bằng một tác phẩm mới nhé.", "No drafts yet. Start with a new story.")}</p> : gardens.map((garden) => {
