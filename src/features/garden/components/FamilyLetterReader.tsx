@@ -26,36 +26,57 @@ export default function FamilyLetterReader({
   letterSignature,
 }: Props) {
   const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
+  const [brokenPhotoPaths, setBrokenPhotoPaths] = useState<Set<string>>(() => new Set());
 
   const oldPhoto = photos.find((photo) => photo.alt.toLowerCase().includes("ngày trước")) ?? photos[1] ?? null;
   const todayPhoto = photos.find((photo) => photo.alt.toLowerCase().includes("hôm nay")) ?? photos[0] ?? null;
   const orderedPhotos = useMemo(
-    () => [oldPhoto, todayPhoto].filter((photo): photo is GardenJournalPhoto => photo !== null),
+    () => [oldPhoto, todayPhoto].filter((photo, index, all): photo is GardenJournalPhoto =>
+      photo !== null && all.findIndex((item) => item?.path === photo.path) === index
+    ),
     [oldPhoto, todayPhoto],
   );
   const lightboxImages: LightboxImage[] = orderedPhotos.map((photo) => ({ url: photo.url, alt: photo.alt }));
+  const paragraphCount = chapters.reduce((total, chapter) => total + chapter.paragraphs.length, 0);
 
   function renderPhoto(photo: GardenJournalPhoto, caption: string) {
     const photoIndex = orderedPhotos.findIndex((item) => item.path === photo.path);
+    const isBroken = brokenPhotoPaths.has(photo.path);
+
     return (
       <figure className={styles.memory} key={photo.path}>
-        <button
-          type="button"
-          className={styles.memoryButton}
-          onClick={() => setActivePhotoIndex(photoIndex)}
-          aria-label={"Phóng to ảnh: " + photo.alt}
-        >
-          <Image
-            src={photo.url}
-            alt={photo.alt}
-            width={photo.width ?? 960}
-            height={photo.height ?? 720}
-            sizes="(max-width: 760px) 92vw, 760px"
-            unoptimized
-            loading="lazy"
-          />
-          <span className={styles.zoomHint}>Chạm để xem ảnh lớn hơn</span>
-        </button>
+        {isBroken ? (
+          <div className={styles.memoryUnavailable} role="img" aria-label="Ảnh kỷ niệm hiện chưa thể hiển thị">
+            <span aria-hidden="true">✧</span>
+            <p>Ảnh kỷ niệm này đang chờ được cập nhật lại từ bản gốc.</p>
+          </div>
+        ) : (
+          <button
+            type="button"
+            className={styles.memoryButton}
+            onClick={() => setActivePhotoIndex(photoIndex)}
+            aria-label={"Phóng to ảnh: " + photo.alt}
+          >
+            <Image
+              src={photo.url}
+              alt={photo.alt}
+              width={photo.width ?? 960}
+              height={photo.height ?? 720}
+              sizes="(max-width: 760px) 92vw, 760px"
+              style={{ maxWidth: Math.min(photo.width ?? 760, 760) + "px" }}
+              unoptimized
+              loading="lazy"
+              onError={() => {
+                setBrokenPhotoPaths((current) => {
+                  const next = new Set(current);
+                  next.add(photo.path);
+                  return next;
+                });
+              }}
+            />
+            <span className={styles.zoomHint}>Chạm để xem ảnh lớn hơn</span>
+          </button>
+        )}
         <figcaption>{caption}</figcaption>
       </figure>
     );
@@ -74,15 +95,30 @@ export default function FamilyLetterReader({
         </header>
 
         <div className={styles.letterBody}>
+          {chapters.length > 0 && (
+            <div className={styles.readingMeta} aria-label="Thông tin nội dung">
+              <span>{chapters.length} chặng ký ức</span>
+              <span aria-hidden="true">·</span>
+              <span>{paragraphCount} đoạn tâm tình</span>
+            </div>
+          )}
+
           <p className={styles.salutation}>Ba mẹ thương mến,</p>
-          <p className={styles.opening}>{introduction}</p>
+          {introduction && <p className={styles.opening}>{introduction}</p>}
 
           {chapters.map((chapter, index) => (
             <section className={styles.chapter} key={chapter.id}>
-              <h2><span>{String(index + 1).padStart(2, "0")}</span>{chapter.title}</h2>
-              {chapter.paragraphs.map((paragraph, paragraphIndex) => (
-                <p key={paragraphIndex}>{paragraph}</p>
-              ))}
+              <div className={styles.chapterHeading}>
+                <span className={styles.chapterNumber}>{String(index + 1).padStart(2, "0")}</span>
+                <h2>{chapter.title}</h2>
+              </div>
+              <div className={styles.chapterCopy}>
+                {chapter.paragraphs.map((paragraph, paragraphIndex) => (
+                  <p className={paragraphIndex === 0 ? styles.chapterLead : styles.chapterText} key={paragraphIndex}>
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
               {index === 0 && oldPhoto && renderPhoto(oldPhoto, "Một khung hình từ những năm tháng con còn bé.")}
               {index === 3 && todayPhoto && renderPhoto(todayPhoto, "Gia đình mình hôm nay — một khoảnh khắc con muốn giữ thật lâu.")}
             </section>
@@ -93,8 +129,8 @@ export default function FamilyLetterReader({
 
           <section className={styles.closing}>
             <p className={styles.closingLabel}>ĐIỀU CON MUỐN NÓI</p>
-            {letterParagraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
-            <p className={styles.signature}>{letterSignature}</p>
+            {letterParagraphs.map((paragraph, index) => <p className={styles.closingText} key={index}>{paragraph}</p>)}
+            {letterSignature && <p className={styles.signature}>{letterSignature}</p>}
           </section>
         </div>
 
