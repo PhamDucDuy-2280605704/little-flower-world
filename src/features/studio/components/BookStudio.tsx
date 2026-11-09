@@ -1270,7 +1270,8 @@ export default function BookStudio() {
                 coverUrl={coverUrl} coverPath={coverPath} photos={photos} chapters={journalChapters} readIds={previewReadIds}
                 decorations={decorations} onOpenChapter={markPreviewRead} letterTitle={letterTitle} letterParagraphs={splitText(letterText)}
                 letterSignature={signature} letterReady={chapters.length > 0 && chapters.every((chapter) => previewReadIds.includes(chapter.chapter_id))}
-                returnHref="/" returnLabel="Little Story World" actionHref="#the-book" actionLabel={t("MỞ TÁC PHẨM", "OPEN STORY")}>
+                embedded returnHref="/" returnLabel="Little Story World" actionHref="#the-book"
+                actionLabel={format === "book" ? "MỞ CUỐN SÁCH" : format === "letter" ? "ĐỌC BỨC THƯ" : "ĐỌC THÔNG ĐIỆP"}>
                 {guestbookEnabled && <section className={styles.previewGuestbook}><h3>{t("Lời nhắn từ người đọc", "Reader notes")}</h3><p>{t("Biểu mẫu gửi lời nhắn sẽ xuất hiện sau khi tác phẩm được xuất bản.", "The reader note form appears after this story is published.")}</p></section>}
               </GardenJournal>
             )}
