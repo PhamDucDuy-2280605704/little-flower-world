@@ -176,15 +176,42 @@ export default function SharedGardenExperience({ slug }: { slug: string }) {
 
   if (garden.experience_settings?.readOnlyStandalone === true) {
     return (
-      <FamilyLetterReader
-        name={garden.name}
-        introduction={garden.introduction}
-        chapters={chapters}
-        photos={payload.photos}
-        letterTitle={garden.letter_title}
-        letterParagraphs={garden.letter_paragraphs}
-        letterSignature={garden.letter_signature}
-      />
+      <>
+        <FamilyLetterReader
+          name={garden.name}
+          introduction={garden.introduction}
+          chapters={chapters}
+          photos={payload.photos}
+          letterTitle={garden.letter_title}
+          letterParagraphs={garden.letter_paragraphs}
+          letterSignature={garden.letter_signature}
+        />
+        {garden.guestbook_enabled && (
+          <section className={styles.guestbook} id="guestbook">
+            <div className={styles.sectionHeading}>
+              <span>✎</span>
+              <div>
+                <p className={styles.eyebrow}>{t("A NOTE FROM THE READER", "A NOTE FROM THE READER")}</p>
+                <h2>{t("Để lại một lời nhắn", "Leave a note")}</h2>
+                <p>{t("Lời nhắn sẽ được người viết xem trước khi xuất hiện công khai.", "The writer reviews notes before they appear publicly.")}</p>
+              </div>
+            </div>
+            <form onSubmit={submitGuestbook}>
+              <label>{t("Tên của bạn", "Your name")}<input value={guestName} onChange={(event) => setGuestName(event.target.value)} maxLength={50} required placeholder={t("Tên hoặc biệt danh", "Name or nickname")}/></label>
+              <label>{t("Lời nhắn", "Your note")}<textarea value={guestMessage} onChange={(event) => setGuestMessage(event.target.value)} maxLength={1000} rows={4} required placeholder={t("Gửi lại một điều dễ thương...", "Leave a kind note...")}/></label>
+              <button type="submit" disabled={guestSending || !guestName.trim() || !guestMessage.trim()}>{guestSending ? t("Đang gửi...", "Sending...") : t("Gửi lời nhắn", "Send note")}</button>
+              {guestNotice && <p role="status">{guestNotice}</p>}
+            </form>
+            {payload.guestbook.length > 0 && (
+              <div className={styles.approvedNotes}>
+                {payload.guestbook.map((entry) => (
+                  <blockquote key={entry.id}><p>“{entry.message}”</p><footer>— {entry.guest_name}</footer></blockquote>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+      </>
     );
   }
 
