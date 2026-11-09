@@ -537,7 +537,7 @@ export default function BookStudio() {
       setError(t("Đăng xuất chưa thành công. Bạn thử lại nhé.", "Sign out failed. Please try again."));
       return;
     }
-    router.replace(isAdmin ? "/little-story-backstage-7f4c" : "/login");
+    router.replace(isAdmin ? "/" : "/login");
     router.refresh();
   }
 
