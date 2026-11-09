@@ -417,8 +417,8 @@ export default function GardenJournal({
               </div>
             ) : (
               <div className={styles.contentsIntro}>
-                <span>{format === "message" ? "ONE MESSAGE" : t("A LETTER FOR YOU", "A LETTER FOR YOU")}</span>
-                <p>{format === "message" ? t("Một lời nhắn được viết riêng cho bạn.", "A message written just for you.") : t("Một bức thư nhỏ, được giữ lại trên những trang giấy.", "A small letter kept between these pages.")}</p>
+                <span>YOUR BOOK</span>
+                <p>{t("Cuốn sách đang chờ những chương đầu tiên.", "This book is waiting for its first chapters.")}</p>
               </div>
             )}
 
