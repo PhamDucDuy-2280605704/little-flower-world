@@ -208,3 +208,31 @@
 .previewDialog:not([open]) {
   display: none;
 }
+
+/* Admin review previews also fill the viewport, matching Studio and collection previews. */
+.previewDialog[open] {
+  position: fixed;
+  inset: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  max-width: none;
+  height: 100vh;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+.previewDialog[open] .previewBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
