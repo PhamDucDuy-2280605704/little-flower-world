@@ -61,6 +61,7 @@
     linear-gradient(180deg, #f7f8ef 0%, #fffaf1 54%, #f3f6ed 100%);
 }
 .brandMark { box-shadow: 0 7px 18px rgba(73, 105, 68, .09), inset 0 1px rgba(255,255,255,.75); }
+.heroVisual { isolation: isolate; }
 .heroVisual::before {
   content: "";
   position: absolute;
