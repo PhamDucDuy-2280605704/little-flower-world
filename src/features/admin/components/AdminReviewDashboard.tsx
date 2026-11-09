@@ -35,6 +35,14 @@ type ReviewRow = {
   created_at: string;
 };
 type FilterKey = "pending" | "all" | "rejected" | "approved";
+type StoryEditDraft = {
+  name: string;
+  introduction: string;
+  letterTitle: string;
+  letterText: string;
+  letterSignature: string;
+  guestbookEnabled: boolean;
+};
 type PreviewStory = {
   id: string;
   name: string;
@@ -85,9 +93,26 @@ export default function AdminReviewDashboard() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [storyDraft, setStoryDraft] = useState<StoryEditDraft | null>(null);
 
   const selected = rows.find((row) => row.id === selectedId) ?? null;
   const comment = selected ? (commentDrafts[selected.id] ?? selected.review_comment ?? "") : "";
+  const savedStoryDraft: StoryEditDraft | null = selected ? {
+    name: selected.name,
+    introduction: selected.introduction ?? "",
+    letterTitle: selected.letter_title ?? "",
+    letterText: asParagraphs(selected.letter_paragraphs).join("\\n\\n"),
+    letterSignature: selected.letter_signature ?? "",
+    guestbookEnabled: selected.guestbook_enabled,
+  } : null;
+  const storyDirty = Boolean(selected && storyDraft && savedStoryDraft && (
+    storyDraft.name !== savedStoryDraft.name ||
+    storyDraft.introduction !== savedStoryDraft.introduction ||
+    storyDraft.letterTitle !== savedStoryDraft.letterTitle ||
+    storyDraft.letterText !== savedStoryDraft.letterText ||
+    storyDraft.letterSignature !== savedStoryDraft.letterSignature ||
+    storyDraft.guestbookEnabled !== savedStoryDraft.guestbookEnabled
+  ));
   const pendingCount = rows.filter((row) => row.approval_status === "pending").length;
   const draftCount = rows.filter((row) => row.approval_status === "draft").length;
   const approvedCount = rows.filter((row) => row.approval_status === "approved").length;
@@ -137,6 +162,18 @@ export default function AdminReviewDashboard() {
     });
     return () => { active = false; };
   }, [loadRows]);
+
+  useEffect(() => {
+    if (!selected) { setStoryDraft(null); return; }
+    setStoryDraft({
+      name: selected.name,
+      introduction: selected.introduction ?? "",
+      letterTitle: selected.letter_title ?? "",
+      letterText: asParagraphs(selected.letter_paragraphs).join("\\n\\n"),
+      letterSignature: selected.letter_signature ?? "",
+      guestbookEnabled: selected.guestbook_enabled,
+    });
+  }, [selectedId]); // Keep unsaved edits while the selected row refreshes.
 
   const filteredRows = useMemo(() => {
     if (filter === "all") return rows;
@@ -225,6 +262,47 @@ export default function AdminReviewDashboard() {
     if (dialog?.open) dialog.close();
     setPreview(null);
   }, []);
+
+  async function saveStoryUpdates() {
+    if (!selected || !storyDraft || saving || !storyDirty) return;
+    const clean = {
+      name: storyDraft.name.trim(),
+      introduction: storyDraft.introduction.trim(),
+      letter_title: storyDraft.letterTitle.trim(),
+      letter_paragraphs: storyDraft.letterText.split(/\\n\\s*\\n/).map((part) => part.trim()).filter(Boolean),
+      letter_signature: storyDraft.letterSignature.trim(),
+      guestbook_enabled: storyDraft.guestbookEnabled,
+    };
+    if (!clean.name || clean.name.length > 120) {
+      setError(t("Tên tác phẩm không được để trống và tối đa 120 ký tự.", "Story name is required and must be 120 characters or fewer."));
+      return;
+    }
+    if (clean.introduction.length > 1000 || clean.letter_title.length > 180 || clean.letter_signature.length > 500 || clean.letter_paragraphs.join("\\n\\n").length > 30000) {
+      setError(t("Một hoặc nhiều nội dung vượt quá giới hạn cho phép.", "One or more fields exceed their allowed length."));
+      return;
+    }
+    setSaving(true);
+    setError("");
+    setNotice("");
+    const { error: updateError } = await adminSupabase.from("gardens").update(clean).eq("id", selected.id);
+    if (updateError) {
+      console.error("Update Admin story content failed:", updateError);
+      setError(t("Chưa cập nhật được nội dung. Trạng thái duyệt và link chia sẻ vẫn được giữ nguyên.", "Could not update the story. Its review status and share link remain unchanged."));
+      setSaving(false);
+      return;
+    }
+    await loadRows();
+    setStoryDraft({
+      name: clean.name,
+      introduction: clean.introduction,
+      letterTitle: clean.letter_title,
+      letterText: clean.letter_paragraphs.join("\\n\\n"),
+      letterSignature: clean.letter_signature,
+      guestbookEnabled: clean.guestbook_enabled,
+    });
+    setNotice(t("Đã cập nhật nội dung tác phẩm. Trạng thái duyệt và liên kết chia sẻ không thay đổi.", "Story content updated. Review status and share link were not changed."));
+    setSaving(false);
+  }
 
   async function moderate(status: "approved" | "rejected") {
     if (!selected || saving) return;
@@ -343,7 +421,10 @@ export default function AdminReviewDashboard() {
                 </div>
                 <div className={styles.detailActions}>
                   <button type="button" onClick={() => void openPreview(selected)} disabled={previewLoading}>{previewLoading ? t("Đang mở...", "Opening...") : t("◉ Xem trước toàn màn hình", "◉ Full preview")}</button>
-                  <Link href={"/admin/studio?mode=admin&garden=" + encodeURIComponent(selected.id)}>{t("Chỉnh sửa ↗", "Edit ↗")}</Link>
+                  <Link href={"/admin/studio?mode=admin&garden=" + encodeURIComponent(selected.id)}>{t("Studio đầy đủ ↗", "Full Studio ↗")}</Link>
+                  <button type="button" onClick={() => document.getElementById("admin-story-update")?.scrollIntoView({ behavior: "smooth", block: "center" })} className={storyDirty ? styles.updateActionDirty : undefined}>
+                    {storyDirty ? "✦ " + t("Có thay đổi", "Changes") : "✎ " + t("Cập nhật", "Update")}
+                  </button>
                 </div>
               </div>
 
@@ -352,6 +433,22 @@ export default function AdminReviewDashboard() {
                 <div><small>{t("Ngày tạo", "Created")}</small><strong>{new Date(selected.created_at).toLocaleDateString()}</strong></div>
                 <div><small>{t("Xuất bản", "Published")}</small><strong>{selected.is_published ? t("Đang công khai", "Published") : t("Chưa xuất bản", "Not published")}</strong></div>
               </div>
+
+              <section className={styles.storyEditor} id="admin-story-update">
+                <div className={styles.editorHeading}>
+                  <div><p className={styles.eyebrow}>{t("CHỈNH SỬA NỘI DUNG", "CONTENT EDITOR")}</p><h3>{t("Cập nhật tác phẩm", "Update story")}</h3><p>{t("Sửa thông tin và nội dung nhanh tại đây. Việc lưu không thay đổi trạng thái duyệt hoặc đường dẫn chia sẻ.", "Quickly edit story details here. Saving does not change its review status or share link.")}</p></div>
+                  <span className={storyDirty ? styles.dirtyIndicator : styles.cleanIndicator}>{storyDirty ? "✦ " + t("Chưa lưu", "Unsaved") : "✓ " + t("Đã đồng bộ", "Synced")}</span>
+                </div>
+                {storyDraft && <>
+                  <label className={styles.commentField}><span>{t("Tên tác phẩm", "Story title")}</span><input value={storyDraft.name} maxLength={120} onChange={(event) => setStoryDraft((draft) => draft ? { ...draft, name: event.target.value } : draft)} /></label>
+                  <label className={styles.commentField}><span>{t("Lời giới thiệu", "Introduction")}</span><textarea rows={3} maxLength={1000} value={storyDraft.introduction} onChange={(event) => setStoryDraft((draft) => draft ? { ...draft, introduction: event.target.value } : draft)} /></label>
+                  <label className={styles.commentField}><span>{t("Tiêu đề bức thư / nội dung chính", "Letter / main content title")}</span><input value={storyDraft.letterTitle} maxLength={180} onChange={(event) => setStoryDraft((draft) => draft ? { ...draft, letterTitle: event.target.value } : draft)} /></label>
+                  <label className={styles.commentField}><span>{t("Nội dung chính · Mỗi đoạn cách nhau một dòng trống", "Main content · Separate paragraphs with a blank line")}</span><textarea rows={10} maxLength={30000} value={storyDraft.letterText} onChange={(event) => setStoryDraft((draft) => draft ? { ...draft, letterText: event.target.value } : draft)} /></label>
+                  <label className={styles.commentField}><span>{t("Lời ký tên", "Signature")}</span><textarea rows={2} maxLength={500} value={storyDraft.letterSignature} onChange={(event) => setStoryDraft((draft) => draft ? { ...draft, letterSignature: event.target.value } : draft)} /></label>
+                  <label className={styles.editorToggle}><input type="checkbox" checked={storyDraft.guestbookEnabled} onChange={(event) => setStoryDraft((draft) => draft ? { ...draft, guestbookEnabled: event.target.checked } : draft)} /><span>{t("Cho phép khách để lại lưu bút", "Allow visitors to leave a guestbook message")}</span></label>
+                  <div className={styles.editorFooter}><small>{t("Các chương, ảnh, sticker và bố cục nâng cao có thể chỉnh trong Studio Admin đầy đủ.", "Chapters, photos, stickers and advanced layouts can be edited in Full Admin Studio.")}</small><button type="button" className={styles.updateButton} onClick={() => void saveStoryUpdates()} disabled={!storyDirty || saving}>{saving ? t("Đang cập nhật...", "Updating...") : "✦ " + t("Lưu cập nhật", "Save updates")}</button></div>
+                </>}
+              </section>
 
               {selected.review_comment && (
                 <aside className={styles.previousFeedback}>
