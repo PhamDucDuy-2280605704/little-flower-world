@@ -277,3 +277,16 @@
   .memoryButton img { max-height: 68svh; }
   .closing { margin-top: 22px; padding: 20px 17px; }
 }
+
+
+/* Expanded canvas used by the in-editor preview modal. */
+.embeddedPage {
+  min-height: 0;
+  padding: clamp(14px, 2vw, 30px) 14px 36px;
+}
+.embeddedPage .letter {
+  width: min(100%, 1280px);
+}
+.embeddedPage .letterBody {
+  width: min(100%, 960px);
+}
