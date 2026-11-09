@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Noto_Sans, Noto_Serif, Geist_Mono } from "next/font/google";
 import { LanguageProvider } from "@/features/i18n/LanguageProvider";
 import LanguageSwitch from "@/features/i18n/LanguageSwitch";
+import SiteAmbience from "@/features/ambience/SiteAmbience";
 import "./globals.css";
 
 const bodyFont = Noto_Sans({
@@ -37,7 +38,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     >
       <body className="min-h-full flex flex-col">
         <LanguageProvider>
-          {children}
+          <div className="site-content">{children}</div>
+          <SiteAmbience />
           <LanguageSwitch />
         </LanguageProvider>
       </body>
