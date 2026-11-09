@@ -313,11 +313,25 @@ export default function AdminDashboard() {
     }
   }
 
+  const closeStoryPreview = useCallback(() => {
+    const dialog = storyPreviewRef.current;
+    if (dialog?.open) dialog.close();
+    setStoryPreview(null);
+  }, []);
+
   useEffect(() => {
     const dialog = storyPreviewRef.current;
     if (!dialog) return;
-    if (storyPreview && !dialog.open) dialog.showModal();
-    if (!storyPreview && dialog.open) dialog.close();
+    if (storyPreview && !dialog.open) {
+      try {
+        dialog.showModal();
+      } catch (dialogError) {
+        console.error("Open Admin story preview failed:", dialogError);
+        setStoryPreview(null);
+      }
+    } else if (!storyPreview && dialog.open) {
+      dialog.close();
+    }
   }, [storyPreview]);
 
   useEffect(() => {
@@ -705,7 +719,7 @@ export default function AdminDashboard() {
             <div><strong>{storyPreview.name}</strong><span>{selectedGarden?.approvalStatus === "pending" ? "Đang chờ duyệt" : selectedGarden?.approvalStatus === "approved" ? t("Đã duyệt", "Approved") : selectedGarden?.approvalStatus === "rejected" ? t("Cần chỉnh sửa", "Needs changes") : t("Bản nháp", "Draft")}</span></div>
             <div>
               <Link href={"/studio?mode=admin&garden=" + encodeURIComponent(storyPreview.id)}>{t("Mở chỉnh sửa & kiểm duyệt ↗", "Edit & review ↗")}</Link>
-              <button type="button" onClick={() => setStoryPreview(null)}>{t("Đóng ✕", "Close ✕")}</button>
+              <button type="button" onClick={closeStoryPreview} aria-label={t("Đóng bản xem trước", "Close preview")}>{t("Đóng ✕", "Close ✕")}</button>
             </div>
           </div>
           <div className={storyPreview.readOnlyStandalone
