@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import styles from "../styles/LoginForm.module.css";
 import { useLanguage } from "@/features/i18n/LanguageProvider";
+import { FAIRYTALE_GARDEN_ADMIN_USER_ID } from "@/features/garden/data/gardenThemes";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -37,7 +38,7 @@ export default function LoginForm() {
     setLoading(true);
 
     try {
-      const { error: signInError } =
+      const { data: signInData, error: signInError } =
         await supabase.auth.signInWithPassword({
           email: cleanEmail,
           password,
@@ -45,8 +46,23 @@ export default function LoginForm() {
 
       if (signInError) throw signInError;
 
+      if (signInData.user?.id === FAIRYTALE_GARDEN_ADMIN_USER_ID) {
+        await supabase.auth.signOut({ scope: "local" });
+        setError(t("Tài khoản này không thuộc cổng đăng nhập sáng tác.", "This account cannot use the writer sign-in."));
+        return;
+      }
+
       const requestedPath = new URLSearchParams(window.location.search).get("next");
-      const nextPath = requestedPath?.startsWith("/") && !requestedPath.startsWith("//") ? requestedPath : "/account";
+      const normalizedPath = requestedPath?.toLowerCase() ?? "";
+      const isAdminDestination =
+        normalizedPath.startsWith("/admin")
+        || normalizedPath.startsWith("/private-admin")
+        || normalizedPath.startsWith("/little-story-backstage");
+      const safeRequestedPath =
+        requestedPath?.startsWith("/")
+        && !requestedPath.startsWith("//")
+        && !isAdminDestination;
+      const nextPath = safeRequestedPath ? requestedPath : "/account";
       router.replace(nextPath);
       router.refresh();
     } catch (err: unknown) {
