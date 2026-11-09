@@ -529,10 +529,34 @@ export default function BookStudio() {
     return true;
   }
 
+  async function startEditingApprovedStory() {
+    if (isAdmin || !selectedGarden || selectedGarden.approval_status !== "approved" || saving) return;
+    const confirmed = window.confirm(t(
+      "Mở chỉnh sửa sẽ gỡ liên kết công khai hiện tại và chuyển tác phẩm về bản nháp. Sau khi sửa xong, bạn cần gửi Admin duyệt lại trước khi xuất bản. Tiếp tục nhé?",
+      "Reopening this story will disable its current public link and move it to draft. After editing, you must resubmit it for Admin review before it can be published. Continue?"
+    ));
+    if (!confirmed) return;
+    setSaving(true);
+    setError("");
+    const { error: reopenError } = await activeClientRef.current.from("gardens")
+      .update({ approval_status: "draft" })
+      .eq("id", selectedGarden.id)
+      .eq("owner_id", userId);
+    if (reopenError) {
+      console.error("Reopen approved story failed:", reopenError);
+      setError(t("Chưa mở được quyền chỉnh sửa. Tác phẩm vẫn giữ nguyên trạng thái cũ.", "Could not reopen editing. The story remains unchanged."));
+      setSaving(false);
+      return;
+    }
+    await loadGardens(userId, false);
+    setNotice(t("Đã mở chỉnh sửa. Liên kết cũ đã được tắt; anh có thể sửa nội dung, chương và ảnh rồi gửi Admin duyệt lại.", "Editing is open. The old link is disabled; you can edit the story, chapters, and photos, then resubmit for review."));
+    setSaving(false);
+  }
+
   async function saveDraft() {
     if (!selectedGarden || saving) return;
     if (isCreatorReviewLocked) {
-      setNotice(selectedGarden.approval_status === "pending" ? t("Tác phẩm đang chờ Admin duyệt nên tạm khóa chỉnh sửa.", "This story is locked while awaiting Admin review.") : t("Tác phẩm đã được duyệt. Hãy liên hệ Admin nếu cần chỉnh sửa.", "This story has been approved. Contact Admin if changes are needed."));
+      setNotice(t("Tác phẩm đang chờ Admin duyệt nên tạm khóa chỉnh sửa.", "This story is locked while awaiting Admin review."));
       return;
     }
     if (pinEnabled && !pinExists && pinDraft.trim().length < 6) {
@@ -1126,7 +1150,14 @@ export default function BookStudio() {
             </nav>
 
             {!isAdmin && selectedGarden.approval_status === "pending" && <p className={styles.notice} role="status">{t("Bản thảo đã được gửi Admin kiểm duyệt. Nội dung tạm khóa trong thời gian xem xét.", "Your draft was submitted for review. Editing is locked while Admin reviews it.")}</p>}
-            {!isAdmin && selectedGarden.approval_status === "approved" && <p className={styles.notice} role="status">{t("Tác phẩm đã được Admin duyệt. Bạn có thể chờ xuất bản hoặc liên hệ Admin nếu cần chỉnh sửa.", "Your story has been approved. Wait for publishing or contact Admin if changes are needed.")}</p>}
+            {!isAdmin && selectedGarden.approval_status === "approved" && (
+              <div className={styles.notice} role="status">
+                <p>{t("Tác phẩm đã được Admin duyệt. Nếu muốn sửa nội dung, chương hoặc ảnh, hãy mở chỉnh sửa. Liên kết công khai hiện tại sẽ được tắt và bài cần duyệt lại.", "Your story has been approved. To edit its content, chapters, or photos, reopen editing. The current public link will be disabled and the story must be reviewed again.")}</p>
+                <button type="button" className={styles.secondaryButton} onClick={() => void startEditingApprovedStory()} disabled={saving}>
+                  {saving ? t("Đang mở...", "Opening...") : t("✎ Mở chỉnh sửa tác phẩm", "✎ Reopen story for editing")}
+                </button>
+              </div>
+            )}
             {!isAdmin && selectedGarden.review_comment && (
               <aside className={styles.reviewFeedback} aria-label={t("Phản hồi từ Admin", "Admin feedback")}>
                 <strong>{selectedGarden.approval_status === "rejected" ? t("Lý do từ chối", "Reason for rejection") : t("Nhận xét từ Admin", "Admin feedback")}</strong>
