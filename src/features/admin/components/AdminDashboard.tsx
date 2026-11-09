@@ -558,7 +558,6 @@ export default function AdminDashboard() {
             <a href="#photo-library" className={styles.sideLink}>▧ <span>{t("Kho ảnh riêng", "Photo library")}</span></a>
             <Link href="/admin/review" className={styles.sideLink}>✓ <span>{t("Bàn kiểm duyệt", "Review desk")}</span></Link>
             <Link href="/admin/studio?mode=admin" className={styles.sideLink}>✎ <span>{t("Studio Admin đầy đủ", "Full Admin studio")}</span></Link>
-            <Link href="/" className={styles.sideLink}><span>{t("Trang chủ", "Home")}</span></Link>
           </div>
 
           <div className={styles.sidebarBottom}>
@@ -579,8 +578,6 @@ export default function AdminDashboard() {
               <p className={styles.subtitle}>{t("Mỗi tác phẩm có một album riêng, mọi kỷ niệm đều ở đúng nơi.", "Every story has its own album, keeping each memory in the right place.")}</p>
             </div>
             <div className={styles.topActions}>
-              <Link href="/admin/review" className={styles.secondaryLink}>{t("Mở bàn kiểm duyệt", "Open review desk")}</Link>
-              <Link href="/admin/studio?mode=admin" className={styles.secondaryLink}>{t("Studio Admin", "Admin studio")}</Link>
               <button type="button" className={styles.logoutButton} onClick={() => void handleLogout()}>{t("Đăng xuất", "Sign out")}</button>
             </div>
           </header>
