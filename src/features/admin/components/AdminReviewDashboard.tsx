@@ -34,7 +34,6 @@ type ReviewRow = {
   reviewed_at: string | null;
   created_at: string;
 };
-type ChapterRow = { chapter_id: string; sort_order: number; title: string; paragraphs: string[] };
 type FilterKey = "pending" | "all" | "rejected" | "approved";
 type PreviewStory = {
   id: string;
@@ -79,7 +78,7 @@ export default function AdminReviewDashboard() {
   const [rows, setRows] = useState<ReviewRow[]>([]);
   const [selectedId, setSelectedId] = useState("");
   const [filter, setFilter] = useState<FilterKey>("pending");
-  const [comment, setComment] = useState("");
+  const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
   const [preview, setPreview] = useState<PreviewStory | null>(null);
   const [loading, setLoading] = useState(false);
   const [previewLoading, setPreviewLoading] = useState(false);
@@ -88,6 +87,7 @@ export default function AdminReviewDashboard() {
   const [notice, setNotice] = useState("");
 
   const selected = rows.find((row) => row.id === selectedId) ?? null;
+  const comment = selected ? (commentDrafts[selected.id] ?? selected.review_comment ?? "") : "";
   const pendingCount = rows.filter((row) => row.approval_status === "pending").length;
   const draftCount = rows.filter((row) => row.approval_status === "draft").length;
   const approvedCount = rows.filter((row) => row.approval_status === "approved").length;
@@ -137,10 +137,6 @@ export default function AdminReviewDashboard() {
     });
     return () => { active = false; };
   }, [loadRows]);
-
-  useEffect(() => {
-    setComment(selected?.review_comment ?? "");
-  }, [selectedId, selected?.review_comment]);
 
   const filteredRows = useMemo(() => {
     if (filter === "all") return rows;
@@ -367,7 +363,7 @@ export default function AdminReviewDashboard() {
 
               <label className={styles.commentField}>
                 <span>{t("Nhận xét cho người viết", "Feedback for the writer")}</span>
-                <textarea value={comment} onChange={(event) => setComment(event.target.value)} rows={6} maxLength={3000} placeholder={t("Ghi nhận xét khi duyệt, hoặc nêu rõ lý do cần chỉnh sửa nếu từ chối...", "Add an optional approval note, or explain what needs to change if rejecting...")} />
+                <textarea value={comment} onChange={(event) => { if (selected) setCommentDrafts((current) => ({ ...current, [selected.id]: event.target.value })); }} rows={6} maxLength={3000} placeholder={t("Ghi nhận xét khi duyệt, hoặc nêu rõ lý do cần chỉnh sửa nếu từ chối...", "Add an optional approval note, or explain what needs to change if rejecting...")} />
                 <small>{comment.length}/3000 · {t("Bắt buộc khi từ chối, tùy chọn khi duyệt.", "Required for rejection; optional for approval.")}</small>
               </label>
 
