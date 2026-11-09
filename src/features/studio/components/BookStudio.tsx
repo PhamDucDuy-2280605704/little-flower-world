@@ -986,6 +986,15 @@ export default function BookStudio() {
         </div>
       </section>
 
+      {!isAdmin && (
+        <section className={styles.accountCapabilities} aria-label={t("Chức năng tài khoản sáng tác", "Creator account features")}>
+          <div><span>▤</span><strong>{t("Quản lý bản thảo", "Manage drafts")}</strong><small>{t("Tạo, sửa và xóa bản thảo riêng tư hoặc bản bị từ chối.", "Create, edit, and delete private or rejected drafts.")}</small></div>
+          <div><span>▧</span><strong>{t("Quản lý hình ảnh", "Manage photos")}</strong><small>{t("Thêm ảnh và xem kho ảnh của từng tác phẩm.", "Add photos and manage each story's album.")}</small></div>
+          <div><span>✉</span><strong>{t("Gửi Admin kiểm duyệt", "Submit for review")}</strong><small>{t("Theo dõi trạng thái và đọc nhận xét từ Admin.", "Track review status and read Admin feedback.")}</small></div>
+          <div><span>🔒</span><strong>{t("Quyền xuất bản do Admin giữ", "Admin controls publishing")}</strong><small>{t("Tài khoản sáng tác không thể tự duyệt, từ chối hoặc tạo link công khai.", "Creator accounts cannot approve, reject, or publish public links.")}</small></div>
+        </section>
+      )}
+
       {error && <p className={styles.error} role="alert">{error}</p>}
       {notice && <p className={styles.notice} role="status">{notice}</p>}
 
