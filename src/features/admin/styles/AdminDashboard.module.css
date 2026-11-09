@@ -998,7 +998,8 @@
 .storyPreviewDialogLetter{display:flex;flex-direction:column;width:min(1500px,calc(100vw - 32px));max-width:none;max-height:calc(100dvh - 32px);overflow:hidden;background:#f7f5ec}
 .storyPreviewBodyLetter{flex:1;min-height:0;max-height:none;overflow:auto;padding:0;background:#f7f5ec}
 @media(max-width:680px){.storyPreviewDialogLetter{width:calc(100vw - 10px);max-height:calc(100dvh - 10px)}}
-.storyPreviewToolbar{position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:14px 18px;background:#fffdf6;border-bottom:1px solid #e7e4d6}
+.storyPreviewToolbar{position:sticky;top:0;z-index:10;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:14px 18px;background:#fffdf6;border-bottom:1px solid #e7e4d6;pointer-events:auto}
+.storyPreviewToolbar button{position:relative;z-index:11;pointer-events:auto;touch-action:manipulation}
 .storyPreviewToolbar>div{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .storyPreviewToolbar strong{font-family:var(--font-display),serif;font-size:18px}
 .storyPreviewToolbar span{font-size:12px;color:#78856e}
