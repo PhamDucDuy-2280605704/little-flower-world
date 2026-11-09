@@ -8,12 +8,12 @@
   color: #394a3b;
 }
 .letter {
-  width: min(100%, 900px);
+  width: min(100%, 820px);
   margin: 0 auto;
   overflow: hidden;
   border: 1px solid rgba(119, 126, 91, .18);
   border-radius: 22px;
-  background: rgba(255, 254, 249, .96);
+  background: rgba(255, 254, 249, .97);
   box-shadow: 0 24px 75px rgba(61, 74, 52, .11);
 }
 .letterHeader {
@@ -40,7 +40,7 @@
   margin: 0 auto;
   color: #31503a;
   font-family: var(--font-display), Georgia, "Times New Roman", serif;
-  font-size: clamp(36px, 6vw, 64px);
+  font-size: clamp(34px, 6vw, 62px);
   font-weight: 400;
   letter-spacing: -.045em;
   line-height: 1.13;
@@ -67,62 +67,108 @@
   letter-spacing: .04em;
 }
 .letterBody {
-  width: min(100%, 710px);
+  width: min(100%, 700px);
   margin: 0 auto;
-  padding: clamp(32px, 6vw, 62px) clamp(23px, 5.5vw, 50px) 48px;
+  padding: clamp(30px, 5vw, 54px) clamp(20px, 5vw, 42px) 46px;
+}
+.readingMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  margin: 0 0 34px;
+  color: #8a9079;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: .09em;
+  text-transform: uppercase;
 }
 .salutation {
-  margin: 0 0 22px !important;
-  color: #476347 !important;
+  margin: 0 0 17px;
+  color: #476347;
   font-family: var(--font-display), Georgia, "Times New Roman", serif;
-  font-size: clamp(23px, 3vw, 29px) !important;
+  font-size: clamp(23px, 3vw, 29px);
   font-style: italic;
 }
-.opening, .chapter > p, .closing > p:not(.closingLabel):not(.signature) {
-  margin: 0 0 18px;
+.opening {
+  margin: 0 0 28px;
+  padding: 18px 20px;
+  border-left: 3px solid #c6a879;
+  border-radius: 0 13px 13px 0;
+  background: #f6f4e9;
   color: #4c5b4c;
   font-family: var(--font-display), Georgia, "Times New Roman", serif;
-  font-size: clamp(17px, 1.8vw, 19px);
-  font-weight: 400;
-  line-height: 2;
-  text-align: left;
+  font-size: clamp(16px, 1.7vw, 18px);
+  line-height: 1.85;
   white-space: pre-wrap;
 }
-.opening {
-  margin-bottom: 40px;
-}
 .chapter {
-  margin: 38px 0 0;
+  margin: 20px 0 0;
+  padding: clamp(20px, 3.2vw, 28px);
+  border: 1px solid rgba(132, 132, 100, .16);
+  border-radius: 17px;
+  background: linear-gradient(145deg, rgba(250, 249, 241, .96), rgba(255, 254, 249, .92));
 }
-.chapter h2 {
+.chapterHeading {
   display: flex;
-  align-items: baseline;
-  gap: 12px;
-  margin: 0 0 16px;
+  align-items: flex-start;
+  gap: 13px;
+  margin: 0 0 14px;
+}
+.chapterNumber {
+  display: grid;
+  place-items: center;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(195, 154, 106, .36);
+  border-radius: 50%;
+  color: #b18b5c;
+  font-family: var(--font-body), Arial, sans-serif;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .05em;
+}
+.chapterHeading h2 {
+  margin: 2px 0 0;
   color: #3c5a40;
   font-family: var(--font-display), Georgia, "Times New Roman", serif;
-  font-size: clamp(22px, 2.8vw, 27px);
+  font-size: clamp(21px, 2.6vw, 26px);
   font-weight: 500;
   line-height: 1.35;
 }
-.chapter h2 span {
-  flex: 0 0 auto;
-  color: #c39a6a;
-  font-family: var(--font-body), Arial, sans-serif;
-  font-size: 11px;
-  font-weight: 850;
-  letter-spacing: .12em;
+.chapterCopy p {
+  margin: 0;
+  color: #4c5b4c;
+  font-family: var(--font-display), Georgia, "Times New Roman", serif;
+  text-align: left;
+  white-space: pre-wrap;
+}
+.chapterLead {
+  padding-left: 13px;
+  border-left: 2px solid rgba(157, 172, 131, .72);
+  font-size: clamp(16px, 1.75vw, 18px);
+  font-weight: 600;
+  line-height: 1.78;
+}
+.chapterText {
+  margin-top: 12px !important;
+  font-size: clamp(15px, 1.6vw, 17px);
+  line-height: 1.82;
 }
 .memory {
-  margin: 30px 0 34px;
+  margin: 26px 0 2px;
 }
 .memoryButton {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   width: 100%;
   overflow: hidden;
-  padding: 10px;
+  padding: 9px;
   border: 1px solid rgba(136, 137, 104, .2);
-  border-radius: 16px;
+  border-radius: 15px;
   background: #f2eee3;
   cursor: zoom-in;
 }
@@ -130,7 +176,7 @@
   display: block;
   width: 100%;
   height: auto;
-  max-height: min(76svh, 760px);
+  max-height: min(72svh, 680px);
   margin: 0 auto;
   border-radius: 9px;
   object-fit: contain;
@@ -144,25 +190,57 @@
   letter-spacing: .06em;
   text-align: center;
 }
+.memoryUnavailable {
+  display: grid;
+  min-height: 180px;
+  place-content: center;
+  gap: 10px;
+  padding: 24px;
+  border: 1px dashed rgba(136, 137, 104, .35);
+  border-radius: 15px;
+  background: #f4f1e6;
+  color: #8a9079;
+  text-align: center;
+}
+.memoryUnavailable span {
+  color: #b89a6c;
+  font-size: 24px;
+}
+.memoryUnavailable p {
+  max-width: 32ch;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.65;
+}
 .memory figcaption {
-  margin: 11px 8px 0;
+  margin: 10px 8px 0;
   color: #8a8d78;
   font-family: var(--font-display), Georgia, "Times New Roman", serif;
-  font-size: 14px;
+  font-size: 13px;
   font-style: italic;
   line-height: 1.6;
   text-align: center;
 }
 .closing {
-  margin-top: 45px;
-  padding-top: 31px;
-  border-top: 1px solid rgba(132, 132, 100, .18);
+  margin-top: 30px;
+  padding: clamp(22px, 3.5vw, 30px);
+  border: 1px solid rgba(119, 126, 91, .18);
+  border-radius: 17px;
+  background: #f2f3e8;
 }
 .closingLabel {
-  margin-bottom: 19px;
+  margin-bottom: 17px;
+}
+.closingText {
+  margin: 0 0 13px;
+  color: #4c5b4c;
+  font-family: var(--font-display), Georgia, "Times New Roman", serif;
+  font-size: clamp(16px, 1.7vw, 18px);
+  line-height: 1.85;
+  white-space: pre-wrap;
 }
 .signature {
-  margin: 25px 4px 0;
+  margin: 22px 4px 0;
   color: #466447;
   font-family: var(--font-display), Georgia, "Times New Roman", serif;
   font-size: 21px;
@@ -187,9 +265,15 @@
   .page { padding: 0 0 30px; background: #f7f5ec; }
   .letter { border: 0; border-radius: 0; box-shadow: none; }
   .letterHeader { padding: 42px 22px 29px; }
-  .letterBody { padding: 29px 22px 36px; }
-  .opening, .chapter > p, .closing > p:not(.closingLabel):not(.signature) { font-size: 17px; line-height: 1.9; }
-  .chapter { margin-top: 31px; }
+  .letterBody { padding: 26px 17px 32px; }
+  .readingMeta { margin-bottom: 26px; font-size: 9px; }
+  .opening { padding: 15px 16px; }
+  .chapter { margin-top: 14px; padding: 18px 16px; border-radius: 14px; }
+  .chapterHeading { gap: 10px; margin-bottom: 12px; }
+  .chapterNumber { flex-basis: 30px; width: 30px; height: 30px; }
+  .chapterLead { font-size: 16px; line-height: 1.75; }
+  .chapterText { font-size: 15px; line-height: 1.78; }
   .memoryButton { padding: 6px; border-radius: 12px; }
-  .memoryButton img { max-height: 72svh; }
+  .memoryButton img { max-height: 68svh; }
+  .closing { margin-top: 22px; padding: 20px 17px; }
 }
