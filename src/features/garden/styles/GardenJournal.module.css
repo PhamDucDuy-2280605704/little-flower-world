@@ -205,3 +205,126 @@
 @media(prefers-reduced-motion:reduce) {
   .heroPhotoButton,.stockPhoto,.photoGrid button { transition: none; }
 }
+
+
+/* Format-aware previews: notes and letters are single-page stationery, not faux books. */
+.embeddedPage {
+  width: 100%;
+  min-height: 100%;
+  padding: 0 clamp(14px, 3vw, 48px) 38px;
+}
+.singleStorySection {
+  width: min(1060px, 100%);
+  margin: clamp(42px, 6vw, 74px) auto 0;
+  scroll-margin-top: 20px;
+}
+.singleStoryHeading {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  margin: 0 auto 24px;
+  text-align: center;
+}
+.singleStoryHeading h2 {
+  margin: 0;
+  color: #2e4a38;
+  font-family: var(--font-display), Georgia, "Times New Roman", serif;
+  font-size: clamp(28px, 4vw, 43px);
+  font-weight: 400;
+  letter-spacing: -.03em;
+  line-height: 1.2;
+}
+.singlePaper {
+  position: relative;
+  isolation: isolate;
+  width: min(850px, 100%);
+  min-height: 430px;
+  margin: 0 auto;
+  padding: clamp(25px, 5vw, 58px) clamp(24px, 7vw, 76px) 42px;
+  overflow: hidden;
+  border: 1px solid rgba(130, 143, 113, .25);
+  border-radius: 22px;
+  background: linear-gradient(145deg, #fffef9, #fff9ef);
+  box-shadow: 0 24px 62px rgba(60, 82, 54, .13), inset 0 1px rgba(255,255,255,.92);
+}
+.singlePaper.themeSunset { background: linear-gradient(145deg, #fff9f0, #f7e7dc); }
+.singlePaper.themeStarlight { background: linear-gradient(145deg, #fcfcff, #e9edf8); }
+.singlePaper.paperLinen { background-image: repeating-linear-gradient(0deg, rgba(130,112,82,.035) 0 1px, transparent 1px 5px), linear-gradient(145deg, #fffef8, #f5f0e5); }
+.singlePaper.paperRose { background: linear-gradient(145deg, #fff8f6, #f9e9e7); }
+.singlePaperTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 13px;
+  border-bottom: 1px solid rgba(145, 148, 119, .2);
+  color: #a18d6e;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .16em;
+}
+.singleSalutation {
+  margin: 30px 0 15px;
+  color: #6e7c68;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 18px;
+  font-style: italic;
+}
+.singlePaper h3 {
+  margin: 0 0 17px;
+  color: #34513d;
+  font-family: var(--font-display), Georgia, "Times New Roman", serif;
+  font-size: clamp(24px, 3.5vw, 36px);
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: -.02em;
+  text-wrap: balance;
+}
+.singleOpening {
+  margin: 0 0 18px;
+  color: #8a7a60;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 16px;
+  font-style: italic;
+  line-height: 1.8;
+}
+.singleParagraphs {
+  display: grid;
+  gap: 13px;
+  color: #586b59;
+  font-family: var(--font-display), Georgia, "Times New Roman", serif;
+  font-size: 17px;
+  line-height: 1.95;
+  overflow-wrap: anywhere;
+}
+.singleParagraphs p { margin: 0; white-space: pre-wrap; }
+.singleSignature {
+  margin: 25px 0 0;
+  color: #897555;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 16px;
+  font-style: italic;
+  text-align: right;
+  white-space: pre-wrap;
+}
+.singlePaperFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-top: 42px;
+  padding-top: 11px;
+  border-top: 1px solid rgba(145, 148, 119, .16);
+  color: #a09f88;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .1em;
+}
+@media(max-width:680px) {
+  .embeddedPage { padding: 0 12px 25px; }
+  .singleStorySection { margin-top: 38px; }
+  .singlePaper { min-height: 0; padding: 26px 21px 28px; border-radius: 16px; }
+  .singleSalutation { margin-top: 22px; }
+  .singleParagraphs { font-size: 15px; line-height: 1.85; }
+  .singlePaperFooter { margin-top: 28px; }
+}
