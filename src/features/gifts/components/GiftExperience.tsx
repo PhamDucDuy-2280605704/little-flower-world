@@ -88,7 +88,7 @@ export default function GiftExperience() {
   }, []);
 
   if (!authReady) {
-    return <main className={styles.statePage}><section className={styles.stateCard}><p role="status">{t("Đang kiểm tra tài khoản...", "Checking account...")}</p></section></main>;
+    return <main className={styles.statePage}><section className={styles.stateCard}><p role="status">{t("Đang kiểm tra tài khoản...", "Checking account...")}</p><Link href="/">{t("Về trang chủ ↗", "Back to home ↗")}</Link></section></main>;
   }
 
   if (!user) {
@@ -99,6 +99,7 @@ export default function GiftExperience() {
           <h1>{t("Tác phẩm của bạn đang chờ.", "Your story is waiting.")}</h1>
           <p>{t("Bạn cần đăng nhập để mở tác phẩm riêng của tài khoản.", "Sign in to open the stories saved to your account.")}</p>
           <Link href="/login">{t("Đến trang đăng nhập ↗", "Sign in ↗")}</Link>
+          <Link href="/">{t("Về trang chủ ↗", "Back to home ↗")}</Link>
         </section>
       </main>
     );

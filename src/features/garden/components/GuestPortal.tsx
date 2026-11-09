@@ -40,7 +40,7 @@ export default function GuestPortal() {
   return (
     <main className={styles.page}>
       <header className={styles.header}>
-        <Link href="/" className={styles.brand}><span>▤</span><strong>{t("Little Flower World", "Little Story World")}</strong></Link>
+        <Link href="/" className={styles.brand}><span>▤</span><strong>{t("Little Story World", "Little Story World")}</strong></Link>
         <span className={styles.areaLabel}>{t("KHU VỰC KHÁCH", "READER AREA")}</span>
       </header>
       <section className={styles.card}>

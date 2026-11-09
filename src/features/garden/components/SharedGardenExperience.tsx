@@ -163,16 +163,16 @@ export default function SharedGardenExperience({ slug }: { slug: string }) {
             {pinError && <p className={styles.pinError} role="alert">{pinError}</p>}
             <button type="submit" disabled={!pin.trim()}>{t("Mở tác phẩm", "Open story")}</button>
           </form>
-          <Link href="/guest">{t("Quay về cổng khách", "Back to reader portal")}</Link>
+          <Link href="/">{t("Về trang chủ", "Back to home")}</Link>
         </section>
       </main>
     );
   }
   if (state === "missing") {
-    return <main className={styles.gatePage}><section className={styles.gateCard}><span className={styles.mark}>▤</span><h1>{t("Tác phẩm chưa được chia sẻ", "This story has not been shared")}</h1><p>{t("Đường link không còn hoạt động hoặc người viết đã chuyển tác phẩm về bản nháp.", "This link is no longer active, or the writer moved the story back to draft.")}</p><Link href="/guest">{t("Quay về cổng khách", "Back to reader portal")}</Link></section></main>;
+    return <main className={styles.gatePage}><section className={styles.gateCard}><span className={styles.mark}>▤</span><h1>{t("Tác phẩm chưa được chia sẻ", "This story has not been shared")}</h1><p>{t("Đường link không còn hoạt động hoặc người viết đã chuyển tác phẩm về bản nháp.", "This link is no longer active, or the writer moved the story back to draft.")}</p><Link href="/">{t("Về trang chủ", "Back to home")}</Link></section></main>;
   }
   if (state === "error" || !garden || !payload) {
-    return <main className={styles.gatePage}><section className={styles.gateCard}><span className={styles.mark}>✉</span><h1>{t("Chưa thể mở tác phẩm", "Unable to open this story")}</h1><p>{fatalError || t("Có lỗi khi tải tác phẩm.", "Something went wrong while loading the story.")}</p><button type="button" onClick={() => void requestWork()}>{t("Thử lại", "Try again")}</button><Link href="/guest">{t("Quay về cổng khách", "Back to reader portal")}</Link></section></main>;
+    return <main className={styles.gatePage}><section className={styles.gateCard}><span className={styles.mark}>✉</span><h1>{t("Chưa thể mở tác phẩm", "Unable to open this story")}</h1><p>{fatalError || t("Có lỗi khi tải tác phẩm.", "Something went wrong while loading the story.")}</p><button type="button" onClick={() => void requestWork()}>{t("Thử lại", "Try again")}</button><Link href="/">{t("Về trang chủ", "Back to home")}</Link></section></main>;
   }
 
   return (
@@ -190,8 +190,8 @@ export default function SharedGardenExperience({ slug }: { slug: string }) {
       letterParagraphs={garden.letter_paragraphs}
       letterSignature={garden.letter_signature}
       letterReady={allRead}
-      returnHref="/guest"
-      returnLabel={t("Quay về cổng khách", "Back to reader portal")}
+      returnHref="/"
+      returnLabel="Little Story World"
       actionHref={garden.guestbook_enabled ? "#guestbook" : "#the-book"}
       actionLabel={garden.guestbook_enabled ? "ĐỂ LẠI LỜI NHẮN" : "MỞ CUỐN SÁCH"}
     >
