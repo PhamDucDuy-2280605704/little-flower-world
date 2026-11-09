@@ -314,7 +314,6 @@ export default function BookStudio() {
         dialog.showModal();
       } catch (dialogError) {
         console.error("Open story preview dialog failed:", dialogError);
-        setPreviewOpen(false);
       }
     } else if (!previewOpen && dialog.open) {
       dialog.close();
