@@ -366,7 +366,7 @@ export default function BookStudio() {
     if (loadedPhotos.length !== orderedImageFiles.length) {
       setError(t("Một số ảnh không tạo được liên kết xem. Hãy kiểm tra lại album trong Admin.", "Some photos could not be signed for viewing. Please check the Admin album."));
     }
-  }, [isAdmin, t]);
+  }, [isAdmin, t, userId]);
 
   useEffect(() => {
     let active = true;
