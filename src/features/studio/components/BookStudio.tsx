@@ -1164,8 +1164,11 @@ export default function BookStudio() {
       <div className={styles.workspace}>
         <aside className={styles.sidebar}>
           <div className={styles.sideHeader}>
-            <div><span className={styles.eyebrow}>{t("TÁC PHẨM CỦA TÔI", "MY STORIES")}</span><h2>{t("Bản thảo của bạn", "Your drafts")}</h2></div>
-            <button type="button" onClick={createWork} disabled={saving}>{t("＋ Tạo mới", "＋ New story")}</button>
+            <div>
+              <span className={styles.eyebrow}>{isAdmin ? t("KHO TÁC PHẨM · ADMIN LÀ CHỦ HỆ THỐNG", "STORY LIBRARY · ADMIN IS SYSTEM OWNER") : t("TÁC PHẨM CỦA TÔI", "MY STORIES")}</span>
+              <h2>{isAdmin ? t("Quản lý tác phẩm", "Story management") : t("Bản thảo của bạn", "Your drafts")}</h2>
+            </div>
+            <button type="button" onClick={createWork} disabled={saving}>{isAdmin ? t("＋ Thêm tác phẩm", "＋ Add story") : t("＋ Tạo mới", "＋ New story")}</button>
           </div>
           {gardens.length === 0 ? <p className={styles.empty}>{t("Chưa có tác phẩm nào. Bắt đầu bằng một tác phẩm mới nhé.", "No stories yet. Start with a new story.")}</p> : (
             <div className={styles.storyCollections}>
