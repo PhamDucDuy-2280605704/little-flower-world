@@ -67,6 +67,7 @@ export default function FamilyLetterReader({
               unoptimized
               loading="lazy"
               onError={() => {
+                setActivePhotoIndex(null);
                 setBrokenPhotoPaths((current) => {
                   const next = new Set(current);
                   next.add(photo.path);
