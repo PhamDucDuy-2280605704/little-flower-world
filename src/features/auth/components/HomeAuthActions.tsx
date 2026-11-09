@@ -118,7 +118,7 @@ export default function HomeAuthActions({
         </Link>
       )}
 
-      {user && <Link href="/studio" className={giftClassName}>{t("Viết câu chuyện của tôi", "Write my story")}</Link>}
+      {user && <Link href="/account" className={giftClassName}>{t("Viết câu chuyện của tôi", "Write my story")}</Link>}
       <Link href="/gift" className={giftClassName}>
         {t("Mở tác phẩm của tôi", "Open my stories")}
       </Link>
