@@ -172,6 +172,8 @@ const TRACKS: Record<TrackId, Track> = {
 
 const TRACK_IDS: TrackId[] = ["sunny", "piano", "musicbox", "moonlight"];
 const TRACK_STORAGE_KEY = "little-story-world-ambience-track-v2";
+const ENABLED_STORAGE_KEY = "little-story-world-ambience-enabled-v1";
+const VOLUME_STORAGE_KEY = "little-story-world-ambience-volume-v1";
 const BAR_DURATION = 9.6;
 const SONG_BARS = 64;
 
@@ -188,6 +190,7 @@ export default function SiteAmbience() {
   const [playing, setPlaying] = useState(false);
   const [trackId, setTrackId] = useState<TrackId>("sunny");
   const [volume, setVolume] = useState(0.72);
+  const preferencesLoadedRef = useRef(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [audioError, setAudioError] = useState("");
   const audioRef = useRef<AudioContext | null>(null);
@@ -523,9 +526,11 @@ export default function SiteAmbience() {
 
   const toggleMusic = () => {
     if (enabledRef.current) {
+      try { window.localStorage.setItem(ENABLED_STORAGE_KEY, "false"); } catch { /* Keep this visit usable if storage is blocked. */ }
       stopMusic();
       return;
     }
+    try { window.localStorage.setItem(ENABLED_STORAGE_KEY, "true"); } catch { /* Keep this visit usable if storage is blocked. */ }
     enabledRef.current = true;
     setMusicEnabled(true);
     setPlaying(false);
@@ -554,17 +559,28 @@ export default function SiteAmbience() {
 
   useEffect(() => {
     const startTimer = window.setTimeout(() => {
+      let shouldPlay = true;
       try {
         const storedTrack = window.localStorage.getItem(TRACK_STORAGE_KEY);
         if (storedTrack && TRACK_IDS.includes(storedTrack as TrackId)) {
           trackRef.current = storedTrack as TrackId;
           setTrackId(storedTrack as TrackId);
         }
+        const storedEnabled = window.localStorage.getItem(ENABLED_STORAGE_KEY);
+        if (storedEnabled === "true" || storedEnabled === "false") shouldPlay = storedEnabled === "true";
+        const storedVolume = Number(window.localStorage.getItem(VOLUME_STORAGE_KEY));
+        if (Number.isFinite(storedVolume) && storedVolume >= 0 && storedVolume <= 1 && window.localStorage.getItem(VOLUME_STORAGE_KEY) !== null) {
+          volumeRef.current = storedVolume;
+          setVolume(storedVolume);
+        }
       } catch {
-        // The default piano track remains available when storage is blocked.
+        // First-visit defaults remain available when browser storage is blocked.
       }
-      enabledRef.current = true;
-      void startMusic();
+      preferencesLoadedRef.current = true;
+      enabledRef.current = shouldPlay;
+      setMusicEnabled(shouldPlay);
+      if (shouldPlay) void startMusic();
+      else setPlaying(false);
     }, 0);
 
     return () => {
@@ -664,7 +680,12 @@ export default function SiteAmbience() {
                 max="1"
                 step="0.01"
                 value={volume}
-                onChange={(event) => setVolume(Number(event.target.value))}
+                onChange={(event) => {
+                  const nextVolume = Number(event.target.value);
+                  setVolume(nextVolume);
+                  volumeRef.current = nextVolume;
+                  try { window.localStorage.setItem(VOLUME_STORAGE_KEY, String(nextVolume)); } catch { /* Volume remains available for this visit. */ }
+                }}
               />
               <p>{isVietnamese
                 ? "Giai điệu được phát triển qua nhiều đoạn, thay đổi hòa âm và biến tấu để nghe lâu không bị lặp ngắn."
