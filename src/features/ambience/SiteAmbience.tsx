@@ -178,15 +178,11 @@ export default function SiteAmbience() {
         fundamental.onended = () => {
           fundamental.disconnect();
           fundamentalGain.disconnect();
+          panner.disconnect();
         };
         harmonic.onended = () => {
           harmonic.disconnect();
           harmonicGain.disconnect();
-        };
-        fundamental.onended = () => {
-          fundamental.disconnect();
-          fundamentalGain.disconnect();
-          panner.disconnect();
         };
       };
 
