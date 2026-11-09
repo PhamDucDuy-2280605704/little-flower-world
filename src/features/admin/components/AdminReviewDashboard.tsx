@@ -266,9 +266,9 @@ export default function AdminReviewDashboard() {
       <main className={styles.center}>
         <section className={styles.deniedCard}>
           <span className={styles.loadingIcon}>🔒</span>
-          <h1>{t("Khu vực chỉ dành cho Admin", "Admin-only area")}</h1>
-          <p>{t("Tài khoản hiện tại không có quyền truy cập trang duyệt.", "This account cannot access the review workspace.")}</p>
-          <Link href="/little-story-backstage-7f4c">{t("Đăng nhập Admin", "Admin sign in")}</Link>
+          <h1>{t("Trang hiện không khả dụng", "Page unavailable")}</h1>
+          <p>{t("Không thể mở nội dung tại địa chỉ này.", "This page is not available at this address.")}</p>
+          <Link href="/">{t("Về trang chủ", "Back to home")}</Link>
         </section>
       </main>
     );
