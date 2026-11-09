@@ -58,11 +58,12 @@ export default function LoginForm() {
         normalizedPath.startsWith("/admin")
         || normalizedPath.startsWith("/private-admin")
         || normalizedPath.startsWith("/little-story-backstage");
-      const safeRequestedPath =
-        requestedPath?.startsWith("/")
+      const nextPath = requestedPath
+        && requestedPath.startsWith("/")
         && !requestedPath.startsWith("//")
-        && !isAdminDestination;
-      const nextPath = safeRequestedPath ? requestedPath : "/account";
+        && !isAdminDestination
+        ? requestedPath
+        : "/account";
       router.replace(nextPath);
       router.refresh();
     } catch (err: unknown) {
