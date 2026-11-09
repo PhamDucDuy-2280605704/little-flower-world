@@ -327,7 +327,6 @@ export default function AdminDashboard() {
         dialog.showModal();
       } catch (dialogError) {
         console.error("Open Admin story preview failed:", dialogError);
-        setStoryPreview(null);
       }
     } else if (!storyPreview && dialog.open) {
       dialog.close();
