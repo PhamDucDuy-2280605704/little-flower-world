@@ -192,3 +192,27 @@
 .decorationPreview p{margin:4px 0 0;color:#74836e;font-size:12px}
 .shareLinkBlock{overflow-wrap:anywhere;padding:12px;border:1px solid #dce5d4;border-radius:12px;background:#f6f8f0}
 @media(max-width:700px){.decorationThemes,.decorationOptions,.effectOptions{grid-template-columns:1fr}.decoratorPanel{padding:16px}}
+
+
+/* A little more breathing room and tactile feedback for the writing desk. */
+.shell {
+  background:
+    radial-gradient(ellipse at 4% 7%, rgba(219,235,208,.62), transparent 28rem),
+    radial-gradient(ellipse at 96% 82%, rgba(239,222,192,.42), transparent 31rem),
+    linear-gradient(180deg,#f6f8ef,#fffaf1 58%,#f2f5eb);
+}
+.welcomePhoto { border: 1px solid rgba(255,255,255,.75); box-shadow: 0 24px 52px rgba(62,88,58,.13); }
+.sidebar,.editor,.emptyEditor {
+  border-color: rgba(102,127,91,.16);
+  box-shadow: 0 17px 42px rgba(61,83,55,.065), inset 0 1px rgba(255,255,255,.92);
+}
+.editor { background: linear-gradient(145deg,rgba(255,255,252,.97),rgba(250,250,242,.94)); }
+.stepNav { box-shadow: 0 9px 22px rgba(61,83,55,.07); backdrop-filter: blur(12px); }
+.workspace { gap: 20px; }
+.editor input:focus-visible,.editor textarea:focus-visible,.editor select:focus-visible {
+  outline: 3px solid rgba(126,158,111,.18);
+  border-color: #91ad81;
+}
+.uploadCard,.uploadBox { transition: border-color .2s ease, background .2s ease, transform .2s ease; }
+.uploadCard:hover,.uploadBox:hover { border-color: rgba(111,151,100,.42); background-color: #f5f8ef; }
+@media(max-width:680px) { .workspace { gap: 13px; } }
