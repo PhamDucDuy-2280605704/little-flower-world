@@ -558,7 +558,7 @@ export default function AdminDashboard() {
             <a href="#photo-library" className={styles.sideLink}>▧ <span>{t("Kho ảnh riêng", "Photo library")}</span></a>
             <Link href="/admin/review" className={styles.sideLink}>✓ <span>{t("Bàn kiểm duyệt", "Review desk")}</span></Link>
             <Link href="/admin/studio?mode=admin" className={styles.sideLink}>✎ <span>{t("Studio Admin đầy đủ", "Full Admin studio")}</span></Link>
-            <Link href="/" className={styles.sideLink}>⌂ <span>{t("Trang chủ", "Home")}</span></Link>
+            <Link href="/" className={styles.sideLink}><span>{t("Trang chủ", "Home")}</span></Link>
           </div>
 
           <div className={styles.sidebarBottom}>
