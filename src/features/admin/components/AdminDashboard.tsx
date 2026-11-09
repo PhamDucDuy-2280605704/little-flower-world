@@ -82,6 +82,21 @@ function photoFolders(gardenId: string): string[] {
     : [gardenId];
 }
 
+function imageMimeType(fileName: string, declaredMimeType?: string | null): string | null {
+  const mimeType = declaredMimeType?.toLowerCase() ?? "";
+  if (ALLOWED_TYPES.has(mimeType)) return mimeType;
+  const extension = fileName.split(".").pop()?.toLowerCase() ?? "";
+  const byExtension: Record<string, string> = {
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    png: "image/png",
+    webp: "image/webp",
+    gif: "image/gif",
+    avif: "image/avif",
+  };
+  return byExtension[extension] ?? null;
+}
+
 export default function AdminDashboard() {
   const router = useRouter();
   const { t } = useLanguage();
@@ -192,53 +207,58 @@ export default function AdminDashboard() {
     setError("");
     setNotice("");
 
-    const listings = await Promise.all(photoFolders(garden.id).map(async (folder) => {
-      const { data, error: listError } = await adminSupabase.storage
-        .from(BUCKET)
-        .list(folder, {
-          limit: MAX_PHOTOS,
-          sortBy: { column: "created_at", order: "desc" },
-        });
-      return { folder, data, error: listError };
-    }));
+    try {
+      const listings = await Promise.all(photoFolders(garden.id).map(async (folder) => {
+        const { data, error: listError } = await adminSupabase.storage
+          .from(BUCKET)
+          .list(folder, {
+            limit: MAX_PHOTOS,
+            sortBy: { column: "created_at", order: "desc" },
+          });
+        return { folder, data, error: listError };
+      }));
 
-    const failed = listings.find((listing) => listing.error);
-    if (failed?.error) {
-      console.error("Load garden album failed:", failed.error);
-      setError(t("Không tải được kho ảnh của tác phẩm này.", "Could not load this story's photo library."));
+      const failed = listings.find((listing) => listing.error);
+      if (failed?.error) throw failed.error;
+
+      const records = listings.flatMap(({ folder, data }) =>
+        (data ?? [])
+          .filter((file) => file.name && file.id && imageMimeType(file.name, file.metadata?.mimetype))
+          .map((file) => ({
+            path: folder + "/" + file.name,
+            name: file.name,
+            createdAt: file.created_at ?? "",
+          }))
+      );
+
+      const signedResults = await Promise.all(records.map(async (record) => {
+        const { data, error: signedError } = await adminSupabase.storage
+          .from(BUCKET)
+          .createSignedUrl(record.path, 60 * 60);
+        if (signedError || !data?.signedUrl) return { photo: null, error: signedError };
+        return { photo: { ...record, url: data.signedUrl } as Photo, error: null };
+      }));
+
+      const sorted = signedResults
+        .map((result) => result.photo)
+        .filter((photo): photo is Photo => photo !== null)
+        .sort((a, b) =>
+          (Date.parse(b.createdAt) || 0) - (Date.parse(a.createdAt) || 0)
+        )
+        .slice(0, MAX_PHOTOS);
+
+      setPhotos(sorted);
+      if (signedResults.some((result) => result.error || !result.photo)) {
+        setError(t("Một số ảnh chưa tạo được liên kết xem. Anh kiểm tra quyền Storage hoặc tải lại album nhé.", "Some photos could not be signed for viewing. Check Storage access or reload the album."));
+      }
+    } catch (loadError) {
+      console.error("Load garden album failed:", loadError);
       setPhotos([]);
+      setError(t("Không tải được kho ảnh của tác phẩm này. Hãy thử tải lại.", "Could not load this story's photo library. Please try again."));
+    } finally {
       setPhotosLoading(false);
-      return;
     }
-
-    const records = listings.flatMap(({ folder, data }) =>
-      (data ?? [])
-        .filter((file) => file.name && file.id && ALLOWED_TYPES.has(file.metadata?.mimetype ?? ""))
-        .map((file) => ({
-          path: folder + "/" + file.name,
-          name: file.name,
-          createdAt: file.created_at ?? "",
-        }))
-    );
-
-    const signedPhotos = await Promise.all(records.map(async (record) => {
-      const { data, error: signedError } = await adminSupabase.storage
-        .from(BUCKET)
-        .createSignedUrl(record.path, 60 * 60);
-      if (signedError || !data?.signedUrl) return null;
-      return { ...record, url: data.signedUrl };
-    }));
-
-    const sorted = signedPhotos
-      .filter((photo): photo is Photo => photo !== null)
-      .sort((a, b) =>
-        (Date.parse(b.createdAt) || 0) - (Date.parse(a.createdAt) || 0)
-      )
-      .slice(0, MAX_PHOTOS);
-
-    setPhotos(sorted);
-    setPhotosLoading(false);
-  }, []);
+  }, [t]);
 
   async function openStoryPreview(garden: Garden) {
     setSelectedGardenId(garden.id);
@@ -272,10 +292,28 @@ export default function AdminDashboard() {
       const photoRecords = photosFolders.flat().sort((a, b) =>
         (Date.parse(b.createdAt) || 0) - (Date.parse(a.createdAt) || 0),
       ).slice(0, MAX_PHOTOS);
+      const coverRecord = row.cover_path
+        ? photoRecords.find((photo) => photo.path === row.cover_path) ?? null
+        : null;
+      const orderedPhotoRecords = coverRecord
+        ? [coverRecord, ...photoRecords.filter((photo) => photo.path !== coverRecord.path)]
+        : photoRecords;
+      const inlinePhotoAlts = Array.isArray(settings.inlinePhotoAlts)
+        ? settings.inlinePhotoAlts.filter((alt): alt is string => typeof alt === "string")
+        : [];
+      const todayPhotoAlt = inlinePhotoAlts.find((alt) => alt.toLowerCase().includes("hôm nay"))
+        ?? "Ảnh gia đình hôm nay";
+      const oldPhotoAlt = inlinePhotoAlts.find((alt) => alt.toLowerCase().includes("ngày trước"))
+        ?? "Bức ảnh gia đình ngày trước";
       const [signedPhotos, coverResult] = await Promise.all([
-        Promise.all(photoRecords.map(async (photo) => {
+        Promise.all(orderedPhotoRecords.map(async (photo, index) => {
           const { data, error: signedError } = await adminSupabase.storage.from(BUCKET).createSignedUrl(photo.path, 60 * 60);
-          return signedError || !data?.signedUrl ? null : { path: photo.path, url: data.signedUrl, alt: t("Ảnh trong ", "Photo in ") + row.name };
+          if (signedError || !data?.signedUrl) return null;
+          const isCover = Boolean(coverRecord && photo.path === coverRecord.path);
+          const alt = settings.readOnlyStandalone === true
+            ? (coverRecord ? (isCover ? todayPhotoAlt : oldPhotoAlt) : (index === 0 ? todayPhotoAlt : oldPhotoAlt))
+            : t("Ảnh trong ", "Photo in ") + row.name;
+          return { path: photo.path, url: data.signedUrl, alt };
         })),
         row.cover_path
           ? adminSupabase.storage.from(BUCKET).createSignedUrl(row.cover_path, 60 * 60)
@@ -356,7 +394,8 @@ export default function AdminDashboard() {
   const pendingApprovalCount = gardens.filter((garden) => garden.approvalStatus === "pending").length;
 
   async function uploadFiles(files: File[]) {
-    if (!selectedGarden || files.length === 0 || uploading) return;
+    const garden = selectedGarden;
+    if (!garden || files.length === 0 || uploading) return;
 
     setError("");
     setNotice("");
@@ -367,42 +406,66 @@ export default function AdminDashboard() {
     }
 
     const invalid = files.find((file) =>
-      !ALLOWED_TYPES.has(file.type) || file.size > MAX_FILE_SIZE
+      !imageMimeType(file.name, file.type) || file.size <= 0 || file.size > MAX_FILE_SIZE
     );
     if (invalid) {
-      setError(t("Ảnh cần là JPG, PNG, WEBP, GIF hoặc AVIF và không quá 10 MB mỗi ảnh.", "Photos must be JPG, PNG, WEBP, GIF, or AVIF and no larger than 10 MB each."));
+      setError(t("Ảnh cần là JPG, PNG, WEBP, GIF hoặc AVIF, có dữ liệu và không quá 10 MB mỗi ảnh.", "Photos must be valid JPG, PNG, WEBP, GIF, or AVIF files with data and no larger than 10 MB each."));
       return;
     }
 
     setUploading(true);
-    for (const file of files) {
-      const safeName = file.name
-        .normalize("NFKD")
-        .replace(/[^a-zA-Z0-9._-]/g, "-")
-        .replace(/-+/g, "-")
-        .slice(-80);
-      const path = selectedGarden.id + "/" + crypto.randomUUID() + "-" + (safeName || "photo");
-      const { error: uploadError } = await adminSupabase.storage
-        .from(BUCKET)
-        .upload(path, file, {
-          cacheControl: "3600",
-          contentType: file.type,
-          upsert: false,
-        });
+    let uploadedCount = 0;
+    const failures: string[] = [];
 
-      if (uploadError) {
-        console.error("Upload garden photo failed:", uploadError);
-        setError(t("Không tải được ảnh", "Could not upload photo") + ' "' + file.name + '". ' + t("Bạn thử lại nhé.", "Please try again."));
-        setUploading(false);
-        await loadAlbum(selectedGarden);
-        return;
+    try {
+      for (const file of files) {
+        const mimeType = imageMimeType(file.name, file.type);
+        if (!mimeType) {
+          failures.push(file.name + ": " + t("định dạng không hợp lệ.", "unsupported format."));
+          continue;
+        }
+        const safeName = file.name
+          .normalize("NFKD")
+          .replace(/[^a-zA-Z0-9._-]/g, "-")
+          .replace(/-+/g, "-")
+          .slice(-80);
+        const path = garden.id + "/" + crypto.randomUUID() + "-" + (safeName || "photo");
+        try {
+          const { error: uploadError } = await adminSupabase.storage
+            .from(BUCKET)
+            .upload(path, file, {
+              cacheControl: "3600",
+              contentType: mimeType,
+              upsert: false,
+            });
+          if (uploadError) {
+            console.error("Upload garden photo failed:", uploadError);
+            failures.push(file.name + ": " + uploadError.message);
+          } else {
+            uploadedCount += 1;
+          }
+        } catch (uploadError) {
+          console.error("Unexpected Admin photo upload failure:", uploadError);
+          failures.push(file.name + ": " + t("lỗi kết nối khi tải lên.", "network error during upload."));
+        }
       }
-    }
 
-    setUploading(false);
-    setNotice(files.length === 1 ? t("Đã thêm ảnh vào kho của tác phẩm 🌷", "Photo added to the story library 🌷") : t("Đã thêm ", "Added ") + files.length + t(" ảnh vào kho 🌷", " photos to the library 🌷"));
-    await loadAlbum(selectedGarden);
-    await loadGardens();
+      if (uploadedCount > 0) {
+        await loadAlbum(garden);
+        await loadGardens();
+        setNotice(uploadedCount === 1
+          ? t("Đã thêm ảnh vào kho của tác phẩm 🌷", "Photo added to the story library 🌷")
+          : t("Đã thêm ", "Added ") + uploadedCount + t(" ảnh vào kho 🌷", " photos to the library 🌷"));
+      }
+      if (failures.length > 0) {
+        setError(failures.slice(0, 4).join(" "));
+      }
+    } catch (uploadFailure) {
+      console.error("Admin album upload failed:", uploadFailure);
+      setError(t("Không thể hoàn tất tải ảnh. Hãy kiểm tra kết nối rồi thử lại.", "Could not finish uploading photos. Check your connection and try again."));
+    } finally {
+      setUploading(false);
+    }
   }
 
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
