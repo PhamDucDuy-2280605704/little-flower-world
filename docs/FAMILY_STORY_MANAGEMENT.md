@@ -34,6 +34,8 @@ Repository: https://github.com/PhamDucDuy-2280605704/little-story-world
 | --- | --- | --- |
 | Route chia sẻ | [page.tsx](https://github.com/PhamDucDuy-2280605704/little-story-world/blob/main/src/app/g/%5Bslug%5D/page.tsx) | Nhận slug từ URL và mở trình đọc |
 | Tải dữ liệu | [SharedGardenExperience.tsx](https://github.com/PhamDucDuy-2280605704/little-story-world/blob/main/src/features/garden/components/SharedGardenExperience.tsx) | Gọi Edge Function, xử lý trạng thái tải/PIN/lỗi và chọn chế độ đọc |
+| Admin duyệt tác phẩm | [AdminDashboard.tsx](https://github.com/PhamDucDuy-2280605704/little-story-world/blob/main/src/features/admin/components/AdminDashboard.tsx) | Preview kiểm duyệt; phải tôn trọng readOnlyStandalone |
+| Studio preview | [BookStudio.tsx](https://github.com/PhamDucDuy-2280605704/little-story-world/blob/main/src/features/studio/components/BookStudio.tsx) | Preview trong lúc chỉnh nội dung; phải khớp trang người nhận |
 | Giao diện tâm thư | [FamilyLetterReader.tsx](https://github.com/PhamDucDuy-2280605704/little-story-world/blob/main/src/features/garden/components/FamilyLetterReader.tsx) | Bố cục tâm thư, chương, ảnh và trạng thái ảnh lỗi |
 | CSS tâm thư | [FamilyLetterReader.module.css](https://github.com/PhamDucDuy-2280605704/little-story-world/blob/main/src/features/garden/styles/FamilyLetterReader.module.css) | Kiểu chữ, khoảng cách, thẻ ký ức, responsive |
 | Phóng to ảnh | [PhotoLightbox.tsx](https://github.com/PhamDucDuy-2280605704/little-story-world/blob/main/src/features/garden/components/PhotoLightbox.tsx) | Xem ảnh lớn, điều hướng ảnh, đóng bằng Esc |
