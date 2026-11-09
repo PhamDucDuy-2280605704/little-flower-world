@@ -168,10 +168,22 @@ async function viewGarden(garden: Record<string, unknown>, pin: string, slug: st
   const rawInlinePhotos = Array.isArray(experienceSettings.inlinePhotos)
     ? experienceSettings.inlinePhotos
     : [];
+  const rawInlinePhotoParts = Array.isArray(experienceSettings.inlinePhotoParts)
+    ? experienceSettings.inlinePhotoParts
+    : [];
+  const assembledPhotoUrls = rawInlinePhotoParts
+    .slice(0, 5)
+    .map((parts) => {
+      if (!Array.isArray(parts)) return "";
+      const base64 = parts
+        .filter((part): part is string => typeof part === "string" && /^[A-Za-z0-9+/=]+$/.test(part))
+        .join("");
+      return base64 ? "data:image/webp;base64," + base64 : "";
+    });
   const inlinePhotoAlts = Array.isArray(experienceSettings.inlinePhotoAlts)
     ? experienceSettings.inlinePhotoAlts
     : [];
-  const inlinePhotos = rawInlinePhotos
+  const inlinePhotos = [...rawInlinePhotos, ...assembledPhotoUrls]
     .filter((value): value is string =>
       typeof value === "string"
       && value.length <= 120_000
