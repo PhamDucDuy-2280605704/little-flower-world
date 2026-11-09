@@ -1047,3 +1047,25 @@
 @media(prefers-reduced-motion:reduce) {
   .statCard,.gardenCard,.photoCard { transition: none; }
 }
+
+
+/* Use the full available workspace for the story collection and photo library. */
+.shell { padding: clamp(12px, 2vw, 24px); }
+.app { width: min(100%, 1720px); }
+.main { min-width: 0; width: 100%; }
+.workspace {
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+.gardenPanel,.albumPanel { width: 100%; min-width: 0; }
+.gardenList {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  align-items: stretch;
+}
+.gardenCard,.gardenCardActive { min-height: 82px; }
+.albumPanel { scroll-margin-top: 20px; }
+@media(max-width:820px) {
+  .app { width: 100%; }
+  .workspace { grid-template-columns: minmax(0,1fr); }
+}
