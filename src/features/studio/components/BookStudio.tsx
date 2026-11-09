@@ -38,6 +38,8 @@ type GardenRow = {
   experience_settings: Record<string, unknown> | null;
   guestbook_enabled: boolean;
   approval_status: "draft" | "pending" | "approved" | "rejected";
+  review_comment: string | null;
+  reviewed_at: string | null;
   created_at: string;
 };
 type ChapterRow = { chapter_id: string; sort_order: number; title: string; paragraphs: string[] };
@@ -123,6 +125,15 @@ function initialsFor(label: string): string {
   return parts.slice(0, 2).map((part) => part[0]?.toUpperCase() ?? "").join("") || "TK";
 }
 
+function statusForReview(
+  status: GardenRow["approval_status"],
+  translate: (vietnamese: string, english: string) => string,
+): string {
+  if (status === "rejected") return translate("Lý do từ chối là bắt buộc để người viết có hướng chỉnh sửa.", "A rejection reason is required so the writer knows what to improve.");
+  if (status === "approved") return translate("Có thể cập nhật lời nhắn duyệt mà không đổi trạng thái.", "You can update the approval note without changing the status.");
+  return translate("Nhận xét duyệt là tùy chọn; lý do từ chối cần được ghi rõ.", "Approval notes are optional; rejection reasons must be clear.");
+}
+
 export default function BookStudio() {
   const router = useRouter();
   const { t } = useLanguage();
@@ -146,6 +157,7 @@ export default function BookStudio() {
   const [previewReadIds, setPreviewReadIds] = useState<string[]>([]);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [reviewCommentDraft, setReviewCommentDraft] = useState("");
 
   const [format, setFormat] = useState<StoryFormat>("book");
   const [decorations, setDecorations] = useState<StoryDecorations>(() => normalizeStoryDecorations(null));
@@ -183,7 +195,7 @@ export default function BookStudio() {
 
   const loadGardens = useCallback(async (ownerId: string, includeAll = false) => {
     let query = activeClientRef.current.from("gardens")
-      .select("id,owner_id,name,introduction,letter_title,letter_paragraphs,letter_signature,share_slug,is_published,published_at,cover_path,experience_settings,guestbook_enabled,approval_status,created_at")
+      .select("id,owner_id,name,introduction,letter_title,letter_paragraphs,letter_signature,share_slug,is_published,published_at,cover_path,experience_settings,guestbook_enabled,approval_status,review_comment,reviewed_at,created_at")
       .order("created_at", { ascending: false });
     if (!includeAll) query = query.eq("owner_id", ownerId);
     const { data, error: queryError } = await query;
@@ -232,6 +244,7 @@ export default function BookStudio() {
     setDecorations(normalizeStoryDecorations(settings.storyDecorations));
     setName(garden.name);
     setIntroduction(garden.introduction ?? "");
+    setReviewCommentDraft(garden.review_comment ?? "");
     setLetterTitle(garden.letter_title || t("Một lá thư dành riêng cho bạn", "A letter just for you"));
     setLetterText(paragraphs(garden.letter_paragraphs).join("\n\n"));
     setSignature(garden.letter_signature ?? "");
@@ -538,6 +551,66 @@ export default function BookStudio() {
     setSaving(false);
   }
 
+  async function deleteWork(garden: GardenRow) {
+    const canDelete = !garden.is_published && (
+      isAdmin
+      || (garden.owner_id === userId && (garden.approval_status === "draft" || garden.approval_status === "rejected"))
+    );
+    if (!canDelete || saving) return;
+
+    const confirmed = window.confirm(
+      t("Xóa bản thảo “", "Delete the draft “") + garden.name
+      + t("” vĩnh viễn? Các chương, lưu bút, mã PIN và ảnh thuộc bản thảo này cũng sẽ bị xóa.", "” permanently? Its chapters, reader notes, PIN, and stored photos will also be deleted.")
+    );
+    if (!confirmed) return;
+
+    setSaving(true);
+    setError("");
+    setNotice("");
+
+    const { data: files, error: listError } = await activeClientRef.current.storage
+      .from("garden-photos")
+      .list(garden.id, { limit: 1000 });
+    if (listError) {
+      console.error("List draft photos before deletion failed:", listError);
+      setError(t("Không kiểm tra được ảnh của bản thảo nên chưa xóa gì cả. Anh thử lại nhé.", "Could not inspect the draft photos, so nothing was deleted. Please try again."));
+      setSaving(false);
+      return;
+    }
+
+    const photoPaths = (files ?? [])
+      .filter((file) => Boolean(file.id && file.name))
+      .map((file) => garden.id + "/" + file.name);
+    if (photoPaths.length > 0) {
+      const { error: photoDeleteError } = await activeClientRef.current.storage
+        .from("garden-photos")
+        .remove(photoPaths);
+      if (photoDeleteError) {
+        console.error("Delete draft photos failed:", photoDeleteError);
+        setError(t("Chưa xóa được ảnh của bản thảo. Bản thảo vẫn được giữ nguyên.", "Could not delete the draft photos. The draft itself has been kept."));
+        setSaving(false);
+        return;
+      }
+    }
+
+    let deleteQuery = activeClientRef.current.from("gardens").delete().eq("id", garden.id);
+    if (!isAdmin) deleteQuery = deleteQuery.eq("owner_id", userId);
+    const { data: deleted, error: deleteError } = await deleteQuery.select("id").maybeSingle();
+    if (deleteError || !deleted) {
+      console.error("Delete draft failed:", deleteError);
+      setError(t("Chưa xóa được bản thảo. Nếu ảnh đã được dọn, phần nội dung vẫn được giữ để anh thử lại.", "Could not delete the draft. If its photos were already removed, the story content is still preserved so you can retry."));
+      setSaving(false);
+      return;
+    }
+
+    await loadGardens(userId, isAdmin);
+    setChapters([]);
+    setPhotos([]);
+    setGuestbook([]);
+    setNotice(t("Đã xóa bản thảo và các nội dung, ảnh đi kèm.", "The draft and its associated content and photos were deleted."));
+    setSaving(false);
+  }
+
   async function addChapter() {
     if (!selectedGarden || saving || !newChapterTitle.trim()) return;
     const content = splitText(newChapterText);
@@ -820,18 +893,31 @@ export default function BookStudio() {
       setError(t("Tác phẩm cần có tên và nội dung hoàn chỉnh trước khi duyệt.", "The story needs a title and complete content before approval."));
       return;
     }
+    const comment = reviewCommentDraft.trim();
+    if (status === "rejected" && !comment) {
+      setError(t("Anh hãy ghi lý do từ chối để người viết biết cần điều chỉnh điều gì nhé.", "Add a rejection reason so the writer knows what to improve."));
+      return;
+    }
+    if (comment.length > 3000) {
+      setError(t("Nhận xét tối đa 3.000 ký tự.", "Feedback must be 3,000 characters or fewer."));
+      return;
+    }
+
     setSaving(true);
     setError("");
     const { error: reviewError } = await activeClientRef.current.from("gardens")
-      .update({ approval_status: status }).eq("id", selectedGarden.id);
+      .update({ approval_status: status, review_comment: comment || null })
+      .eq("id", selectedGarden.id);
     if (reviewError) {
       console.error("Story moderation failed:", reviewError);
-      setError(t("Chưa cập nhật được trạng thái kiểm duyệt.", "Could not update the review status."));
+      setError(t("Chưa cập nhật được trạng thái và nhận xét kiểm duyệt.", "Could not update the review status and feedback."));
       setSaving(false);
       return;
     }
     await loadGardens(userId, true);
-    setNotice(status === "approved" ? t("Đã duyệt tác phẩm. Admin có thể xuất bản khi sẵn sàng.", "Story approved. Admin can publish it when ready.") : t("Đã từ chối tác phẩm này.", "This story was rejected."));
+    setNotice(status === "approved"
+      ? t("Đã duyệt tác phẩm và lưu nhận xét của Admin.", "Story approved and Admin feedback saved.")
+      : t("Đã từ chối tác phẩm và lưu lý do để người viết xem lại.", "Story rejected and the reason saved for the writer."));
     setSaving(false);
   }
 
@@ -885,12 +971,30 @@ export default function BookStudio() {
             <div><span className={styles.eyebrow}>MY WRITING DESK</span><h2>{t("Bản thảo của bạn", "Your drafts")}</h2></div>
             <button type="button" onClick={createWork} disabled={saving}>{t("＋ Tạo mới", "＋ New story")}</button>
           </div>
-          {gardens.length === 0 ? <p className={styles.empty}>{t("Chưa có bản thảo nào. Bắt đầu bằng một tác phẩm mới nhé.", "No drafts yet. Start with a new story.")}</p> : gardens.map((garden) => (
-            <button key={garden.id} type="button" className={garden.id === selectedId ? styles.workActive : styles.workButton} onClick={() => setSelectedId(garden.id)}>
-              <span className={styles.workMark}>{garden.experience_settings?.storyFormat === "message" ? "✎" : garden.experience_settings?.storyFormat === "letter" ? "✉" : "▤"}</span>
-              <span><strong>{garden.name}</strong><small>{garden.is_published ? t("Đã xuất bản", "Published") : garden.approval_status === "pending" ? t("Chờ Admin duyệt", "Awaiting Admin review") : garden.approval_status === "approved" ? t("Đã duyệt · Chưa xuất bản", "Approved · Not published") : garden.approval_status === "rejected" ? t("Cần chỉnh sửa", "Needs changes") : t("Bản nháp riêng tư", "Private draft")}</small></span>
-            </button>
-          ))}
+          {gardens.length === 0 ? <p className={styles.empty}>{t("Chưa có bản thảo nào. Bắt đầu bằng một tác phẩm mới nhé.", "No drafts yet. Start with a new story.")}</p> : gardens.map((garden) => {
+            const canDeleteGarden = !garden.is_published && (
+              isAdmin
+              || (garden.owner_id === userId && (garden.approval_status === "draft" || garden.approval_status === "rejected"))
+            );
+            return (
+              <div key={garden.id} className={styles.workRow}>
+                <button type="button" className={garden.id === selectedId ? styles.workActive : styles.workButton} onClick={() => setSelectedId(garden.id)}>
+                  <span className={styles.workMark}>{garden.experience_settings?.storyFormat === "message" ? "✎" : garden.experience_settings?.storyFormat === "letter" ? "✉" : "▤"}</span>
+                  <span><strong>{garden.name}</strong><small>{garden.is_published ? t("Đã xuất bản", "Published") : garden.approval_status === "pending" ? t("Chờ Admin duyệt", "Awaiting review") : garden.approval_status === "approved" ? t("Đã duyệt · Chưa xuất bản", "Approved · Not published") : garden.approval_status === "rejected" ? t("Cần chỉnh sửa", "Needs changes") : t("Bản nháp riêng tư", "Private draft")}</small></span>
+                </button>
+                {canDeleteGarden && (
+                  <button
+                    type="button"
+                    className={styles.deleteWorkButton}
+                    title={t("Xóa bản thảo", "Delete draft")}
+                    aria-label={t("Xóa bản thảo ", "Delete draft ") + garden.name}
+                    disabled={saving}
+                    onClick={() => void deleteWork(garden)}
+                  >⌫</button>
+                )}
+              </div>
+            );
+          })}
           <div className={styles.sidebarNote}><strong>{t("Gợi ý nhỏ", "A small reminder")}</strong><p>{t("Một câu thật lòng luôn đáng nhớ hơn rất nhiều dòng chữ viết cho đủ.", "One sincere sentence is worth more than many empty words.")}</p></div>
         </aside>
 
@@ -911,6 +1015,13 @@ export default function BookStudio() {
 
             {!isAdmin && selectedGarden.approval_status === "pending" && <p className={styles.notice} role="status">{t("Bản thảo đã được gửi Admin kiểm duyệt. Nội dung tạm khóa trong thời gian xem xét.", "Your draft was submitted for review. Editing is locked while Admin reviews it.")}</p>}
             {!isAdmin && selectedGarden.approval_status === "approved" && <p className={styles.notice} role="status">{t("Tác phẩm đã được Admin duyệt. Bạn có thể chờ xuất bản hoặc liên hệ Admin nếu cần chỉnh sửa.", "Your story has been approved. Wait for publishing or contact Admin if changes are needed.")}</p>}
+            {!isAdmin && selectedGarden.review_comment && (
+              <aside className={styles.reviewFeedback} aria-label={t("Phản hồi từ Admin", "Admin feedback")}>
+                <strong>{selectedGarden.approval_status === "rejected" ? t("Lý do từ chối", "Reason for rejection") : t("Nhận xét từ Admin", "Admin feedback")}</strong>
+                <p>{selectedGarden.review_comment}</p>
+                {selectedGarden.reviewed_at && <small>{t("Cập nhật lần cuối: ", "Last updated: ")}{new Date(selectedGarden.reviewed_at).toLocaleString()}</small>}
+              </aside>
+            )}
             <fieldset className={styles.creatorFieldset} disabled={isCreatorReviewLocked}>
             <section className={styles.section} id="write-01">
               <div className={styles.sectionTitle}><span>01</span><div><h3>{t("Bạn muốn tạo điều gì?", "What would you like to create?")}</h3><p>{t("Chọn một kiểu phù hợp với điều bạn muốn gửi gắm. Nội dung cũ vẫn được giữ khi bạn đổi kiểu.", "Choose the format that suits your story. Your existing content stays when you switch formats.")}</p></div></div>
@@ -1084,8 +1195,24 @@ export default function BookStudio() {
                 <div className={styles.publishPanel}>
                   <div className={styles.publishHeading}><span>✉</span><div><strong>{t("Kiểm duyệt và xuất bản", "Review and publish")}</strong><p>{t("Admin xem xét nội dung trước khi tạo link và chia sẻ.", "Admin reviews the story before creating a sharing link.")}</p></div></div>
                   <div className={styles.actionCard}><div><strong>{t("Trạng thái kiểm duyệt", "Review status")}</strong><p>{selectedGarden.approval_status === "pending" ? t("Tác phẩm đang chờ Admin xem xét.", "This story is awaiting Admin review.") : selectedGarden.approval_status === "approved" ? t("Tác phẩm đã được duyệt.", "This story has been approved.") : selectedGarden.approval_status === "rejected" ? t("Tác phẩm đã bị từ chối.", "This story was rejected.") : t("Bản thảo chưa được gửi duyệt.", "This draft has not been submitted for review.")}</p></div>
-                    {selectedGarden.approval_status !== "approved" && <button type="button" className={styles.primaryButton} onClick={() => void setApprovalStatus("approved")} disabled={saving}>{t("Duyệt tác phẩm", "Approve story")}</button>}
-                    {selectedGarden.approval_status !== "rejected" && <button type="button" className={styles.secondaryButton} onClick={() => void setApprovalStatus("rejected")} disabled={saving}>{t("Từ chối", "Reject")}</button>}
+                  </div>
+                  <label className={styles.field}>{t("Nhận xét cho người viết", "Feedback for the writer")}
+                    <textarea
+                      value={reviewCommentDraft}
+                      onChange={(event) => setReviewCommentDraft(event.target.value)}
+                      rows={4}
+                      maxLength={3000}
+                      placeholder={t("Ghi nhận xét khi duyệt, hoặc nêu rõ lý do nếu từ chối tác phẩm...", "Add an optional approval note, or explain what needs to change if rejecting the story...")}
+                    />
+                    <small className={styles.helper}>{statusForReview(selectedGarden.approval_status, t)}</small>
+                  </label>
+                  <div className={styles.reviewActions}>
+                    <button type="button" className={styles.primaryButton} onClick={() => void setApprovalStatus("approved")} disabled={saving}>
+                      {selectedGarden.approval_status === "approved" ? t("Cập nhật nhận xét duyệt", "Update approval note") : t("Duyệt tác phẩm", "Approve story")}
+                    </button>
+                    <button type="button" className={styles.secondaryButton} onClick={() => void setApprovalStatus("rejected")} disabled={saving}>
+                      {selectedGarden.approval_status === "rejected" ? t("Cập nhật lý do từ chối", "Update rejection reason") : t("Từ chối tác phẩm", "Reject story")}
+                    </button>
                   </div>
                   <label className={styles.toggle}><input type="checkbox" checked={pinEnabled} onChange={(event) => setPinEnabled(event.target.checked)}/> {t("Yêu cầu mã PIN khi mở tác phẩm", "Require a PIN to open this story")}</label>
                   {pinEnabled && <label className={styles.field}>{t("Mã PIN · tối thiểu 6 ký tự", "PIN · at least 6 characters")}<input type="password" value={pinDraft} onChange={(event) => setPinDraft(event.target.value)} placeholder={pinExists ? t("Để trống để giữ mã PIN hiện tại", "Leave blank to keep the current PIN") : t("Nhập mã PIN cho người nhận", "Enter a PIN for the reader")}/></label>}
