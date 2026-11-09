@@ -1,16 +1,16 @@
 # Quản lý tâm thư gia đình
 
 ## 1. Link người đọc
-- Link gửi ba mẹ: https://little-flower-world.vercel.app/g/nha-minh-noi-thoi-gian-89de265192084b8384817a7676b7a967
+- Link gửi ba mẹ: https://little-story-world.vercel.app/g/nha-minh-noi-thoi-gian-89de265192084b8384817a7676b7a967
 - Đây là link đọc công khai dạng unlisted: người có URL có thể xem; không cần tài khoản, đăng nhập hoặc PIN.
 - Bản ghi hiện đã xuất bản (is_published=true) và chưa cấu hình PIN.
 - Trang dùng chế độ đọc độc lập (readOnlyStandalone=true): không có trang chủ, menu, mục lục hay liên kết sang khu vực khác. Công tắc ngôn ngữ toàn cục cũng tự ẩn trên mọi route /g/.
 - Link đọc không cấp quyền chỉnh sửa. Không gửi đường dẫn Admin cho người nhận.
 
 ## 2. Quản lý nội dung và ảnh
-1. Mở cổng Admin: https://little-flower-world.vercel.app/little-story-backstage-7f4c
-2. Sau khi đăng nhập bằng tài khoản Admin được cấp quyền, vào trung tâm quản lý: https://little-flower-world.vercel.app/admin
-3. Mở không gian sáng tác Admin: https://little-flower-world.vercel.app/studio?mode=admin
+1. Mở cổng Admin: https://little-story-world.vercel.app/little-story-backstage-7f4c
+2. Sau khi đăng nhập bằng tài khoản Admin được cấp quyền, vào trung tâm quản lý: https://little-story-world.vercel.app/admin
+3. Mở không gian sáng tác Admin: https://little-story-world.vercel.app/studio?mode=admin
 4. Chọn đúng tác phẩm “Nhà mình – nơi thời gian dịu dàng ở lại”.
 5. Nội dung nằm ở phần viết chương và tâm thư cuối; ảnh nằm tại bước 03 · Hình ảnh do bạn chọn trong BookStudio.
 
@@ -60,7 +60,7 @@ Repository: https://github.com/PhamDucDuy-2280605704/little-story-world
 ## 7. Triển khai an toàn
 - GitHub repository: https://github.com/PhamDucDuy-2280605704/little-story-world
 - Vercel project: https://vercel.com/phamducduy/little-story-world
-- Hai domain little-story-world.vercel.app và little-flower-world.vercel.app cùng trỏ về ứng dụng.
+- Hai domain little-story-world.vercel.app và little-story-world.vercel.app cùng trỏ về ứng dụng.
 - Push vào main kích hoạt production deployment. Nên làm trên branch riêng, kiểm tra preview trước, chỉ merge vào main khi đã duyệt.
 - Không thay đổi RLS, bucket policy, PIN hoặc share_slug khi chỉ sửa giao diện.
 - Khi muốn ngừng chia sẻ, dùng chức năng xuất bản trong Admin; không xóa bản ghi nếu còn cần giữ lịch sử.
