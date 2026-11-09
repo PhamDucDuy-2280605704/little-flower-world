@@ -188,16 +188,16 @@ export default function AdminReviewDashboard() {
         schema: "public",
         table: "gardens",
       }, (payload) => {
-        const previous = payload.old as Partial<ReviewRow>;
         const updated = payload.new as Partial<ReviewRow>;
-        if (updated.approval_status === "pending" && previous.approval_status !== "pending") {
+        const current = rows.find((row) => row.id === updated.id);
+        if (updated.approval_status === "pending" && current?.approval_status !== "pending") {
           setNotice(t("✉ Có tác phẩm mới được gửi đến Bàn kiểm duyệt. Danh sách đã được cập nhật.", "✉ A new story was submitted for review. The queue has been refreshed."));
         }
         void loadRows();
       })
       .subscribe();
     return () => { void adminSupabase.removeChannel(channel); };
-  }, [authState, loadRows, t]);
+  }, [authState, rows, loadRows, t]);
 
   useEffect(() => {
     if (!selected) {
