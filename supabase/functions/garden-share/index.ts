@@ -165,40 +165,17 @@ async function viewGarden(garden: Record<string, unknown>, pin: string, slug: st
   const experienceSettings = garden.experience_settings && typeof garden.experience_settings === "object"
     ? garden.experience_settings as Record<string, unknown>
     : {};
+  const isStandaloneFamilyLetter = experienceSettings.readOnlyStandalone === true;
   const rawInlinePhotos = Array.isArray(experienceSettings.inlinePhotos)
     ? experienceSettings.inlinePhotos
     : [];
   const rawInlinePhotoParts = Array.isArray(experienceSettings.inlinePhotoParts)
     ? experienceSettings.inlinePhotoParts
     : [];
-  const assembledPhotoUrls = rawInlinePhotoParts
-    .slice(0, 5)
-    .map((parts) => {
-      if (!Array.isArray(parts)) return "";
-      const base64 = parts
-        .filter((part): part is string => typeof part === "string" && /^[A-Za-z0-9+/=]+$/.test(part))
-        .join("");
-      return base64 ? "data:image/webp;base64," + base64 : "";
-    });
   const inlinePhotoAlts = Array.isArray(experienceSettings.inlinePhotoAlts)
-    ? experienceSettings.inlinePhotoAlts
+    ? experienceSettings.inlinePhotoAlts.filter((alt): alt is string => typeof alt === "string")
     : [];
-  const inlinePhotos = [...rawInlinePhotos, ...assembledPhotoUrls]
-    .filter((value): value is string =>
-      typeof value === "string"
-      && value.length <= 220_000
-      && /^data:image\/webp;base64,[A-Za-z0-9+/=]+$/.test(value)
-    )
-    .slice(0, 5)
-    .map((url, index) => ({
-      path: "inline/" + index,
-      url,
-      alt: typeof inlinePhotoAlts[index] === "string"
-        ? inlinePhotoAlts[index] as string
-        : "Một kỷ niệm gia đình",
-      width: index === 0 ? 800 : 800,
-      height: index === 0 ? 600 : 1067,
-    }));
+  const coverPath = typeof garden.cover_path === "string" ? garden.cover_path : null;
 
   const [itemsResult, chaptersResult, albumResult, guestbookResult, storageCoverUrl] = await Promise.all([
     db.from("garden_items")
@@ -219,25 +196,99 @@ async function viewGarden(garden: Record<string, unknown>, pin: string, slug: st
       .eq("status", "approved")
       .order("created_at", { ascending: false })
       .limit(20),
-    signedImage(typeof garden.cover_path === "string" ? garden.cover_path : null),
+    signedImage(coverPath),
   ]);
 
   if (itemsResult.error) throw itemsResult.error;
   if (chaptersResult.error) throw chaptersResult.error;
   if (guestbookResult.error) throw guestbookResult.error;
+  if (albumResult.error) throw albumResult.error;
 
-  const files = (albumResult.data ?? []).filter((file) =>
-    file.name && file.id && ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"].includes(file.metadata?.mimetype ?? "")
-  );
+  const imageMimeTypes = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"]);
+  const imageExtensions = new Set(["jpg", "jpeg", "png", "webp", "gif", "avif"]);
+  const files = (albumResult.data ?? []).filter((file) => {
+    if (!file.name || !file.id) return false;
+    const mimeType = typeof file.metadata?.mimetype === "string" ? file.metadata.mimetype.toLowerCase() : "";
+    const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
+    return imageMimeTypes.has(mimeType) || imageExtensions.has(extension);
+  });
 
   const storedPhotos = (await Promise.all(files.map(async (file) => {
     const path = gardenId + "/" + file.name;
     const url = await signedImage(path);
     return url ? { path, url, alt: "Khoảnh khắc trong khu vườn" } : null;
-  }))).filter((photo) => photo !== null);
-  const photos = [...inlinePhotos, ...storedPhotos];
-  const coverUrl = storageCoverUrl ?? inlinePhotos[0]?.url ?? null;
+  }))).filter((photo): photo is { path: string; url: string; alt: string } => photo !== null);
 
+  // Family letters have two intentional photo positions (the childhood photo
+  // and the present-day family photo). The Storage album is the canonical
+  // source whenever it contains uploads; legacy embedded WebP values are only
+  // a fallback. Otherwise old/truncated inline previews can shadow real files.
+  let familyLetterPhotos = storedPhotos;
+  if (isStandaloneFamilyLetter && storedPhotos.length > 0) {
+    const coverPhoto = coverPath
+      ? storedPhotos.find((photo) => photo.path === coverPath) ?? null
+      : null;
+    const ordered = coverPhoto
+      ? [coverPhoto, ...storedPhotos.filter((photo) => photo.path !== coverPhoto.path)]
+      : storedPhotos;
+    const todayAlt = inlinePhotoAlts.find((alt) => alt.toLowerCase().includes("hôm nay"))
+      ?? "Ảnh gia đình hôm nay";
+    const oldAlt = inlinePhotoAlts.find((alt) => alt.toLowerCase().includes("ngày trước"))
+      ?? "Bức ảnh gia đình ngày trước";
+    familyLetterPhotos = ordered.map((photo, index) => ({
+      ...photo,
+      alt: coverPhoto
+        ? (photo.path === coverPhoto.path ? todayAlt : oldAlt)
+        : (index === 0 ? todayAlt : oldAlt),
+    }));
+  }
+
+  // Only rebuild legacy base64 images when needed. In particular, don't decode
+  // and send stale inline WebP payloads when a Family Letter already has real
+  // uploaded Storage images.
+  const useStorageForFamilyLetter = isStandaloneFamilyLetter && storedPhotos.length > 0;
+  const inlinePhotos = useStorageForFamilyLetter
+    ? []
+    : (() => {
+        const assembledPhotoUrls = rawInlinePhotoParts
+          .slice(0, 5)
+          .map((parts) => {
+            if (!Array.isArray(parts)) return "";
+            const base64 = parts
+              .filter((part): part is string => typeof part === "string" && /^[A-Za-z0-9+/=]+$/.test(part))
+              .join("");
+            return base64 ? "data:image/webp;base64," + base64 : "";
+          });
+        return [...rawInlinePhotos, ...assembledPhotoUrls]
+          .filter((value): value is string =>
+            typeof value === "string"
+            && value.length <= 220_000
+            && /^data:image\/webp;base64,[A-Za-z0-9+/=]+$/.test(value)
+          )
+          .slice(0, 5)
+          .map((url, index) => ({
+            path: "inline/" + index,
+            url,
+            alt: inlinePhotoAlts[index] ?? "Một kỷ niệm gia đình",
+            width: 800,
+            height: 900,
+          }));
+      })();
+
+  const photos = useStorageForFamilyLetter
+    ? familyLetterPhotos
+    : [...inlinePhotos, ...storedPhotos];
+  const coverUrl = storageCoverUrl
+    ?? familyLetterPhotos.find((photo) => photo.alt.toLowerCase().includes("hôm nay"))?.url
+    ?? inlinePhotos[0]?.url
+    ?? null;
+
+  // The client consumes photos through the signed photos array. Do not also
+  // transfer the old embedded image payload inside experience_settings.
+  const clientExperienceSettings = { ...experienceSettings };
+  delete clientExperienceSettings.inlinePhotos;
+  delete clientExperienceSettings.inlinePhotoParts;
+  delete clientExperienceSettings.inlinePhotoAlts;
   return json({
     garden: {
       id: garden.id,
@@ -246,7 +297,7 @@ async function viewGarden(garden: Record<string, unknown>, pin: string, slug: st
       letter_title: garden.letter_title,
       letter_paragraphs: garden.letter_paragraphs,
       letter_signature: garden.letter_signature,
-      experience_settings: garden.experience_settings ?? {},
+      experience_settings: clientExperienceSettings,
       guestbook_enabled: garden.guestbook_enabled === true,
       cover_url: coverUrl,
     },
