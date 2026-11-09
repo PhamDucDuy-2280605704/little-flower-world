@@ -43,6 +43,7 @@ type GardenRow = {
   created_at: string;
 };
 type ChapterRow = { chapter_id: string; sort_order: number; title: string; paragraphs: string[] };
+type StoryOwnerDirectoryRow = { owner_id: string; display_name: string; email: string | null; story_count: number };
 type GuestbookRow = { id: string; guest_name: string; message: string; status: "pending" | "approved" | "rejected"; created_at: string };
 const FORMATS: Array<{ value: StoryFormat; title: string; titleEn: string; description: string; descriptionEn: string; symbol: string }> = [
   { value: "message", title: "Thông điệp", titleEn: "Message", description: "Một trang ngắn để gửi điều bạn đang nghĩ.", descriptionEn: "A short page for the words on your mind.", symbol: "✎" },
@@ -71,7 +72,7 @@ function isStoredImage(fileName: string, mimeType?: string | null): boolean {
   return Object.prototype.hasOwnProperty.call(IMAGE_MIME_BY_EXTENSION, extension);
 }
 const CREATOR_MAX_PHOTOS = 5;
-const CREATOR_MAX_STICKERS = 4;
+const CREATOR_MAX_STICKERS = STORY_STICKERS.length;
 const DECORATION_THEMES: Array<{ value: StoryTheme; title: string; titleEn: string; detail: string; detailEn: string }> = [
   { value: "meadow", title: "Khu vườn dịu dàng", titleEn: "Gentle meadow", detail: "Xanh sage và hoa cỏ", detailEn: "Sage greens and wildflowers" },
   { value: "sunset", title: "Hoàng hôn ấm áp", titleEn: "Warm sunset", detail: "Đào, kem và nắng vàng", detailEn: "Peach, cream, and golden light" },
@@ -126,7 +127,7 @@ function initialsFor(label: string): string {
 }
 
 
-function insertStickerAtCursor(textarea: HTMLTextAreaElement | null, setValue: Dispatch<SetStateAction<string>>, emoji: string) {
+function insertStickerAtCursor(textarea: HTMLInputElement | HTMLTextAreaElement | null, setValue: Dispatch<SetStateAction<string>>, emoji: string) {
   if (!textarea) {
     setValue((current) => current + (current && !/\s$/u.test(current) ? " " : "") + emoji);
     return;
@@ -174,6 +175,8 @@ export default function BookStudio() {
   const chapterTextDraftRef = useRef<HTMLTextAreaElement>(null);
   const newChapterTextRef = useRef<HTMLTextAreaElement>(null);
   const finalLetterTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const storyNameInputRef = useRef<HTMLInputElement>(null);
+  const finalLetterTitleInputRef = useRef<HTMLInputElement>(null);
   const [authReady, setAuthReady] = useState(false);
   const [userId, setUserId] = useState("");
   const [accountLabel, setAccountLabel] = useState("Tài khoản");
@@ -181,6 +184,7 @@ export default function BookStudio() {
   const [isAdmin, setIsAdmin] = useState(false);
   const activeClientRef = useRef(supabase);
   const [gardens, setGardens] = useState<GardenRow[]>([]);
+  const [ownerDirectory, setOwnerDirectory] = useState<StoryOwnerDirectoryRow[]>([]);
   const [selectedId, setSelectedId] = useState("");
   const [chapters, setChapters] = useState<ChapterRow[]>([]);
   const [photos, setPhotos] = useState<GardenJournalPhoto[]>([]);
@@ -217,6 +221,28 @@ export default function BookStudio() {
   const [pinDraft, setPinDraft] = useState("");
 
   const selectedGarden = gardens.find((garden) => garden.id === selectedId) ?? null;
+  const guestStoryGroups = useMemo(() => {
+    const grouped = new Map<string, GardenRow[]>();
+    gardens.filter((garden) => garden.owner_id !== FAIRYTALE_GARDEN_ADMIN_USER_ID).forEach((garden) => {
+      const stories = grouped.get(garden.owner_id) ?? [];
+      stories.push(garden);
+      grouped.set(garden.owner_id, stories);
+    });
+    return Array.from(grouped.entries()).map(([ownerId, stories]) => {
+      const owner = ownerDirectory.find((entry) => entry.owner_id === ownerId);
+      return {
+        ownerId,
+        ownerName: owner?.display_name || "Tài khoản " + ownerId.slice(0, 8),
+        email: owner?.email ?? null,
+        stories,
+      };
+    }).sort((a, b) => a.ownerName.localeCompare(b.ownerName, "vi"));
+  }, [gardens, ownerDirectory]);
+  const myAdminStories = gardens.filter((garden) => garden.owner_id === FAIRYTALE_GARDEN_ADMIN_USER_ID);
+  const selectedOwnerName = selectedGarden?.owner_id === FAIRYTALE_GARDEN_ADMIN_USER_ID
+    ? t("Admin · Chủ hệ thống", "Admin · System owner")
+    : ownerDirectory.find((entry) => entry.owner_id === selectedGarden?.owner_id)?.display_name
+      || t("User · Tài khoản người viết", "User · Writer account");
   const isCreatorReviewLocked = !isAdmin && (selectedGarden?.approval_status === "pending" || selectedGarden?.approval_status === "approved");
   const selectedChapter = chapters.find((chapter) => chapter.chapter_id === selectedChapterId) ?? null;
   const journalChapters = useMemo<JournalChapter[]>(() => chapters.map((chapter) => ({
@@ -242,6 +268,17 @@ export default function BookStudio() {
       letter_paragraphs: paragraphs(row.letter_paragraphs),
       experience_settings: (row.experience_settings ?? {}) as Record<string, unknown>,
     })) as GardenRow[];
+    if (includeAll) {
+      const { data: owners, error: ownersError } = await activeClientRef.current.rpc("admin_story_owner_directory");
+      if (ownersError) {
+        console.error("Load writer account directory failed:", ownersError);
+        setOwnerDirectory([]);
+      } else {
+        setOwnerDirectory((owners ?? []) as StoryOwnerDirectoryRow[]);
+      }
+    } else {
+      setOwnerDirectory([]);
+    }
     setGardens(rows);
     setSelectedId((current) => rows.some((row) => row.id === current) ? current : rows[0]?.id ?? "");
     return rows;
@@ -255,16 +292,18 @@ export default function BookStudio() {
 
     let hasPin = false;
     let guestbookRows: GuestbookRow[] = [];
+    if (isAdmin || garden.approval_status === "approved") {
+      const { data: secret, error: secretError } = await activeClientRef.current
+        .from("garden_share_secrets").select("garden_id").eq("garden_id", garden.id).maybeSingle();
+      if (secretError) throw secretError;
+      hasPin = Boolean(secret);
+    }
     if (isAdmin) {
-      const [secretResult, guestbookResult] = await Promise.all([
-        activeClientRef.current.from("garden_share_secrets").select("garden_id").eq("garden_id", garden.id).maybeSingle(),
-        activeClientRef.current.from("garden_guestbook").select("id,guest_name,message,status,created_at")
-          .eq("garden_id", garden.id).order("created_at", { ascending: false }).limit(60),
-      ]);
-      if (secretResult.error) throw secretResult.error;
-      if (guestbookResult.error) throw guestbookResult.error;
-      hasPin = Boolean(secretResult.data);
-      guestbookRows = (guestbookResult.data ?? []) as GuestbookRow[];
+      const { data: notes, error: notesError } = await activeClientRef.current
+        .from("garden_guestbook").select("id,guest_name,message,status,created_at")
+        .eq("garden_id", garden.id).order("created_at", { ascending: false }).limit(60);
+      if (notesError) throw notesError;
+      guestbookRows = (notes ?? []) as GuestbookRow[];
     }
 
     const loadedChapters = (chapterResult.data ?? []).map((chapter) => ({
@@ -284,7 +323,7 @@ export default function BookStudio() {
     setLetterTitle(garden.letter_title || t("Một lá thư dành riêng cho bạn", "A letter just for you"));
     setLetterText(paragraphs(garden.letter_paragraphs).join("\n\n"));
     setSignature(garden.letter_signature ?? "");
-    setGuestbookEnabled(isAdmin && garden.guestbook_enabled === true);
+    setGuestbookEnabled(garden.guestbook_enabled === true);
     setPinExists(hasPin);
     setPinEnabled(hasPin);
     setPinDraft("");
@@ -460,10 +499,6 @@ export default function BookStudio() {
 
   function toggleSticker(stickerId: StoryStickerId) {
     const active = decorations.stickers.includes(stickerId);
-    if (!active && decorations.stickers.length >= (isAdmin ? STORY_STICKERS.length : CREATOR_MAX_STICKERS)) {
-      setError(isAdmin ? t("Bộ sticker đã đạt giới hạn 10 hình.", "The sticker limit of 10 has been reached.") : t("Tài khoản sáng tác có thể dùng tối đa 4 sticker cho mỗi tác phẩm.", "Writer accounts can use up to 4 stickers per story."));
-      return;
-    }
     setError("");
     setDecorations((current) => ({
       ...current,
@@ -471,7 +506,7 @@ export default function BookStudio() {
     }));
   }
 
-  function renderWritingStickerPicker(textareaRef: RefObject<HTMLTextAreaElement | null>, setValue: Dispatch<SetStateAction<string>>) {
+  function renderWritingStickerPicker(textareaRef: RefObject<HTMLInputElement | HTMLTextAreaElement | null>, setValue: Dispatch<SetStateAction<string>>) {
     return (
       <div className={styles.inlineStickerPicker} aria-label={t("Bộ sticker chèn vào nội dung", "Writing sticker set")}>
         <div className={styles.inlineStickerHeading}>
@@ -504,8 +539,8 @@ export default function BookStudio() {
   }
 
   async function syncPin(): Promise<boolean> {
-    if (!isAdmin) return true;
     if (!selectedGarden) return false;
+    if (!isAdmin && selectedGarden.approval_status !== "approved") return true;
     if (!pinEnabled && pinExists) {
       const { error: deleteError } = await activeClientRef.current.from("garden_share_secrets").delete().eq("garden_id", selectedGarden.id);
       if (deleteError) {
@@ -584,7 +619,8 @@ export default function BookStudio() {
   }
 
   async function publishWork(publish: boolean) {
-    if (!isAdmin || !selectedGarden || saving) return;
+    if (!selectedGarden || saving) return;
+    if (!isAdmin && selectedGarden.owner_id !== userId) return;
     if (publish && selectedGarden.approval_status !== "approved") {
       setError(t("Admin cần duyệt tác phẩm trước khi xuất bản.", "Admin must approve the story before publishing."));
       return;
@@ -605,27 +641,65 @@ export default function BookStudio() {
     }
     setSaving(true);
     setError("");
-    const { error: saveError } = await activeClientRef.current.from("gardens").update(draftPayload()).eq("id", selectedGarden.id);
-    if (saveError) {
-      setError(t("Chưa lưu được nội dung trước khi xuất bản.", "Could not save the content before publishing."));
-      setSaving(false);
-      return;
+    if (isAdmin) {
+      const { error: saveError } = await activeClientRef.current.from("gardens").update(draftPayload()).eq("id", selectedGarden.id);
+      if (saveError) {
+        setError(t("Chưa lưu được nội dung trước khi xuất bản.", "Could not save the content before publishing."));
+        setSaving(false);
+        return;
+      }
     }
     if (!(await syncPin())) { setSaving(false); return; }
     const slug = selectedGarden.share_slug || slugFor(name || selectedGarden.name);
-    const { error: publishError } = await activeClientRef.current.from("gardens").update({
+    const publishPayload = {
       share_slug: slug,
       is_published: publish,
       published_at: publish ? selectedGarden.published_at || new Date().toISOString() : null,
-    }).eq("id", selectedGarden.id);
+      guestbook_enabled: guestbookEnabled,
+    };
+    let publishQuery = activeClientRef.current.from("gardens").update(publishPayload).eq("id", selectedGarden.id);
+    if (!isAdmin) publishQuery = publishQuery.eq("owner_id", userId);
+    const { error: publishError } = await publishQuery;
     if (publishError) {
       console.error("Publish work failed:", publishError);
       setError(t("Đã lưu nội dung nhưng chưa thay đổi được trạng thái xuất bản.", "The content was saved, but the publishing status could not be changed."));
       setSaving(false);
       return;
     }
-    await loadGardens(userId);
-    setNotice(publish ? t("Tác phẩm đã xuất bản. Bạn có thể gửi liên kết cho người nhận.", "Story published. You can share the link with the reader.") : t("Tác phẩm đã chuyển về bản nháp.", "Story moved back to draft."));
+    await loadGardens(userId, isAdmin);
+    setNotice(publish ? t("Tác phẩm đã xuất bản. Bạn có thể gửi liên kết cho người nhận.", "Story published. You can share the link with the reader.") : t("Tác phẩm đã gỡ khỏi trang công khai; trạng thái duyệt vẫn được giữ.", "The story is no longer public; its approval remains in place."));
+    setSaving(false);
+  }
+
+  async function saveApprovedReaderSettings() {
+    if (!selectedGarden || selectedGarden.approval_status !== "approved" || saving) return;
+    if (!isAdmin && selectedGarden.owner_id !== userId) return;
+    if (pinEnabled && !pinExists && pinDraft.trim().length < 6) {
+      setError(t("Mã PIN cần ít nhất 6 ký tự.", "The PIN must contain at least 6 characters."));
+      return;
+    }
+    if (pinEnabled && pinDraft.trim() && pinDraft.trim().length < 6) {
+      setError(t("Mã PIN cần ít nhất 6 ký tự.", "The PIN must contain at least 6 characters."));
+      return;
+    }
+    setSaving(true);
+    setError("");
+    const { error: settingError } = await activeClientRef.current.from("gardens")
+      .update({ guestbook_enabled: guestbookEnabled })
+      .eq("id", selectedGarden.id)
+      .eq("owner_id", selectedGarden.owner_id);
+    if (settingError) {
+      console.error("Save reader-note setting failed:", settingError);
+      setError(t("Chưa lưu được cài đặt lời nhắn người đọc.", "Could not save the reader-note setting."));
+      setSaving(false);
+      return;
+    }
+    if (!(await syncPin())) {
+      setSaving(false);
+      return;
+    }
+    await loadGardens(userId, isAdmin);
+    setNotice(t("Đã lưu cài đặt lời nhắn và mã PIN.", "Reader-note settings and PIN saved."));
     setSaving(false);
   }
 
@@ -1035,6 +1109,35 @@ export default function BookStudio() {
     setSaving(false);
   }
 
+  const renderGardenItem = (garden: GardenRow) => {
+    const canDeleteGarden = !garden.is_published && (
+      isAdmin
+      || (garden.owner_id === userId && (garden.approval_status === "draft" || garden.approval_status === "rejected"))
+    );
+    return (
+      <div key={garden.id} className={styles.workRow}>
+        <button type="button" className={garden.id === selectedId ? styles.workActive : styles.workButton} onClick={() => setSelectedId(garden.id)}>
+          <span className={styles.workMark}>{garden.experience_settings?.storyFormat === "message" ? "✎" : garden.experience_settings?.storyFormat === "letter" ? "✉" : "▤"}</span>
+          <span><strong>{garden.name}</strong><small>{garden.is_published ? t("Đã xuất bản", "Published") : garden.approval_status === "pending" ? t("Chờ Admin duyệt", "Awaiting Admin review") : garden.approval_status === "approved" ? t("Đã duyệt · Chưa xuất bản", "Approved · Not published") : garden.approval_status === "rejected" ? t("Cần chỉnh sửa", "Needs changes") : t("Bản nháp riêng tư", "Private draft")}</small></span>
+        </button>
+        {canDeleteGarden && (
+          <button type="button" className={styles.deleteWorkButton} title={t("Xóa bản thảo", "Delete draft")}
+            aria-label={t("Xóa bản thảo ", "Delete draft ") + garden.name} disabled={saving} onClick={() => void deleteWork(garden)}>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v5M14 11v5"/>
+            </svg>
+          </button>
+        )}
+        {isAdmin && (
+          <button type="button" className={styles.editStoryButton}
+            onClick={() => { setSelectedId(garden.id); document.getElementById("writing-editor")?.scrollIntoView({ behavior: "smooth", block: "start" }); }}>
+            {t("Mở chỉnh sửa", "Edit story")} ↗
+          </button>
+        )}
+      </div>
+    );
+  };
+
   function markPreviewRead(id: string) {
     setPreviewReadIds((current) => current.includes(id) ? current : [...current, id]);
   }
@@ -1103,41 +1206,46 @@ export default function BookStudio() {
             <div><span className={styles.eyebrow}>{t("TÁC PHẨM CỦA TÔI", "MY STORIES")}</span><h2>{t("Bản thảo của bạn", "Your drafts")}</h2></div>
             <button type="button" onClick={createWork} disabled={saving}>{t("＋ Tạo mới", "＋ New story")}</button>
           </div>
-          {gardens.length === 0 ? <p className={styles.empty}>{t("Chưa có bản thảo nào. Bắt đầu bằng một tác phẩm mới nhé.", "No drafts yet. Start with a new story.")}</p> : gardens.map((garden) => {
-            const canDeleteGarden = !garden.is_published && (
-              isAdmin
-              || (garden.owner_id === userId && (garden.approval_status === "draft" || garden.approval_status === "rejected"))
-            );
-            return (
-              <div key={garden.id} className={styles.workRow}>
-                <button type="button" className={garden.id === selectedId ? styles.workActive : styles.workButton} onClick={() => setSelectedId(garden.id)}>
-                  <span className={styles.workMark}>{garden.experience_settings?.storyFormat === "message" ? "✎" : garden.experience_settings?.storyFormat === "letter" ? "✉" : "▤"}</span>
-                  <span><strong>{garden.name}</strong><small>{garden.is_published ? t("Đã xuất bản", "Published") : garden.approval_status === "pending" ? t("Chờ Admin duyệt", "Awaiting review") : garden.approval_status === "approved" ? t("Đã duyệt · Chưa xuất bản", "Approved · Not published") : garden.approval_status === "rejected" ? t("Cần chỉnh sửa", "Needs changes") : t("Bản nháp riêng tư", "Private draft")}</small></span>
-                </button>
-                {canDeleteGarden && (
-                  <button
-                    type="button"
-                    className={styles.deleteWorkButton}
-                    title={t("Xóa bản thảo", "Delete draft")}
-                    aria-label={t("Xóa bản thảo ", "Delete draft ") + garden.name}
-                    disabled={saving}
-                    onClick={() => void deleteWork(garden)}
-                  >
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                      <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v5M14 11v5"/>
-                    </svg>
-                  </button>
-                )}
-              </div>
-            );
-          })}
+          {gardens.length === 0 ? <p className={styles.empty}>{t("Chưa có tác phẩm nào. Bắt đầu bằng một tác phẩm mới nhé.", "No stories yet. Start with a new story.")}</p> : (
+            <div className={styles.storyCollections}>
+              {!isAdmin ? (
+                <section className={styles.storyCollection}>
+                  <h3>{t("TÁC PHẨM CỦA TÔI", "MY STORIES")}</h3>
+                  {gardens.map((garden) => renderGardenItem(garden))}
+                </section>
+              ) : (
+                <>
+                  <section className={styles.storyCollection}>
+                    <h3>{t("TÁC PHẨM CỦA ADMIN · CHỦ HỆ THỐNG", "ADMIN'S STORIES · SYSTEM OWNER")}</h3>
+                    {myAdminStories.length > 0 ? myAdminStories.map((garden) => renderGardenItem(garden)) : <p className={styles.collectionEmpty}>{t("Admin chưa có tác phẩm riêng.", "Admin has no personal stories yet.")}</p>}
+                  </section>
+                  <section className={styles.storyCollection}>
+                    <h3>{t("TÁC PHẨM CỦA USERS · TÀI KHOẢN NGƯỜI VIẾT", "USERS' STORIES · WRITER ACCOUNTS")}</h3>
+                    {guestStoryGroups.length > 0 ? guestStoryGroups.map((group) => (
+                      <div className={styles.ownerStoryGroup} key={group.ownerId}>
+                        <div className={styles.ownerStoryHeading}>
+                          <strong>{group.ownerName}</strong>
+                          <small>{group.email || group.stories.length + " " + t("tác phẩm", "stories")}</small>
+                        </div>
+                        {group.stories.map((garden) => renderGardenItem(garden))}
+                      </div>
+                    )) : <p className={styles.collectionEmpty}>{t("Chưa có User nào tạo tác phẩm.", "No writer accounts have created stories yet.")}</p>}
+                  </section>
+                </>
+              )}
+            </div>
+          )}
           <div className={styles.sidebarNote}><strong>{t("Gợi ý nhỏ", "A small reminder")}</strong><p>{t("Một câu thật lòng luôn đáng nhớ hơn rất nhiều dòng chữ viết cho đủ.", "One sincere sentence is worth more than many empty words.")}</p></div>
         </aside>
 
         {selectedGarden ? (
-          <section className={styles.editor}>
+          <section className={styles.editor} id="writing-editor">
             <div className={styles.editorHeading}>
-              <div><p className={styles.eyebrow}>YOUR WRITING DESK</p><h2>{name || selectedGarden.name}</h2></div>
+              <div>
+                <p className={styles.eyebrow}>{isAdmin && selectedGarden.owner_id !== FAIRYTALE_GARDEN_ADMIN_USER_ID ? t("ADMIN · ĐANG SỬA TÁC PHẨM CỦA USER", "ADMIN · EDITING A USER STORY") : isAdmin ? t("ADMIN · TÁC PHẨM CHỦ HỆ THỐNG", "ADMIN · SYSTEM OWNER STORY") : t("YOUR WRITING DESK", "YOUR WRITING DESK")}</p>
+                <h2>{name || selectedGarden.name}</h2>
+                {isAdmin && <small className={styles.selectedOwnerLabel}>{t("Chủ sở hữu: ", "Owner: ")}{selectedOwnerName}</small>}
+              </div>
               <span className={selectedGarden.is_published ? styles.published : styles.draft}>{selectedGarden.is_published ? "Đang chia sẻ" : selectedGarden.approval_status === "pending" ? t("Đang chờ Admin duyệt", "Awaiting Admin review") : selectedGarden.approval_status === "approved" ? t("Đã duyệt · Chưa xuất bản", "Approved · Not published") : selectedGarden.approval_status === "rejected" ? "Cần chỉnh sửa và gửi lại" : t("Bản nháp riêng tư", "Private draft")}</span>
             </div>
             <nav className={styles.stepNav} aria-label={t("Các bước sáng tác", "Writing steps")}>
@@ -1145,24 +1253,22 @@ export default function BookStudio() {
               <a href="#write-02">02 <span>{t("Viết nội dung", "Write content")}</span></a>
               <a href="#write-03">03 <span>{t("Hình ảnh", "Photos")}</span></a>
               <a href="#write-04">04 <span>{t("Trang trí", "Decorate")}</span></a>
-              {isAdmin && <a href="#write-05">05 <span>{t("Lưu bút", "Reader notes")}</span></a>}
-              <a href="#write-06">{isAdmin ? "06" : "05"} <span>{isAdmin ? t("Xem & gửi", "Preview & publish") : t("Xem & gửi duyệt", "Preview & submit")}</span></a>
+              <a href="#write-05">05 <span>{t("Lời nhắn", "Reader notes")}</span></a>
+              <a href="#write-06">06 <span>{t("Xuất bản & chia sẻ", "Publish & share")}</span></a>
             </nav>
 
             {!isAdmin && selectedGarden.approval_status === "pending" && <p className={styles.notice} role="status">{t("Bản thảo đã được gửi Admin kiểm duyệt. Nội dung tạm khóa trong thời gian xem xét.", "Your draft was submitted for review. Editing is locked while Admin reviews it.")}</p>}
-            {!isAdmin && selectedGarden.approval_status === "approved" && (
-              <div className={styles.notice} role="status">
-                <p>{t("Tác phẩm đã được Admin duyệt. Nếu muốn sửa nội dung, chương hoặc ảnh, hãy mở chỉnh sửa. Liên kết công khai hiện tại sẽ được tắt và bài cần duyệt lại.", "Your story has been approved. To edit its content, chapters, or photos, reopen editing. The current public link will be disabled and the story must be reviewed again.")}</p>
-                <button type="button" className={styles.secondaryButton} onClick={() => void startEditingApprovedStory()} disabled={saving}>
-                  {saving ? t("Đang mở...", "Opening...") : t("✎ Mở chỉnh sửa tác phẩm", "✎ Reopen story for editing")}
-                </button>
-              </div>
-            )}
-            {!isAdmin && selectedGarden.review_comment && (
-              <aside className={styles.reviewFeedback} aria-label={t("Phản hồi từ Admin", "Admin feedback")}>
-                <strong>{selectedGarden.approval_status === "rejected" ? t("Lý do từ chối", "Reason for rejection") : t("Nhận xét từ Admin", "Admin feedback")}</strong>
-                <p>{selectedGarden.review_comment}</p>
-                {selectedGarden.reviewed_at && <small>{t("Cập nhật lần cuối: ", "Last updated: ")}{new Date(selectedGarden.reviewed_at).toLocaleString()}</small>}
+            {!isAdmin && (selectedGarden.approval_status === "approved" || selectedGarden.approval_status === "rejected") && (
+              <aside className={styles.reviewNotification} data-state={selectedGarden.approval_status} role="status" aria-label={t("Thông báo kết quả kiểm duyệt", "Review decision notification")}>
+                <div className={styles.reviewNotificationHeading}>
+                  <span aria-hidden="true">{selectedGarden.approval_status === "approved" ? "✓" : "↺"}</span>
+                  <strong>{selectedGarden.approval_status === "approved" ? t("Thông báo: Tác phẩm đã được duyệt", "Notice: Your story has been approved") : t("Thông báo: Tác phẩm chưa được duyệt", "Notice: Your story needs changes")}</strong>
+                </div>
+                <p>{selectedGarden.approval_status === "approved"
+                  ? t("Admin đã duyệt tác phẩm. Bạn có thể xuất bản, bật lời nhắn người đọc và đặt mã PIN nếu muốn.", "Admin approved this story. You can publish it, enable reader notes, and set a PIN if you wish.")
+                  : t("Admin chưa duyệt tác phẩm. Hãy xem lý do, chỉnh sửa bản thảo rồi gửi lại để được xem xét.", "Admin did not approve this story. Review the reason, edit your draft, and resubmit it.")}</p>
+                {selectedGarden.review_comment && <blockquote>{selectedGarden.review_comment}</blockquote>}
+                {selectedGarden.reviewed_at && <small>{t("Thời gian phản hồi: ", "Decision time: ")}{new Date(selectedGarden.reviewed_at).toLocaleString()}</small>}
               </aside>
             )}
             <fieldset className={styles.creatorFieldset} disabled={isCreatorReviewLocked}>
@@ -1181,7 +1287,8 @@ export default function BookStudio() {
 
             <section className={styles.section} id="write-02">
               <div className={styles.sectionTitle}><span>02</span><div><h3>Viết nội dung của bạn</h3><p>{t("Không cần căn chỉnh trang. Hệ thống tự trình bày thành trải nghiệm đọc sách.", "No need to format the page. Your words become a reading experience automatically.")}</p></div></div>
-              <label className={styles.field}>{t("Tên tác phẩm", "Story title")}<input value={name} maxLength={80} onChange={(event) => setName(event.target.value)} placeholder={t("Ví dụ: Gửi người mình thương...", "For example: To someone dear...")}/></label>
+              <label className={styles.field}>{t("Tên tác phẩm", "Story title")}<input ref={storyNameInputRef} value={name} maxLength={80} onChange={(event) => setName(event.target.value)} placeholder={t("Ví dụ: Gửi người mình thương...", "For example: To someone dear...")}/></label>
+              {renderWritingStickerPicker(storyNameInputRef, setName)}
 
               {format === "message" && (
                 <div className={styles.writerPanel}>
@@ -1246,7 +1353,8 @@ export default function BookStudio() {
                     <button type="button" className={styles.primaryButton} onClick={() => void addChapter()} disabled={saving || !newChapterTitle.trim()}>{saving ? t("Đang thêm...", "Adding...") : t("Thêm chương vào sách", "Add chapter")}</button>
                   </div>
                   <div className={styles.writerInset}>
-                    <label className={styles.field}>{t("Tiêu đề lá thư cuối (không bắt buộc)", "Final letter title (optional)")}<input value={letterTitle} maxLength={100} onChange={(event) => setLetterTitle(event.target.value)}/></label>
+                    <label className={styles.field}>{t("Tiêu đề lá thư cuối (không bắt buộc)", "Final letter title (optional)")}<input ref={finalLetterTitleInputRef} value={letterTitle} maxLength={100} onChange={(event) => setLetterTitle(event.target.value)}/></label>
+                    {renderWritingStickerPicker(finalLetterTitleInputRef, setLetterTitle)}
                     <label className={styles.field}>{t("Nội dung lá thư cuối", "Final letter")}<textarea ref={finalLetterTextareaRef} value={letterText} onChange={(event) => setLetterText(event.target.value)} rows={4} maxLength={5000} placeholder={t("Có thể để dành một lời nhắn đặc biệt cho trang cuối...", "Save a special note for the final page...")}/></label>
                     {renderWritingStickerPicker(finalLetterTextareaRef, setLetterText)}
                     <label className={styles.field}>{t("Chữ ký", "Signature")}<input value={signature} maxLength={80} onChange={(event) => setSignature(event.target.value)} placeholder={t("Người viết", "Author")}/></label>
@@ -1281,11 +1389,12 @@ export default function BookStudio() {
               <div className={styles.sectionTitle}><span>04</span><div><h3>{t("Trang trí câu chuyện", "Decorate your story")}</h3><p>{t("Chọn màu sắc, chất giấy, hiệu ứng và sticker. Tất cả được lưu cùng tác phẩm và xuất hiện khi người nhận mở sách.", "Choose colors, paper textures, effects, and stickers. Your choices are saved with the story and appear when readers open it.")}</p></div></div>
               <div className={styles.decoratorPanel}>
                 <div className={styles.decoratorGroup}>
-                  <div className={styles.decoratorHeading}><strong>{t("Chủ đề màu", "Color theme")}</strong><span>{t("Không thay đổi nội dung bạn đã viết", "Your written content stays unchanged")}</span></div>
+                  <div className={styles.decoratorHeading}><strong>{t("Chủ đề màu", "Color theme")}</strong><span>{t("Di chuột để xem minh họa · Bấm để chọn", "Hover for an illustration · Click to select")}</span></div>
                   <div className={styles.decorationThemes}>
                     {DECORATION_THEMES.map((item) => <button key={item.value} type="button" className={decorations.theme === item.value ? styles.decorationChoiceActive : styles.decorationChoice} onClick={() => setDecorations((current) => ({ ...current, theme: item.value }))}>
                       <span className={[styles.themeSwatch, styles["swatch" + item.value[0].toUpperCase() + item.value.slice(1)]].join(" ")}/>
                       <strong>{t(item.title, item.titleEn)}</strong><small>{t(item.detail, item.detailEn)}</small>
+                      <span className={styles.hoverIllustration} data-kind={item.value} aria-hidden="true"><span>{item.value === "meadow" ? "🌼 🍃 🦋" : item.value === "sunset" ? "🌅 🌷 ☀️" : "🌙 ✨ ⭐"}</span><small>{t("Minh họa chủ đề", "Theme illustration")}</small></span>
                     </button>)}
                   </div>
                 </div>
@@ -1294,6 +1403,7 @@ export default function BookStudio() {
                   <div className={styles.decorationOptions}>
                     {PAPER_FINISHES.map((item) => <button key={item.value} type="button" className={decorations.paper === item.value ? styles.decorationPillActive : styles.decorationPill} onClick={() => setDecorations((current) => ({ ...current, paper: item.value }))}>
                       <strong>{t(item.title, item.titleEn)}</strong><small>{t(item.detail, item.detailEn)}</small>
+                      <span className={styles.hoverIllustration} data-kind={item.value} aria-hidden="true"><span className={styles.paperArtwork}>📜</span><small>{item.value === "ivory" ? t("Bề mặt giấy ngà", "Ivory paper surface") : item.value === "linen" ? t("Vân giấy linen", "Linen paper texture") : t("Giấy hồng ấm áp", "Warm blush paper")}</small></span>
                     </button>)}
                   </div>
                 </div>
@@ -1302,6 +1412,7 @@ export default function BookStudio() {
                   <div className={styles.effectOptions}>
                     {PAGE_EFFECTS.map((item) => <button key={item.value} type="button" className={decorations.effect === item.value ? styles.effectChoiceActive : styles.effectChoice} onClick={() => setDecorations((current) => ({ ...current, effect: item.value }))}>
                       <strong>{t(item.title, item.titleEn)}</strong><small>{t(item.detail, item.detailEn)}</small>
+                      <span className={styles.hoverIllustration} data-kind={item.value} aria-hidden="true"><span>{item.value === "page-turn" ? "📖 ↗" : item.value === "soft-glow" ? "📖 ✨" : item.value === "sparkles" ? "✦ ✧ ✨" : "📖"}</span><small>{t("Xem hiệu ứng đọc", "Reading effect preview")}</small></span>
                     </button>)}
                   </div>
                 </div>
@@ -1310,79 +1421,80 @@ export default function BookStudio() {
                   <div className={styles.stickerPicker}>
                     {STORY_STICKERS.map((sticker) => {
                       const active = decorations.stickers.includes(sticker.id);
-                      const limitReached = !isAdmin && decorations.stickers.length >= CREATOR_MAX_STICKERS && !active;
+                      const limitReached = false;
                       return <button key={sticker.id} type="button" className={active ? styles.stickerChoiceActive : styles.stickerChoice} onClick={() => toggleSticker(sticker.id)} disabled={limitReached}>
                         <span>{sticker.emoji}</span><strong>{t(sticker.label, sticker.labelEn)}</strong>{active && <small>{t("✓ Đã thêm", "✓ Added")}</small>}
                       </button>;
                     })}
                   </div>
-                  <p className={styles.helper}>{isAdmin ? t("Admin có thể dùng toàn bộ bộ sticker cho tác phẩm.", "Admin can use the full sticker collection.") : t("Bạn có thể chọn tối đa 4 sticker cho mỗi tác phẩm.", "You can choose up to 4 stickers per story.")} {t("Sticker chỉ mang tính trang trí, không che nội dung trang.", "Stickers are decorative and will not cover your text.")}</p>
+                  <p className={styles.helper}>{t("Admin và mọi tài khoản User đều được dùng toàn bộ bộ sticker, không giới hạn số lượng.", "Admin and all User accounts can use the full sticker collection without a selection limit.")} {t("Sticker chỉ mang tính trang trí, không che nội dung trang.", "Stickers are decorative and will not cover your text.")}</p>
                 </div>
                 <div className={styles.decorationPreview}><span>{decorations.stickers.map((id) => STORY_STICKERS.find((item) => item.id === id)?.emoji).join(" ") || "✦"}</span><div><strong>{t("Xem nhanh phong cách", "Style preview")}</strong><p>{DECORATION_THEMES.find((item) => item.value === decorations.theme) ? t(DECORATION_THEMES.find((item) => item.value === decorations.theme)!.title, DECORATION_THEMES.find((item) => item.value === decorations.theme)!.titleEn) : ""} · {PAPER_FINISHES.find((item) => item.value === decorations.paper) ? t(PAPER_FINISHES.find((item) => item.value === decorations.paper)!.title, PAPER_FINISHES.find((item) => item.value === decorations.paper)!.titleEn) : ""} · {PAGE_EFFECTS.find((item) => item.value === decorations.effect) ? t(PAGE_EFFECTS.find((item) => item.value === decorations.effect)!.title, PAGE_EFFECTS.find((item) => item.value === decorations.effect)!.titleEn) : ""}</p></div></div>
               </div>
             </section>
 
             </fieldset>
-            {isAdmin && <section className={styles.section} id="write-05">
-              <div className={styles.sectionTitle}><span>05</span><div><h3>{t("Lời nhắn từ người đọc", "Reader notes")}</h3><p>{t("Người nhận có thể để lại vài dòng sau khi đọc xong. Bạn duyệt trước khi hiển thị.", "Readers can leave a note after reading. Review it before it appears.")}</p></div></div>
-              <label className={styles.toggle}><input type="checkbox" checked={guestbookEnabled} onChange={(event) => setGuestbookEnabled(event.target.checked)}/> {t("Cho phép người đọc để lại lời nhắn", "Allow readers to leave notes")}</label>
-              <div className={styles.guestStats}><span>{pendingCount} {t("chờ duyệt", "pending")}</span><span>{approvedCount} {t("đã duyệt", "approved")}</span></div>
-              {guestbook.map((entry) => <div className={styles.guestEntry} key={entry.id}>
-                <div><strong>{entry.guest_name}</strong><small>{new Date(entry.created_at).toLocaleString("vi-VN")}</small><p>{entry.message}</p></div>
-                <span className={styles.guestStatus}>{entry.status === "pending" ? t("Chờ duyệt", "Pending") : entry.status === "approved" ? t("Đã duyệt", "Approved") : t("Đã ẩn", "Hidden")}</span>
-                {entry.status !== "approved" && <button type="button" onClick={() => void reviewGuestbook(entry, "approved")}>{t("Duyệt", "Approve")}</button>}
-                {entry.status !== "rejected" && <button type="button" className={styles.textDanger} onClick={() => void reviewGuestbook(entry, "rejected")}>{t("Ẩn", "Hide")}</button>}
-              </div>)}
-              {guestbook.length === 0 && <p className={styles.chapterEmpty}>{t("Chưa có lời nhắn nào.", "No reader notes yet.")}</p>}
-            </section>}
+            {isAdmin ? (
+              <section className={styles.section} id="write-05">
+                <div className={styles.sectionTitle}><span>05</span><div><h3>{t("Lời nhắn từ người đọc", "Reader notes")}</h3><p>{t("Khách là người đọc; Admin kiểm duyệt lời nhắn trước khi hiển thị công khai.", "Guests are readers; Admin reviews their notes before they appear publicly.")}</p></div></div>
+                <label className={styles.toggle}><input type="checkbox" checked={guestbookEnabled} onChange={(event) => setGuestbookEnabled(event.target.checked)}/> {t("Cho phép người đọc để lại lời nhắn", "Allow readers to leave notes")}</label>
+                <div className={styles.guestStats}><span>{pendingCount} {t("chờ duyệt", "pending")}</span><span>{approvedCount} {t("đã duyệt", "approved")}</span></div>
+                {guestbook.map((entry) => <div className={styles.guestEntry} key={entry.id}>
+                  <div><strong>{entry.guest_name}</strong><small>{new Date(entry.created_at).toLocaleString("vi-VN")}</small><p>{entry.message}</p></div>
+                  <span className={styles.guestStatus}>{entry.status === "pending" ? t("Chờ duyệt", "Pending") : entry.status === "approved" ? t("Đã duyệt", "Approved") : t("Đã ẩn", "Hidden")}</span>
+                  {entry.status !== "approved" && <button type="button" onClick={() => void reviewGuestbook(entry, "approved")}>{t("Duyệt", "Approve")}</button>}
+                  {entry.status !== "rejected" && <button type="button" className={styles.textDanger} onClick={() => void reviewGuestbook(entry, "rejected")}>{t("Ẩn", "Hide")}</button>}
+                </div>)}
+                {guestbook.length === 0 && <p className={styles.chapterEmpty}>{t("Chưa có lời nhắn nào.", "No reader notes yet.")}</p>}
+              </section>
+            ) : selectedGarden.approval_status === "approved" ? (
+              <section className={styles.section} id="write-05">
+                <div className={styles.sectionTitle}><span>05</span><div><h3>{t("Lời nhắn từ người đọc", "Reader notes")}</h3><p>{t("Khách là người đọc tác phẩm và có thể để lại lời nhắn. Bạn chọn bật hoặc tắt mục này.", "Guests can read your story and leave a note. Choose whether to enable this section.")}</p></div></div>
+                <label className={styles.toggle}><input type="checkbox" checked={guestbookEnabled} onChange={(event) => setGuestbookEnabled(event.target.checked)}/> {t("Cho phép người đọc để lại lời nhắn", "Allow readers to leave notes")}</label>
+                <label className={styles.toggle}><input type="checkbox" checked={pinEnabled} onChange={(event) => setPinEnabled(event.target.checked)}/> {t("Đặt mã PIN riêng cho người nhận (không bắt buộc)", "Set an optional PIN for readers")}</label>
+                {pinEnabled && <label className={styles.field}>{t("Mã PIN · tối thiểu 6 ký tự", "PIN · at least 6 characters")}<input type="password" value={pinDraft} onChange={(event) => setPinDraft(event.target.value)} placeholder={pinExists ? t("Để trống để giữ mã PIN hiện tại", "Leave blank to keep the current PIN") : t("Tạo mã PIN cho người đọc", "Create a PIN for readers")}/></label>}
+                <div className={styles.readerSettingsActions}>
+                  <p className={styles.helper}>{t("Admin vẫn là người duyệt hoặc ẩn lời nhắn của khách. User không thể tự duyệt bình luận.", "Admin remains responsible for approving or hiding guest notes. Writers cannot moderate comments themselves.")}</p>
+                  <button type="button" className={styles.secondaryButton} onClick={() => void saveApprovedReaderSettings()} disabled={saving}>{saving ? t("Đang lưu...", "Saving...") : t("Lưu cài đặt người đọc", "Save reader settings")}</button>
+                </div>
+              </section>
+            ) : (
+              <section className={styles.section} id="write-05">
+                <div className={styles.sectionTitle}><span>05</span><div><h3>{t("Lời nhắn từ người đọc", "Reader notes")}</h3><p>{t("Sau khi được duyệt, bạn có thể bật lời nhắn cho khách đọc và đặt mã PIN nếu muốn.", "After approval, you can enable guest notes and set a PIN if you wish.")}</p></div></div>
+                <p className={styles.chapterEmpty}>{t("Mục lời nhắn và mã PIN sẽ mở sau khi Admin duyệt tác phẩm.", "Reader notes and PIN settings become available after Admin approves the story.")}</p>
+              </section>
+            )}
 
             <section className={styles.section} id="write-06">
               <div className={styles.sectionTitle}><span>{isAdmin ? "06" : "05"}</span><div><h3>{t("Xem trước và gửi tác phẩm", "Preview and submit")}</h3><p>{t("Kiểm tra trải nghiệm lật trang, mục lục và hình ảnh trước khi gửi.", "Check page turns, contents, and photos before submitting.")}</p></div></div>
               <div className={styles.actionCard}><div><strong>{t("Bản xem trước", "Preview")}</strong><p>{t("Mở thử tác phẩm như người nhận sẽ thấy.", "Open the story as the reader will see it.")}</p></div><button type="button" className={styles.secondaryButton} onClick={() => { setPreviewReadIds([]); setPreviewOpen(true); }}>{t("◉ Xem trước", "◉ Preview")}</button></div>
               <div className={styles.actionCard}><div><strong>{t("Lưu riêng tư", "Save privately")}</strong><p>{t("Lưu nội dung hiện tại mà không tạo link công khai.", "Save your current work without publishing a public link.")}</p></div><button type="button" className={styles.primaryButton} onClick={() => void saveDraft()} disabled={saving || isCreatorReviewLocked}>{saving ? t("Đang lưu...", "Saving...") : t("Lưu bản nháp", "Save draft")}</button></div>
-              {isAdmin ? (
-                <div className={styles.publishPanel}>
-                  <div className={styles.publishHeading}><span>✉</span><div><strong>{t("Kiểm duyệt và xuất bản", "Review and publish")}</strong><p>{t("Admin xem xét nội dung trước khi tạo link và chia sẻ.", "Admin reviews the story before creating a sharing link.")}</p></div></div>
-                  <div className={styles.actionCard}><div><strong>{t("Trạng thái kiểm duyệt", "Review status")}</strong><p>{selectedGarden.approval_status === "pending" ? t("Tác phẩm đang chờ Admin xem xét.", "This story is awaiting Admin review.") : selectedGarden.approval_status === "approved" ? t("Tác phẩm đã được duyệt.", "This story has been approved.") : selectedGarden.approval_status === "rejected" ? t("Tác phẩm đã bị từ chối.", "This story was rejected.") : t("Bản thảo chưa được gửi duyệt.", "This draft has not been submitted for review.")}</p></div>
-                  </div>
-                  <label className={styles.field}>{t("Nhận xét cho người viết", "Feedback for the writer")}
-                    <textarea
-                      value={reviewCommentDraft}
-                      onChange={(event) => setReviewCommentDraft(event.target.value)}
-                      rows={4}
-                      maxLength={3000}
-                      placeholder={t("Ghi nhận xét khi duyệt, hoặc nêu rõ lý do nếu từ chối tác phẩm...", "Add an optional approval note, or explain what needs to change if rejecting the story...")}
-                    />
-                    <small className={styles.helper}>{statusForReview(selectedGarden.approval_status, t)}</small>
-                  </label>
-                  <div className={styles.reviewActions}>
-                    <button type="button" className={styles.primaryButton} onClick={() => void setApprovalStatus("approved")} disabled={saving}>
-                      {selectedGarden.approval_status === "approved" ? t("Cập nhật nhận xét duyệt", "Update approval note") : t("Duyệt tác phẩm", "Approve story")}
+              <div className={styles.publishPanel}>
+                <div className={styles.publishHeading}><span>✉</span><div><strong>{isAdmin ? t("Quản lý xuất bản", "Publishing management") : t("Kiểm duyệt và xuất bản", "Review and publish")}</strong><p>{selectedGarden.approval_status === "approved"
+                  ? t("Admin đã duyệt. Chủ sở hữu tác phẩm có thể xuất bản và chia sẻ khi sẵn sàng.", "Admin approved this story. Its owner can publish and share it when ready.")
+                  : t("Tác phẩm phải được Admin duyệt trước khi có thể xuất bản.", "A story must be approved by Admin before it can be published.")}</p></div></div>
+                <div className={styles.actionCard}><div><strong>{t("Trạng thái hiện tại", "Current status")}</strong><p>{selectedGarden.is_published ? t("Đang công khai", "Published") : selectedGarden.approval_status === "approved" ? t("Đã duyệt · Chưa xuất bản", "Approved · Not published") : selectedGarden.approval_status === "pending" ? t("Đang chờ Admin duyệt", "Awaiting Admin review") : selectedGarden.approval_status === "rejected" ? t("Chưa được duyệt · Cần chỉnh sửa", "Not approved · Changes needed") : t("Bản nháp riêng tư", "Private draft")}</p></div></div>
+                {selectedGarden.approval_status === "approved" && (
+                  <>
+                    <label className={styles.toggle}><input type="checkbox" checked={guestbookEnabled} onChange={(event) => setGuestbookEnabled(event.target.checked)}/> {t("Cho phép người đọc để lại lời nhắn", "Allow readers to leave notes")}</label>
+                    <label className={styles.toggle}><input type="checkbox" checked={pinEnabled} onChange={(event) => setPinEnabled(event.target.checked)}/> {t("Đặt mã PIN riêng cho người nhận (không bắt buộc)", "Set an optional PIN for readers")}</label>
+                    {pinEnabled && <label className={styles.field}>{t("Mã PIN · tối thiểu 6 ký tự", "PIN · at least 6 characters")}<input type="password" value={pinDraft} onChange={(event) => setPinDraft(event.target.value)} placeholder={pinExists ? t("Để trống để giữ mã PIN hiện tại", "Leave blank to keep the current PIN") : t("Tạo mã PIN cho người nhận", "Create a reader PIN")}/></label>}
+                    <button type="button" className={selectedGarden.is_published ? styles.unpublishButton : styles.publishButton} onClick={() => void publishWork(!selectedGarden.is_published)} disabled={saving || (!selectedGarden.is_published && !contentReady())}>
+                      {saving ? t("Đang cập nhật...", "Updating...") : selectedGarden.is_published ? t("Gỡ xuất bản", "Unpublish") : t("Xuất bản và tạo liên kết", "Publish and create link")}
                     </button>
-                    <button type="button" className={styles.secondaryButton} onClick={() => void setApprovalStatus("rejected")} disabled={saving}>
-                      {selectedGarden.approval_status === "rejected" ? t("Cập nhật lý do từ chối", "Update rejection reason") : t("Từ chối tác phẩm", "Reject story")}
-                    </button>
-                  </div>
-                  <label className={styles.toggle}><input type="checkbox" checked={pinEnabled} onChange={(event) => setPinEnabled(event.target.checked)}/> {t("Yêu cầu mã PIN khi mở tác phẩm", "Require a PIN to open this story")}</label>
-                  {pinEnabled && <label className={styles.field}>{t("Mã PIN · tối thiểu 6 ký tự", "PIN · at least 6 characters")}<input type="password" value={pinDraft} onChange={(event) => setPinDraft(event.target.value)} placeholder={pinExists ? t("Để trống để giữ mã PIN hiện tại", "Leave blank to keep the current PIN") : t("Nhập mã PIN cho người nhận", "Enter a PIN for the reader")}/></label>}
-                  <button type="button" className={selectedGarden.is_published ? styles.unpublishButton : styles.publishButton} onClick={() => void publishWork(!selectedGarden.is_published)} disabled={saving || (!selectedGarden.is_published && selectedGarden.approval_status !== "approved")}>
-                    {saving ? t("Đang cập nhật...", "Updating...") : selectedGarden.is_published ? t("Chuyển về bản nháp", "Unpublish") : selectedGarden.approval_status !== "approved" ? t("Duyệt trước khi xuất bản", "Approve before publishing") : t("Xuất bản và tạo link", "Publish and create link")}
-                  </button>
-                  {selectedGarden.is_published && shareUrl && <div className={styles.shareResult}>
-                    <div className={styles.shareLinkBlock}><strong>{t("Liên kết tác phẩm", "Story link")}</strong><code>{shareUrl}</code><div><button type="button" onClick={() => void copyShareLink()}>{t("Sao chép link", "Copy link")}</button><a href={shareUrl} target="_blank" rel="noreferrer">Mở trang người đọc ↗</a></div><small>{pinExists ? t("Người nhận cần nhập mã PIN.", "Readers need a PIN.") : t("Người nhận có thể mở trực tiếp.", "Readers can open this link directly.")}</small></div>
-                    <div className={styles.qrCode} role="img" aria-label={t("Mã QR để mở tác phẩm", "QR code to open this story")} style={{ backgroundImage: "url(" + qrUrl + ")" }}/>
-                  </div>}
-                </div>
-              ) : (
-                <div className={styles.publishPanel}>
-                  <div className={styles.publishHeading}><span>✉</span><div><strong>{t("Gửi bản thảo cho Admin kiểm duyệt", "Submit draft for Admin review")}</strong><p>{t("Tác phẩm sẽ được giữ riêng tư cho đến khi Admin xem xét và duyệt. Bạn không cần tự tạo link công khai.", "Your story stays private until Admin reviews and approves it. You do not create a public link yourself.")}</p></div></div>
-                  <div className={styles.actionCard}><div><strong>{t("Trạng thái hiện tại", "Current status")}</strong><p>{selectedGarden.approval_status === "pending" ? t("Đã gửi duyệt. Admin sẽ xem nội dung trước khi xuất bản.", "Submitted. Admin will review the content before publishing.") : selectedGarden.approval_status === "approved" ? "Tác phẩm đã được duyệt. Admin sẽ quyết định thời điểm chia sẻ." : selectedGarden.approval_status === "rejected" ? t("Admin đề nghị bạn chỉnh sửa rồi gửi lại.", "Admin asked you to make changes and resubmit.") : t("Bản thảo chỉ bạn nhìn thấy. Có thể lưu riêng tư hoặc gửi duyệt khi đã hoàn tất.", "Only you can see this draft. Save it privately or submit when ready.")}</p></div></div>
-                  <button type="button" className={styles.primaryButton} onClick={() => void submitForReview()} disabled={saving || !contentReady() || selectedGarden.approval_status === "pending" || selectedGarden.approval_status === "approved"}>
-                    {saving ? t("Đang gửi...", "Submitting...") : selectedGarden.approval_status === "pending" ? t("Đang chờ Admin duyệt", "Awaiting Admin review") : selectedGarden.approval_status === "approved" ? t("Đã được Admin duyệt", "Approved by Admin") : t("Gửi Admin kiểm duyệt", "Submit to Admin")}
-                  </button>
-                  {selectedGarden.approval_status === "pending" && <button type="button" className={styles.secondaryButton} onClick={() => void withdrawReview()} disabled={saving}>{t("Rút yêu cầu duyệt", "Withdraw review request")}</button>}
-                </div>
-              )}
+                    {selectedGarden.is_published && shareUrl && <div className={styles.shareResult}>
+                      <div className={styles.shareLinkBlock}><strong>{t("Liên kết tác phẩm", "Story link")}</strong><code>{shareUrl}</code><div><button type="button" onClick={() => void copyShareLink()}>{t("Sao chép link", "Copy link")}</button><a href={shareUrl} target="_blank" rel="noreferrer">Mở trang người đọc ↗</a></div><small>{pinExists ? t("Người nhận cần nhập mã PIN.", "Readers need a PIN.") : t("Người nhận có thể mở trực tiếp.", "Readers can open this link directly.")}</small></div>
+                      <div className={styles.qrCode} role="img" aria-label={t("Mã QR để mở tác phẩm", "Story QR code")} style={{ backgroundImage: "url(" + qrUrl + ")" }}/>
+                    </div>}
+                  </>
+                )}
+                {selectedGarden.approval_status === "pending" && !isAdmin && <button type="button" className={styles.secondaryButton} onClick={() => void withdrawReview()} disabled={saving}>{t("Rút yêu cầu duyệt", "Withdraw review request")}</button>}
+                {selectedGarden.approval_status !== "approved" && isAdmin && <Link className={styles.secondaryButton} href="/admin/review">{t("Mở Bàn kiểm duyệt", "Open review desk")} ↗</Link>}
+                {selectedGarden.approval_status === "rejected" && !isAdmin && <button type="button" className={styles.primaryButton} onClick={() => void submitForReview()} disabled={saving || !contentReady()}>{saving ? t("Đang gửi...", "Submitting...") : t("Gửi duyệt lại", "Resubmit for review")}</button>}
+                {selectedGarden.approval_status === "draft" && !isAdmin && <button type="button" className={styles.primaryButton} onClick={() => void submitForReview()} disabled={saving || !contentReady()}>{saving ? t("Đang gửi...", "Submitting...") : t("Gửi Admin kiểm duyệt", "Submit for Admin review")}</button>}
+                {selectedGarden.approval_status === "pending" && isAdmin && <p className={styles.helper}>{t("Admin đang theo dõi yêu cầu này trong Bàn kiểm duyệt. Hãy dùng trang đó để duyệt hoặc từ chối.", "Use the Review Desk to approve or reject this pending request.")}</p>}
+                {selectedGarden.approval_status === "rejected" && isAdmin && <p className={styles.helper}>{t("User đã nhận thông báo và lý do từ chối. Mở Bàn kiểm duyệt để xem quyết định.", "The User received the rejection notice and reason. Open the Review Desk to review the decision.")}</p>}
+              </div>
               </section>
             </section>
         ) : (
