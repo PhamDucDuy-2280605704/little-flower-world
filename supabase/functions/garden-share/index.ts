@@ -186,7 +186,7 @@ async function viewGarden(garden: Record<string, unknown>, pin: string, slug: st
   const inlinePhotos = [...rawInlinePhotos, ...assembledPhotoUrls]
     .filter((value): value is string =>
       typeof value === "string"
-      && value.length <= 120_000
+      && value.length <= 220_000
       && /^data:image\/webp;base64,[A-Za-z0-9+/=]+$/.test(value)
     )
     .slice(0, 5)
@@ -196,6 +196,8 @@ async function viewGarden(garden: Record<string, unknown>, pin: string, slug: st
       alt: typeof inlinePhotoAlts[index] === "string"
         ? inlinePhotoAlts[index] as string
         : "Một kỷ niệm gia đình",
+      width: index === 0 ? 800 : 600,
+      height: index === 0 ? 600 : 800,
     }));
 
   const [itemsResult, chaptersResult, albumResult, guestbookResult, storageCoverUrl] = await Promise.all([
