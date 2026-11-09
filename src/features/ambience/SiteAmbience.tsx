@@ -28,6 +28,7 @@ export default function SiteAmbience() {
   const audioRef = useRef<AudioContext | null>(null);
   const masterGainRef = useRef<GainNode | null>(null);
   const schedulerRef = useRef<number | null>(null);
+  const startingRef = useRef(false);
 
   const stopMusic = useCallback(() => {
     if (schedulerRef.current !== null) {
@@ -65,11 +66,13 @@ export default function SiteAmbience() {
   }, []);
 
   const startMusic = useCallback(async () => {
-    if (audioRef.current) return;
+    if (audioRef.current || startingRef.current) return;
+    startingRef.current = true;
     setAudioError("");
 
     const AudioContextConstructor = window.AudioContext;
     if (!AudioContextConstructor) {
+      startingRef.current = false;
       setAudioError(language === "vi"
         ? "Trình duyệt này chưa hỗ trợ nhạc nền."
         : "This browser does not support background music.");
@@ -186,6 +189,11 @@ export default function SiteAmbience() {
       let chordIndex = 0;
       const scheduleAhead = () => {
         if (!context || context.state !== "running") return;
+        if (nextBlockAt < context.currentTime - CHORD_DURATION) {
+          const skippedBlocks = Math.floor((context.currentTime - nextBlockAt) / CHORD_DURATION);
+          nextBlockAt += skippedBlocks * CHORD_DURATION;
+          chordIndex = (chordIndex + skippedBlocks) % CHORDS.length;
+        }
         while (nextBlockAt < context.currentTime + 10) {
           scheduleBlock(nextBlockAt, chordIndex);
           nextBlockAt += CHORD_DURATION;
@@ -197,7 +205,9 @@ export default function SiteAmbience() {
       schedulerRef.current = window.setInterval(scheduleAhead, 700);
       setPlaying(true);
       setVolumeOpen(true);
+      startingRef.current = false;
     } catch (error) {
+      startingRef.current = false;
       console.error("Start ambient music failed:", error);
       if (context && context.state !== "closed") {
         void context.close().catch(() => undefined);
