@@ -46,7 +46,7 @@ export default function LoginForm() {
       if (signInError) throw signInError;
 
       const requestedPath = new URLSearchParams(window.location.search).get("next");
-      const nextPath = requestedPath?.startsWith("/") && !requestedPath.startsWith("//") ? requestedPath : "/studio";
+      const nextPath = requestedPath?.startsWith("/") && !requestedPath.startsWith("//") ? requestedPath : "/account";
       router.replace(nextPath);
       router.refresh();
     } catch (err: unknown) {
