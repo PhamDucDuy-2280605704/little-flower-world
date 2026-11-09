@@ -321,7 +321,7 @@ export default function BookStudio() {
         if (memberSignOutError) {
           console.error("Clear Admin credentials from writer session failed:", memberSignOutError);
         }
-        router.replace(adminSessionValid ? "/admin" : "/");
+        router.replace("/");
         setAuthReady(true);
         setLoading(false);
         return;
