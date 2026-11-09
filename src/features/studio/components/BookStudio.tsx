@@ -314,6 +314,19 @@ export default function BookStudio() {
       const forceAdminWorkspace = isAdminStudioPath || new URLSearchParams(window.location.search).get("mode") === "admin";
       const adminSessionValid = adminUser?.id === FAIRYTALE_GARDEN_ADMIN_USER_ID;
 
+      // Never treat the public writer session as an Admin session.
+      // Admin credentials are accepted only by the isolated private portal client.
+      if (memberUser?.id === FAIRYTALE_GARDEN_ADMIN_USER_ID) {
+        const { error: memberSignOutError } = await supabase.auth.signOut({ scope: "local" });
+        if (memberSignOutError) {
+          console.error("Clear Admin credentials from writer session failed:", memberSignOutError);
+        }
+        router.replace(adminSessionValid ? "/admin" : "/");
+        setAuthReady(true);
+        setLoading(false);
+        return;
+      }
+
       if (forceAdminWorkspace && !adminSessionValid) {
         router.replace("/");
         setAuthReady(true);
