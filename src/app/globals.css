@@ -79,3 +79,49 @@ button, input, textarea, select { font: inherit; }
 ::selection { color: #fffaf0; background: #8c704c; }
 :where(button, a, input, textarea, select):focus-visible { outline-color: var(--garden-focus); }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+
+/* A quiet, consistent canvas shared by every part of the story world. */
+:root {
+  --garden-page-bg:
+    radial-gradient(ellipse at 8% 8%, rgba(243, 247, 232, .94), transparent 38%),
+    radial-gradient(ellipse at 92% 78%, rgba(235, 225, 201, .36), transparent 34%),
+    linear-gradient(135deg, #f7f5eb 0%, #f0f2e7 52%, #f7f1e6 100%);
+  --garden-surface: rgba(255, 254, 248, .9);
+  --garden-surface-strong: #fffdf6;
+  --garden-control: #edf1e5;
+  --garden-focus: #78956c;
+  --garden-shadow: rgba(64, 83, 55, .1);
+}
+html { scrollbar-color: #aeb99d #f2f0e5; }
+body { background: var(--garden-page-bg); }
+.site-content {
+  position: relative;
+  z-index: 1;
+  flex: 1 0 auto;
+  min-width: 0;
+}
+.site-content > main {
+  animation: page-arrive .68s cubic-bezier(.2,.7,.2,1) both;
+}
+.site-content :where(button, a, input, textarea, select) {
+  -webkit-tap-highlight-color: transparent;
+}
+.site-content :where(button, a):focus-visible {
+  outline: 3px solid rgba(120, 149, 108, .36);
+  outline-offset: 3px;
+}
+@keyframes page-arrive {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .site-content > main { animation: none; }
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
