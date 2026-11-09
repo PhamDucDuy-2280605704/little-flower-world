@@ -364,3 +364,46 @@
   .deleteWorkButton { flex-basis: 32px; width: 32px; height: 34px; }
   .reviewActions { display: grid; grid-template-columns: 1fr; }
 }
+
+
+.accountCapabilities {
+  width: min(1440px, 100%);
+  margin: 0 auto 16px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+}
+.accountCapabilities>div {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  align-content: start;
+  gap: 4px 9px;
+  min-width: 0;
+  padding: 13px 14px;
+  border: 1px solid rgba(119,148,103,.17);
+  border-radius: 13px;
+  background: rgba(255,255,249,.82);
+}
+.accountCapabilities>div>span {
+  grid-row: span 2;
+  display: grid;
+  width: 31px;
+  height: 31px;
+  place-items: center;
+  border-radius: 10px;
+  background: #edf4e7;
+  color: #62845b;
+  font-size: 16px;
+}
+.accountCapabilities strong { color: #496448; font-size: 11px; font-weight: 900; line-height: 1.35; }
+.accountCapabilities small { color: #89947f; font-size: 9px; line-height: 1.5; }
+@media(max-width:980px) {
+  .accountCapabilities { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+@media(max-width:560px) {
+  .accountCapabilities { grid-template-columns: 1fr 1fr; gap: 7px; }
+  .accountCapabilities>div { grid-template-columns: 25px minmax(0,1fr); gap: 4px 7px; padding: 10px; }
+  .accountCapabilities>div>span { width: 25px; height: 25px; font-size: 13px; }
+  .accountCapabilities strong { font-size: 10px; }
+  .accountCapabilities small { font-size: 8px; }
+}
