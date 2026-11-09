@@ -96,6 +96,7 @@ type Props = {
   letterReady?: boolean;
   returnHref?: string;
   returnLabel?: string;
+  standalone?: boolean;
   actionHref?: string;
   actionLabel?: string;
   /** Compatibility props accepted from legacy routes but deliberately never rendered. */
@@ -125,6 +126,7 @@ export default function GardenJournal({
   letterReady = false,
   returnHref = "/",
   returnLabel = "Little Story World",
+  standalone = false,
   actionHref = "#the-book",
   actionLabel = "MỞ CUỐN SÁCH",
   children,
@@ -252,18 +254,20 @@ export default function GardenJournal({
 
   return (
     <main className={styles.page}>
-      <header className={styles.siteHeader}>
-        <Link className={styles.brand} href={returnHref}>
-          <span className={styles.brandMark}>L</span>
-          <span>LITTLE STORY WORLD</span>
-        </Link>
-        <nav aria-label={t("Điều hướng tác phẩm", "Story navigation")}>
-          <a href="#the-book">{t("Cuốn sách", "Book")}</a>
-          <a href="#contents">{t("Mục lục", "Contents")}</a>
-          {secondaryPhotos.length > 0 && <a href="#memories">{t("Hình ảnh", "Photos")}</a>}
-        </nav>
-        <a className={styles.headerAction} href={actionHref}>{actionLabel === "MỞ CUỐN SÁCH" || actionLabel === "MỞ TÁC PHẨM" ? t(actionLabel, "OPEN STORY") : actionLabel === "ĐỂ LẠI LỜI NHẮN" ? t(actionLabel, "LEAVE A NOTE") : actionLabel}</a>
-      </header>
+      {!standalone && (
+        <header className={styles.siteHeader}>
+          <Link className={styles.brand} href={returnHref}>
+            <span className={styles.brandMark}>L</span>
+            <span>LITTLE STORY WORLD</span>
+          </Link>
+          <nav aria-label={t("Điều hướng tác phẩm", "Story navigation")}>
+            <a href="#the-book">{t("Cuốn sách", "Book")}</a>
+            <a href="#contents">{t("Mục lục", "Contents")}</a>
+            {secondaryPhotos.length > 0 && <a href="#memories">{t("Hình ảnh", "Photos")}</a>}
+          </nav>
+          <a className={styles.headerAction} href={actionHref}>{actionLabel === "MỞ CUỐN SÁCH" || actionLabel === "MỞ TÁC PHẨM" ? t(actionLabel, "OPEN STORY") : actionLabel === "ĐỂ LẠI LỜI NHẮN" ? t(actionLabel, "LEAVE A NOTE") : actionLabel}</a>
+        </header>
+      )}
 
       <section className={styles.masthead}>
         <p className={styles.overline}><span /> {t("MỘT CÂU CHUYỆN ĐƯỢC TẠO BẰNG SỰ CHÂN THÀNH", "A PERSONAL STORY, MADE WITH CARE")} <span /></p>
@@ -486,11 +490,13 @@ export default function GardenJournal({
 
       {children}
 
-      <footer className={styles.footer}>
-        <Link href={returnHref}>{returnLabel === "Quay về cổng khách" ? t("Quay về cổng khách", "Back to reader portal") : returnLabel === "Quay lại trung tâm Admin" ? t("Quay lại trung tâm Admin", "Back to Admin center") : returnLabel}</Link>
-        <span>{t("MỘT CÂU CHUYỆN ĐƯỢC TẠO BẰNG SỰ CHÂN THÀNH", "A STORY CREATED WITH CARE")} · LITTLE STORY WORLD</span>
-        <a href={STOCK_BOOK_PAGE} target="_blank" rel="noreferrer">{t("Ảnh minh họa: Pixabay ↗", "Image: Pixabay ↗")}</a>
-      </footer>
+      {!standalone && (
+        <footer className={styles.footer}>
+          <Link href={returnHref}>{returnLabel === "Quay về cổng khách" ? t("Quay về cổng khách", "Back to reader portal") : returnLabel === "Quay lại trung tâm Admin" ? t("Quay lại trung tâm Admin", "Back to Admin center") : returnLabel}</Link>
+          <span>{t("MỘT CÂU CHUYỆN ĐƯỢC TẠO BẰNG SỰ CHÂN THÀNH", "A STORY CREATED WITH CARE")} · LITTLE STORY WORLD</span>
+          <a href={STOCK_BOOK_PAGE} target="_blank" rel="noreferrer">{t("Ảnh minh họa: Pixabay ↗", "Image: Pixabay ↗")}</a>
+        </footer>
+      )}
 
       <PhotoLightbox
         images={lightboxImages}
