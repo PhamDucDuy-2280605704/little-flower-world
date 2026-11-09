@@ -1069,3 +1069,47 @@
   .app { width: 100%; }
   .workspace { grid-template-columns: minmax(0,1fr); }
 }
+
+
+/* Admin preview dialog uses the full available viewport for every story format. */
+.storyPreviewDialog {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: min(1700px, calc(100vw - 16px));
+  height: calc(100dvh - 16px);
+  max-width: none;
+  max-height: none;
+  overflow: hidden;
+  padding: 0;
+}
+.storyPreviewDialogLetter {
+  width: min(1700px, calc(100vw - 16px));
+  height: calc(100dvh - 16px);
+  max-width: none;
+  max-height: none;
+}
+.storyPreviewToolbar {
+  position: relative;
+  flex: 0 0 auto;
+}
+.storyPreviewBody,
+.storyPreviewBodyLetter {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  max-height: none;
+  overflow: auto;
+  padding: 0;
+}
+.storyPreviewBody > div { min-height: 100%; }
+@media(max-width:680px) {
+  .storyPreviewDialog,
+  .storyPreviewDialogLetter {
+    width: calc(100vw - 8px);
+    height: calc(100dvh - 8px);
+    max-height: none;
+    border-radius: 12px;
+  }
+  .storyPreviewToolbar { padding: 10px 11px; }
+}
