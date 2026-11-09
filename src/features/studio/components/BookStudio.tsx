@@ -240,13 +240,38 @@ export default function BookStudio() {
       return;
     }
     const imageFiles = (files ?? []).filter((file) => file.name && file.id && isStoredImage(file.name, file.metadata?.mimetype));
-    const signed = await Promise.all(imageFiles.map(async (file) => {
+    const coverRecord = garden.cover_path
+      ? imageFiles.find((file) => garden.id + "/" + file.name === garden.cover_path) ?? null
+      : null;
+    const orderedImageFiles = coverRecord
+      ? [coverRecord, ...imageFiles.filter((file) => file.name !== coverRecord.name)]
+      : imageFiles;
+    const inlinePhotoAlts = Array.isArray(settings.inlinePhotoAlts)
+      ? settings.inlinePhotoAlts.filter((alt): alt is string => typeof alt === "string")
+      : [];
+    const todayPhotoAlt = inlinePhotoAlts.find((alt) => alt.toLowerCase().includes("hôm nay"))
+      ?? "Ảnh gia đình hôm nay";
+    const oldPhotoAlt = inlinePhotoAlts.find((alt) => alt.toLowerCase().includes("ngày trước"))
+      ?? "Bức ảnh gia đình ngày trước";
+    const signedResults = await Promise.all(orderedImageFiles.map(async (file, index) => {
       const path = garden.id + "/" + file.name;
-      const { data } = await activeClientRef.current.storage.from("garden-photos").createSignedUrl(path, 60 * 60);
-      return data?.signedUrl ? { path, url: data.signedUrl, alt: file.name } : null;
+      const { data, error: signedError } = await activeClientRef.current.storage.from("garden-photos").createSignedUrl(path, 60 * 60);
+      if (signedError || !data?.signedUrl) {
+        console.error("Sign story photo failed:", path, signedError);
+        return null;
+      }
+      const isCover = Boolean(coverRecord && file.name === coverRecord.name);
+      const alt = settings.readOnlyStandalone === true
+        ? (coverRecord ? (isCover ? todayPhotoAlt : oldPhotoAlt) : (index === 0 ? todayPhotoAlt : oldPhotoAlt))
+        : file.name;
+      return { path, url: data.signedUrl, alt };
     }));
-    setPhotos(signed.filter((photo): photo is GardenJournalPhoto => photo !== null));
-  }, [isAdmin]);
+    const loadedPhotos = signedResults.filter((photo): photo is GardenJournalPhoto => photo !== null);
+    setPhotos(loadedPhotos);
+    if (loadedPhotos.length !== orderedImageFiles.length) {
+      setError(t("Một số ảnh không tạo được liên kết xem. Hãy kiểm tra lại album trong Admin.", "Some photos could not be signed for viewing. Please check the Admin album."));
+    }
+  }, [isAdmin, t]);
 
   useEffect(() => {
     let active = true;
