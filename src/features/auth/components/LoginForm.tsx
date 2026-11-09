@@ -53,17 +53,32 @@ export default function LoginForm() {
       }
 
       const requestedPath = new URLSearchParams(window.location.search).get("next");
-      const normalizedPath = requestedPath?.toLowerCase() ?? "";
-      const isAdminDestination =
-        normalizedPath.startsWith("/admin")
-        || normalizedPath.startsWith("/private-admin")
-        || normalizedPath.startsWith("/little-story-backstage");
-      const nextPath = requestedPath
-        && requestedPath.startsWith("/")
-        && !requestedPath.startsWith("//")
-        && !isAdminDestination
-        ? requestedPath
-        : "/account";
+      let nextPath = "/account";
+
+      if (requestedPath?.startsWith("/") && !requestedPath.startsWith("//")) {
+        try {
+          const destination = new URL(requestedPath, window.location.origin);
+          let decodedPath = destination.pathname.toLowerCase();
+          try {
+            decodedPath = decodeURIComponent(decodedPath);
+          } catch {
+            // Keep the normalized URL path when a malformed escape is supplied.
+          }
+
+          const isAdminDestination =
+            decodedPath.startsWith("/admin")
+            || decodedPath.startsWith("/private-admin")
+            || decodedPath.startsWith("/little-story-backstage");
+
+          // Keep redirects on this origin and never route a writer into Admin.
+          if (destination.origin === window.location.origin && !isAdminDestination) {
+            nextPath = destination.pathname + destination.search + destination.hash;
+          }
+        } catch {
+          // Fall back to the writer workspace for malformed return URLs.
+        }
+      }
+
       router.replace(nextPath);
       router.refresh();
     } catch (err: unknown) {
