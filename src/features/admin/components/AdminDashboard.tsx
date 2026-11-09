@@ -511,7 +511,7 @@ export default function AdminDashboard() {
       setError(t("Đăng xuất chưa thành công. Anh thử lại nhé.", "Sign out failed. Please try again."));
       return;
     }
-    router.replace("/little-story-backstage-7f4c");
+    router.replace("/");
   }
 
   if (authState === "checking") {
