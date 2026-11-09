@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useLanguage } from "@/features/i18n/LanguageProvider";
 import styles from "./SiteAmbience.module.css";
 
-type TrackId = "piano" | "musicbox" | "moonlight";
+type TrackId = "sunny" | "piano" | "musicbox" | "moonlight";
 
 type Track = {
   id: TrackId;
@@ -17,11 +17,49 @@ type Track = {
   rootFrequency: number;
   padLevel: number;
   leadLevel: number;
-  leadStyle: "piano" | "bell" | "soft";
+  leadStyle: "piano" | "bell" | "soft" | "plucky";
   echo: number;
+  barDuration?: number;
 };
 
 const TRACKS: Record<TrackId, Track> = {
+  sunny: {
+    id: "sunny",
+    title: "Nắng vui mỗi ngày",
+    titleEn: "Sunny days",
+    description: "Giai điệu tươi sáng, nhịp vui nhẹ nhàng và lạc quan",
+    descriptionEn: "Bright, playful melodies with a gentle, happy rhythm",
+    rootFrequency: 174.614,
+    padLevel: 0.058,
+    leadLevel: 0.086,
+    leadStyle: "plucky",
+    echo: 0.075,
+    barDuration: 7.6,
+    chords: [
+      [0, 4, 7, 11], [7, 11, 14, 17], [9, 12, 16, 19], [5, 9, 12, 16],
+      [0, 4, 7, 12], [7, 11, 14, 19], [5, 9, 12, 16], [9, 12, 16, 21],
+      [0, 4, 7, 11], [2, 5, 9, 12], [7, 11, 14, 17], [5, 9, 12, 16],
+      [9, 12, 16, 19], [5, 9, 12, 16], [0, 4, 7, 11], [0, 4, 7, 12],
+    ],
+    melodies: [
+      [12, 16, 19, 21, 19, 16, 14, 16],
+      [7, 11, 14, 16, 14, 11, 9, 11],
+      [9, 12, 16, 19, 16, 14, 12, 14],
+      [5, 9, 12, 14, 12, 9, 7, 9],
+      [16, 19, 21, 24, 21, 19, 16, 14],
+      [14, 16, 19, 21, 19, 16, 14, 12],
+      [12, 14, 16, 19, 16, 14, 12, 9],
+      [7, 9, 11, 14, 16, 14, 11, 9],
+      [19, 21, 24, 26, 24, 21, 19, 16],
+      [16, 14, 12, 14, 16, 19, 16, 14],
+      [9, 12, 14, 16, 19, 16, 14, 12],
+      [5, 7, 9, 12, 14, 12, 9, 7],
+      [12, 16, 19, 21, 24, 21, 19, 16],
+      [14, 12, 9, 12, 14, 16, 19, 16],
+      [7, 11, 14, 19, 17, 14, 11, 9],
+      [19, 16, 14, 12, 11, 9, 7, 4],
+    ],
+  },
   piano: {
     id: "piano",
     title: "Piano dịu dàng",
@@ -132,8 +170,8 @@ const TRACKS: Record<TrackId, Track> = {
   },
 };
 
-const TRACK_IDS: TrackId[] = ["piano", "musicbox", "moonlight"];
-const TRACK_STORAGE_KEY = "little-story-world-ambience-track";
+const TRACK_IDS: TrackId[] = ["sunny", "piano", "musicbox", "moonlight"];
+const TRACK_STORAGE_KEY = "little-story-world-ambience-track-v2";
 const BAR_DURATION = 9.6;
 const SONG_BARS = 64;
 
@@ -148,7 +186,7 @@ export default function SiteAmbience() {
   const languageRef = useRef(language);
   const [musicEnabled, setMusicEnabled] = useState(true);
   const [playing, setPlaying] = useState(false);
-  const [trackId, setTrackId] = useState<TrackId>("piano");
+  const [trackId, setTrackId] = useState<TrackId>("sunny");
   const [volume, setVolume] = useState(0.72);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [audioError, setAudioError] = useState("");
@@ -159,7 +197,7 @@ export default function SiteAmbience() {
   const startingRef = useRef(false);
   const enabledRef = useRef(true);
   const volumeRef = useRef(volume);
-  const trackRef = useRef<TrackId>("piano");
+  const trackRef = useRef<TrackId>("sunny");
   const generationRef = useRef(0);
 
   const isVietnamese = language === "vi";
@@ -233,7 +271,7 @@ export default function SiteAmbience() {
 
       const warmth = context.createBiquadFilter();
       warmth.type = "lowpass";
-      warmth.frequency.setValueAtTime(track.leadStyle === "bell" ? 6200 : 3600, context.currentTime);
+      warmth.frequency.setValueAtTime(track.leadStyle === "bell" ? 6200 : track.leadStyle === "plucky" ? 5200 : 3600, context.currentTime);
       warmth.Q.setValueAtTime(0.28, context.currentTime);
 
       const compressor = context.createDynamicsCompressor();
@@ -298,7 +336,7 @@ export default function SiteAmbience() {
         const primaryGain = context.createGain();
         const overtoneGain = context.createGain();
 
-        primary.type = track.leadStyle === "bell" ? "sine" : track.leadStyle === "soft" ? "triangle" : "triangle";
+        primary.type = track.leadStyle === "bell" ? "sine" : "triangle";
         overtone.type = track.leadStyle === "bell" ? "triangle" : "sine";
         primary.frequency.setValueAtTime(frequency, startAt);
         overtone.frequency.setValueAtTime(
@@ -306,14 +344,14 @@ export default function SiteAmbience() {
           startAt,
         );
 
-        const attack = track.leadStyle === "soft" ? 0.16 : track.leadStyle === "bell" ? 0.035 : 0.025;
-        const tail = track.leadStyle === "bell" ? duration * 0.82 : duration;
+        const attack = track.leadStyle === "soft" ? 0.16 : track.leadStyle === "bell" ? 0.035 : track.leadStyle === "plucky" ? 0.018 : 0.025;
+        const tail = track.leadStyle === "bell" ? duration * 0.82 : track.leadStyle === "plucky" ? duration * 0.72 : duration;
 
         primaryGain.gain.setValueAtTime(0.0001, startAt);
         primaryGain.gain.linearRampToValueAtTime(level, startAt + attack);
         primaryGain.gain.exponentialRampToValueAtTime(0.0001, startAt + tail);
         overtoneGain.gain.setValueAtTime(0.0001, startAt);
-        overtoneGain.gain.linearRampToValueAtTime(level * (track.leadStyle === "bell" ? 0.13 : 0.2), startAt + attack);
+        overtoneGain.gain.linearRampToValueAtTime(level * (track.leadStyle === "bell" ? 0.13 : track.leadStyle === "plucky" ? 0.12 : 0.2), startAt + attack);
         overtoneGain.gain.exponentialRampToValueAtTime(0.0001, startAt + duration * 0.56);
 
         primary.connect(primaryGain);
@@ -341,6 +379,7 @@ export default function SiteAmbience() {
         schedulerStarted = true;
         let nextBlockAt = context.currentTime + 0.18;
         let blockIndex = 0;
+        const barDuration = track.barDuration ?? BAR_DURATION;
 
         const scheduleBlock = (startAt: number, absoluteIndex: number) => {
           const cycle = Math.floor(absoluteIndex / SONG_BARS);
@@ -362,7 +401,7 @@ export default function SiteAmbience() {
             playPad(
               frequencyFor(note + octave + keyShift, track.rootFrequency),
               startAt,
-              BAR_DURATION + 0.55,
+              barDuration + 0.55,
               level,
             );
           });
@@ -370,8 +409,8 @@ export default function SiteAmbience() {
           phrase.forEach((note, noteIndex) => {
             const octave = noteIndex === 7 && section % 2 === 1 ? 12 : 0;
             const pan = Math.sin((noteIndex + section * 1.7) * 0.72) * 0.28;
-            const noteTime = startAt + 0.48 + noteIndex * 0.96;
-            const duration = noteIndex === 7 ? 2.4 : track.leadStyle === "bell" ? 1.75 : 1.62;
+            const noteTime = startAt + 0.38 + noteIndex * (barDuration / 8);
+            const duration = noteIndex === 7 ? (track.leadStyle === "plucky" ? 1.9 : 2.4) : track.leadStyle === "bell" ? 1.75 : track.leadStyle === "plucky" ? 1.32 : 1.62;
             playLead(
               frequencyFor(note + octave + keyShift, track.rootFrequency),
               noteTime,
@@ -397,14 +436,14 @@ export default function SiteAmbience() {
 
         const scheduleAhead = () => {
           if (!context || context.state !== "running" || !enabledRef.current) return;
-          if (nextBlockAt < context.currentTime - BAR_DURATION) {
-            const skipped = Math.floor((context.currentTime - nextBlockAt) / BAR_DURATION);
-            nextBlockAt += skipped * BAR_DURATION;
+          if (nextBlockAt < context.currentTime - barDuration) {
+            const skipped = Math.floor((context.currentTime - nextBlockAt) / barDuration);
+            nextBlockAt += skipped * barDuration;
             blockIndex += skipped;
           }
-          while (nextBlockAt < context.currentTime + 18) {
+          while (nextBlockAt < context.currentTime + barDuration * 2) {
             scheduleBlock(nextBlockAt, blockIndex);
-            nextBlockAt += BAR_DURATION;
+            nextBlockAt += barDuration;
             blockIndex += 1;
           }
         };
@@ -602,7 +641,7 @@ export default function SiteAmbience() {
                     aria-pressed={active}
                     onClick={() => changeTrack(id)}
                   >
-                    <span className={styles.trackOptionIcon} aria-hidden="true">{id === "piano" ? "♬" : id === "musicbox" ? "✧" : "☾"}</span>
+                    <span className={styles.trackOptionIcon} aria-hidden="true">{id === "sunny" ? "☀" : id === "piano" ? "♬" : id === "musicbox" ? "✧" : "☾"}</span>
                     <span className={styles.trackOptionText}>
                       <strong>{isVietnamese ? track.title : track.titleEn}</strong>
                       <small>{isVietnamese ? track.description : track.descriptionEn}</small>
