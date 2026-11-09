@@ -164,7 +164,13 @@ export default function AdminReviewDashboard() {
   }, [loadRows]);
 
   useEffect(() => {
-    if (!selected) { setStoryDraft(null); return; }
+    if (!selected) {
+      // The editor draft is intentionally synchronized when the selected database row changes.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setStoryDraft(null);
+      return;
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setStoryDraft({
       name: selected.name,
       introduction: selected.introduction ?? "",
