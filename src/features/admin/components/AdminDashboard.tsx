@@ -557,7 +557,8 @@ export default function AdminDashboard() {
             <a href="#overview" className={styles.sideLinkActive}>⌂ <span>{t("Tổng quan", "Overview")}</span></a>
             <a href="#garden-list" className={styles.sideLink}>▤ <span>{t("Quản lý tác phẩm", "Story management")}</span></a>
             <a href="#photo-library" className={styles.sideLink}>▧ <span>{t("Kho ảnh riêng", "Photo library")}</span></a>
-            <Link href="/studio?mode=admin" className={styles.sideLink}>✎ <span>{t("Viết & kiểm duyệt", "Writing & review")}</span></Link>
+            <Link href="/admin/review" className={styles.sideLink}>✓ <span>{t("Bàn kiểm duyệt", "Review desk")}</Link>
+            <Link href="/admin/studio?mode=admin" className={styles.sideLink}>✎ <span>{t("Studio Admin đầy đủ", "Full Admin studio")}</span></Link>
             <Link href="/" className={styles.sideLink}>⌂ <span>{t("Trang chủ", "Home")}</span></Link>
           </div>
 
@@ -579,7 +580,8 @@ export default function AdminDashboard() {
               <p className={styles.subtitle}>{t("Mỗi tác phẩm có một album riêng, mọi kỷ niệm đều ở đúng nơi.", "Every story has its own album, keeping each memory in the right place.")}</p>
             </div>
             <div className={styles.topActions}>
-              <Link href="/studio?mode=admin" className={styles.secondaryLink}>{t("Mở không gian viết & kiểm duyệt", "Open writing & review")}</Link>
+              <Link href="/admin/review" className={styles.secondaryLink}>{t("Mở bàn kiểm duyệt", "Open review desk")}</Link>
+              <Link href="/admin/studio?mode=admin" className={styles.secondaryLink}>{t("Studio Admin", "Admin studio")}</Link>
               <button type="button" className={styles.logoutButton} onClick={() => void handleLogout()}>{t("Đăng xuất", "Sign out")}</button>
             </div>
           </header>
@@ -682,7 +684,7 @@ export default function AdminDashboard() {
                       <button type="button" onClick={() => void openStoryPreview(selectedGarden)} disabled={storyPreviewLoading}>
                         {storyPreviewLoading ? t("Đang mở tác phẩm...", "Opening story...") : t("Đọc toàn bộ tác phẩm ↗", "Read full story ↗")}
                       </button>
-                      <Link href={"/studio?mode=admin&garden=" + encodeURIComponent(selectedGarden.id)}>Mở trình chỉnh sửa</Link>
+                      <Link href={"/admin/studio?mode=admin&garden=" + encodeURIComponent(selectedGarden.id)}>Mở trình chỉnh sửa</Link>
                       <span className={styles.albumCount}>{photos.length} / {MAX_PHOTOS} {t("ảnh", "photos")}</span>
                     </div>
                   </div>
@@ -783,7 +785,7 @@ export default function AdminDashboard() {
           <div className={styles.storyPreviewToolbar}>
             <div><strong>{storyPreview.name}</strong><span>{selectedGarden?.approvalStatus === "pending" ? "Đang chờ duyệt" : selectedGarden?.approvalStatus === "approved" ? t("Đã duyệt", "Approved") : selectedGarden?.approvalStatus === "rejected" ? t("Cần chỉnh sửa", "Needs changes") : t("Bản nháp", "Draft")}</span></div>
             <div>
-              <Link href={"/studio?mode=admin&garden=" + encodeURIComponent(storyPreview.id)}>{t("Mở chỉnh sửa & kiểm duyệt ↗", "Edit & review ↗")}</Link>
+              <Link href={"/admin/studio?mode=admin&garden=" + encodeURIComponent(storyPreview.id)}>{t("Mở chỉnh sửa & kiểm duyệt ↗", "Edit & review ↗")}</Link>
               <button type="button" onClick={closeStoryPreview} aria-label={t("Đóng bản xem trước", "Close preview")}>{t("Đóng ✕", "Close ✕")}</button>
             </div>
           </div>
