@@ -819,10 +819,12 @@ export default function AdminDashboard() {
                 letterParagraphs={storyPreview.letterParagraphs}
                 letterSignature={storyPreview.letterSignature}
                 letterReady={storyPreview.letterParagraphs.length > 0}
+                embedded
+                standalone
                 returnHref="/admin"
                 returnLabel={t("Quay lại trung tâm Admin", "Back to Admin center")}
                 actionHref="#the-book"
-                actionLabel={t("ĐỌC TÁC PHẨM", "READ STORY")}
+                actionLabel={storyPreview.format === "book" ? "MỞ CUỐN SÁCH" : storyPreview.format === "letter" ? "ĐỌC BỨC THƯ" : "ĐỌC THÔNG ĐIỆP"}
               />
             )}
           </div>
