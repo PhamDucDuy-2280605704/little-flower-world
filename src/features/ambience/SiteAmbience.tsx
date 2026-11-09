@@ -310,8 +310,11 @@ export default function SiteAmbience() {
   }, [removeUnlockHandlers]);
 
   useEffect(() => {
-    void startMusic();
+    const startTimer = window.setTimeout(() => {
+      void startMusic();
+    }, 0);
     return () => {
+      window.clearTimeout(startTimer);
       enabledRef.current = false;
       generationRef.current += 1;
       startingRef.current = false;
@@ -341,7 +344,7 @@ export default function SiteAmbience() {
     void startMusic();
   };
 
-  const isVietnamese = languageRef.current === "vi";
+  const isVietnamese = language === "vi";
 
   return (
     <>
@@ -369,7 +372,7 @@ export default function SiteAmbience() {
               ? (isVietnamese ? "Nhạc nền đang tắt" : "Music is off")
               : playing
                 ? (isVietnamese ? "Đang phát" : "Playing")
-                : (isVietnamese ? "Nhạc đã sẵn sàng" : "Music is ready")}</span>
+                : (isVietnamese ? "Đang chờ phát" : "Waiting to play")}</span>
             {musicEnabled && <span className={styles.equalizer} aria-hidden="true"><i /><i /><i /></span>}
           </button>
 
