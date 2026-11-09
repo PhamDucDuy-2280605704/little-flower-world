@@ -48,6 +48,26 @@ const FORMATS: Array<{ value: StoryFormat; title: string; titleEn: string; descr
   { value: "book", title: "Cuốn sách", titleEn: "Book", description: "Nhiều chương, mục lục và trải nghiệm lật trang.", descriptionEn: "Chapters, a table of contents, and page-turning.", symbol: "▤" },
 ];
 const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/avif", "image/gif"]);
+const IMAGE_MIME_BY_EXTENSION: Record<string, string> = {
+  jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png",
+  webp: "image/webp", avif: "image/avif", gif: "image/gif",
+};
+const IMAGE_EXTENSION_BY_MIME: Record<string, string> = {
+  "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp",
+  "image/avif": "avif", "image/gif": "gif",
+};
+function imageMimeType(file: File): string {
+  const declared = file.type.toLowerCase();
+  if (IMAGE_TYPES.has(declared)) return declared;
+  const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
+  return IMAGE_MIME_BY_EXTENSION[extension] ?? "";
+}
+function isStoredImage(fileName: string, mimeType?: string | null): boolean {
+  const declared = mimeType?.toLowerCase() ?? "";
+  if (IMAGE_TYPES.has(declared)) return true;
+  const extension = fileName.split(".").pop()?.toLowerCase() ?? "";
+  return Object.prototype.hasOwnProperty.call(IMAGE_MIME_BY_EXTENSION, extension);
+}
 const CREATOR_MAX_PHOTOS = 5;
 const CREATOR_MAX_STICKERS = 4;
 const DECORATION_THEMES: Array<{ value: StoryTheme; title: string; titleEn: string; detail: string; detailEn: string }> = [
@@ -104,6 +124,7 @@ export default function BookStudio() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState("");
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewReadIds, setPreviewReadIds] = useState<string[]>([]);
   const [error, setError] = useState("");
@@ -218,11 +239,11 @@ export default function BookStudio() {
       setPhotos([]);
       return;
     }
-    const imageFiles = (files ?? []).filter((file) => file.name && file.id && IMAGE_TYPES.has(file.metadata?.mimetype ?? ""));
+    const imageFiles = (files ?? []).filter((file) => file.name && file.id && isStoredImage(file.name, file.metadata?.mimetype));
     const signed = await Promise.all(imageFiles.map(async (file) => {
       const path = garden.id + "/" + file.name;
       const { data } = await activeClientRef.current.storage.from("garden-photos").createSignedUrl(path, 60 * 60);
-      return data?.signedUrl ? { path, url: data.signedUrl, alt: t("Ảnh trong tác phẩm", "Photo in this story") } : null;
+      return data?.signedUrl ? { path, url: data.signedUrl, alt: file.name } : null;
     }));
     setPhotos(signed.filter((photo): photo is GardenJournalPhoto => photo !== null));
   }, [isAdmin]);
@@ -543,59 +564,127 @@ export default function BookStudio() {
   }
 
   async function uploadPhoto(event: ChangeEvent<HTMLInputElement>, asCover: boolean) {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file || !selectedGarden || uploading) return;
-    if (!isAdmin && photos.length >= CREATOR_MAX_PHOTOS) {
-      setError(t("Tài khoản sáng tác có thể thêm tối đa 5 ảnh cho mỗi tác phẩm.", "Writer accounts can add up to 5 photos per story."));
+    const input = event.currentTarget;
+    const selectedFiles = Array.from(input.files ?? []);
+    input.value = "";
+
+    if (!selectedFiles.length || !selectedGarden || uploading) return;
+
+    const maxPhotos = isAdmin ? 40 : CREATOR_MAX_PHOTOS;
+    const remainingSlots = Math.max(0, maxPhotos - photos.length);
+    if (remainingSlots === 0) {
+      setError(isAdmin
+        ? t("Album đã đạt giới hạn 40 ảnh cho tác phẩm này.", "This story album has reached its 40-photo limit.")
+        : t("Tài khoản sáng tác có thể thêm tối đa 5 ảnh cho mỗi tác phẩm.", "Writer accounts can add up to 5 photos per story."));
       return;
     }
+
     const maxFileSize = (isAdmin ? 10 : 5) * 1024 * 1024;
-    if (!IMAGE_TYPES.has(file.type) || file.size > maxFileSize) {
-      setError(isAdmin ? t("Chọn ảnh JPG, PNG, WEBP, AVIF hoặc GIF tối đa 10 MB nhé.", "Choose a JPG, PNG, WEBP, AVIF, or GIF image up to 10 MB.") : t("Ảnh dành cho tài khoản sáng tác có dung lượng tối đa 5 MB.", "Photos for writer accounts must be 5 MB or smaller."));
+    const validFiles: Array<{ file: File; mimeType: string; extension: string }> = [];
+    const failures: string[] = [];
+
+    for (const file of selectedFiles) {
+      const mimeType = imageMimeType(file);
+      if (!mimeType || file.size === 0) {
+        failures.push(file.name + ": " + t("định dạng ảnh không được hỗ trợ.", "unsupported image format."));
+        continue;
+      }
+      if (file.size > maxFileSize) {
+        failures.push(file.name + ": " + t("vượt quá giới hạn ", "exceeds the ") + (isAdmin ? "10 MB." : "5 MB."));
+        continue;
+      }
+      validFiles.push({ file, mimeType, extension: IMAGE_EXTENSION_BY_MIME[mimeType] });
+    }
+
+    const filesToUpload = validFiles.slice(0, asCover ? 1 : remainingSlots);
+    if (!asCover && validFiles.length > filesToUpload.length) {
+      failures.push(t("Một số ảnh không được thêm vì album đã gần đạt giới hạn.", "Some photos were skipped because the album is at its limit."));
+    }
+    if (asCover && validFiles.length > 1) {
+      failures.push(t("Ảnh bìa chỉ nhận một tệp mỗi lần.", "Choose one cover image at a time."));
+    }
+    if (filesToUpload.length === 0) {
+      setError(failures.join(" "));
       return;
     }
+
     setUploading(true);
     setError("");
-    const extension = file.name.split(".").pop()?.toLowerCase() || "webp";
-    const path = selectedGarden.id + "/" + crypto.randomUUID() + "." + extension;
-    const { error: uploadError } = await activeClientRef.current.storage.from("garden-photos").upload(path, file, {
-      cacheControl: "3600", contentType: file.type, upsert: false,
-    });
-    if (uploadError) {
-      console.error("Upload writing photo failed:", uploadError);
-      setError(t("Chưa tải được ảnh. Bạn thử lại nhé.", "Could not upload the photo. Please try again."));
-      setUploading(false);
-      return;
-    }
-    if (asCover) {
-      const { error: coverError } = await activeClientRef.current.from("gardens").update({ cover_path: path }).eq("id", selectedGarden.id);
-      if (coverError) {
-        console.error("Set book cover failed:", coverError);
-        setError(t("Ảnh đã tải lên nhưng chưa đặt được làm ảnh bìa.", "The photo uploaded, but could not be set as the cover."));
-        setUploading(false);
-        return;
+    setNotice("");
+    setUploadProgress("");
+
+    let uploadedCount = 0;
+    const storage = activeClientRef.current.storage.from("garden-photos");
+
+    try {
+      for (let index = 0; index < filesToUpload.length; index += 1) {
+        const { file, mimeType, extension } = filesToUpload[index];
+        setUploadProgress(
+          t("Đang tải ", "Uploading ") +
+          (index + 1) + "/" + filesToUpload.length + " · " + file.name
+        );
+
+        const path = selectedGarden.id + "/" + crypto.randomUUID() + "." + extension;
+        const { data: uploadedFile, error: uploadError } = await storage.upload(path, file, {
+          cacheControl: "3600",
+          contentType: mimeType,
+          upsert: false,
+        });
+
+        if (uploadError || !uploadedFile?.path) {
+          console.error("Upload writing photo failed:", uploadError);
+          failures.push(file.name + ": " + (uploadError?.message || t("Storage không trả về đường dẫn ảnh.", "Storage did not return an image path.")));
+          continue;
+        }
+
+        const uploadedPath = uploadedFile.path;
+        const { data: signedData, error: signedError } = await storage.createSignedUrl(uploadedPath, 60 * 60);
+        if (signedError || !signedData?.signedUrl) {
+          console.error("Create uploaded photo URL failed:", signedError);
+          failures.push(file.name + ": " + (signedError?.message || t("Không tạo được liên kết xem ảnh.", "Could not create a view link for the photo.")));
+          continue;
+        }
+
+        const newPhoto: GardenJournalPhoto = {
+          path: uploadedPath,
+          url: signedData.signedUrl,
+          alt: file.name,
+        };
+
+        // Add the uploaded photo immediately instead of depending on a later Storage list call.
+        setPhotos((current) => [newPhoto, ...current.filter((photo) => photo.path !== uploadedPath)]);
+        uploadedCount += 1;
+
+        if (asCover) {
+          const { error: coverError } = await activeClientRef.current.from("gardens")
+            .update({ cover_path: uploadedPath })
+            .eq("id", selectedGarden.id)
+            .eq("owner_id", selectedGarden.owner_id);
+
+          if (coverError) {
+            console.error("Set book cover failed:", coverError);
+            failures.push(file.name + ": " + t("Ảnh đã tải lên và có trong album, nhưng chưa đặt được làm ảnh bìa: ", "The photo was uploaded and added to the album, but could not be set as the cover: ") + coverError.message);
+          } else {
+            setCoverPath(uploadedPath);
+            setCoverUrl(signedData.signedUrl);
+          }
+        }
       }
-      setCoverPath(path);
-      const { data } = await activeClientRef.current.storage.from("garden-photos").createSignedUrl(path, 60 * 60);
-      setCoverUrl(data?.signedUrl ?? "");
+
+      if (uploadedCount > 0) {
+        setNotice(asCover
+          ? t("Đã tải ảnh lên và cập nhật ảnh bìa.", "Photo uploaded and cover updated.")
+          : t("Đã tải lên " + uploadedCount + " ảnh. Ảnh mới đã xuất hiện trong album.", uploadedCount + " photos uploaded. The new images are now in the album."));
+      }
+      if (failures.length > 0) setError(failures.slice(0, 4).join(" "));
+    } catch (uploadFailure) {
+      console.error("Unexpected writing photo upload failure:", uploadFailure);
+      const detail = uploadFailure instanceof Error ? uploadFailure.message : String(uploadFailure);
+      setError(t("Có lỗi khi tải ảnh lên: ", "An error occurred while uploading: ") + detail);
+    } finally {
+      setUploading(false);
+      setUploadProgress("");
     }
-    const { data: albumFiles, error: albumError } = await activeClientRef.current.storage.from("garden-photos").list(selectedGarden.id, {
-      limit: 40, sortBy: { column: "created_at", order: "desc" },
-    });
-    if (albumError) {
-      console.warn("Refresh uploaded images failed:", albumError);
-    } else {
-      const imageFiles = (albumFiles ?? []).filter((item) => item.name && item.id && IMAGE_TYPES.has(item.metadata?.mimetype ?? ""));
-      const signed = await Promise.all(imageFiles.map(async (item) => {
-        const imagePath = selectedGarden.id + "/" + item.name;
-        const { data } = await activeClientRef.current.storage.from("garden-photos").createSignedUrl(imagePath, 60 * 60);
-        return data?.signedUrl ? { path: imagePath, url: data.signedUrl, alt: t("Ảnh trong tác phẩm", "Photo in this story") } : null;
-      }));
-      setPhotos(signed.filter((photo): photo is GardenJournalPhoto => photo !== null));
-    }
-    setNotice(asCover ? t("Đã cập nhật ảnh bìa.", "Cover photo updated.") : t("Đã thêm ảnh vào bộ sưu tập.", "Photo added to the collection."));
-    setUploading(false);
   }
 
   async function reviewGuestbook(entry: GuestbookRow, status: "approved" | "rejected") {
@@ -845,13 +934,23 @@ export default function BookStudio() {
 
             <section className={styles.section} id="write-03">
               <div className={styles.sectionTitle}><span>03</span><div><h3>{t("Hình ảnh do bạn chọn", "Your photos")}</h3><p>{t("Ảnh bìa và ảnh kỷ niệm do bạn tải lên. Ảnh minh họa sách chỉ dùng làm nền giao diện khi chưa có ảnh bìa.", "Upload your own cover and memory photos. The sample book image is only a temporary background.")}</p></div></div>
-              {coverUrl && <div className={styles.coverPreview}><Image src={coverUrl} alt={t("Ảnh bìa tác phẩm", "Story cover")} width={1200} height={720} unoptimized/><span>{t("Ảnh bìa của tác phẩm", "Story cover")}</span></div>}
+              {coverUrl && <div className={styles.coverPreview}><Image src={coverUrl} alt={t("Ảnh bìa tác phẩm", "Story cover")} width={1600} height={1000} unoptimized/><span>{t("Ảnh bìa hiện tại", "Current story cover")}</span></div>}
               <div className={styles.uploadGrid}>
-                <label className={styles.uploadCard}>{t("＋ Tải ảnh bìa lên", "＋ Upload cover")}<input type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/gif" onChange={(event) => void uploadPhoto(event, true)} disabled={uploading || (!isAdmin && photos.length >= CREATOR_MAX_PHOTOS)}/><small>JPG, PNG, WEBP, AVIF, GIF · {isAdmin ? t("tối đa 10 MB", "up to 10 MB") : t("tối đa 5 MB", "up to 5 MB")}</small></label>
-                <label className={styles.uploadCard}>{t("＋ Thêm ảnh kỷ niệm", "＋ Add memory photos")}<input type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/gif" onChange={(event) => void uploadPhoto(event, false)} disabled={uploading || (!isAdmin && photos.length >= CREATOR_MAX_PHOTOS)}/><small>{isAdmin ? t("Tối đa 40 ảnh trong album", "Up to 40 photos per story") : t("Tối đa 5 ảnh trong mỗi tác phẩm", "Up to 5 photos per story")}</small></label>
+                <label className={styles.uploadCard}>
+                  <strong>{t("＋ Tải ảnh bìa lên", "＋ Upload cover")}</strong>
+                  <span className={styles.uploadAction}>{t("Chọn một ảnh từ thiết bị", "Choose one photo from your device")}</span>
+                  <input className={styles.fileInput} type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/gif" onChange={(event) => void uploadPhoto(event, true)} disabled={uploading || photos.length >= (isAdmin ? 40 : CREATOR_MAX_PHOTOS)}/>
+                  <small>JPG · PNG · WEBP · AVIF · GIF · {isAdmin ? t("tối đa 10 MB", "up to 10 MB") : t("tối đa 5 MB", "up to 5 MB")}</small>
+                </label>
+                <label className={styles.uploadCard}>
+                  <strong>{t("＋ Thêm ảnh kỷ niệm", "＋ Add memory photos")}</strong>
+                  <span className={styles.uploadAction}>{t("Chọn một hoặc nhiều ảnh", "Choose one or more photos")}</span>
+                  <input className={styles.fileInput} type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/gif" multiple onChange={(event) => void uploadPhoto(event, false)} disabled={uploading || photos.length >= (isAdmin ? 40 : CREATOR_MAX_PHOTOS)}/>
+                  <small>{isAdmin ? t("Tối đa 40 ảnh trong album", "Up to 40 photos per story") : t("Tối đa 5 ảnh trong mỗi tác phẩm", "Up to 5 photos per story")}</small>
+                </label>
               </div>
-              {uploading && <p className={styles.helper}>{t("Đang tải ảnh lên...", "Uploading photos...")}</p>}
-              {photos.length > 0 && <div className={styles.albumPreview}><strong>{photos.length} {t("ảnh trong album", "photos in the album")}</strong><div>{photos.slice(0, 6).map((photo) => <Image key={photo.path} src={photo.url} alt={photo.alt} width={100} height={78} unoptimized/>)}</div></div>}
+              {uploading && <p className={styles.uploadProgress} role="status">{uploadProgress || t("Đang chuẩn bị ảnh...", "Preparing photos...")}</p>}
+              {photos.length > 0 && <div className={styles.albumPreview}><strong>{photos.length} {t("ảnh đã có trong album", "photos in this album")}</strong><div>{photos.map((photo) => <figure key={photo.path}><Image src={photo.url} alt={photo.alt} width={480} height={320} sizes="(max-width: 680px) 42vw, (max-width: 1100px) 25vw, 180px" unoptimized loading="lazy"/><figcaption>{photo.alt}</figcaption></figure>)}</div></div>}
             </section>
 
             <section className={styles.section} id="write-04">
