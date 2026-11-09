@@ -969,6 +969,7 @@ export default function BookStudio() {
                 letterTitle={letterTitle}
                 letterParagraphs={splitText(letterText)}
                 letterSignature={signature}
+                embedded
               />
             ) : (
               <GardenJournal key={selectedGarden.id + "-" + format} name={name || selectedGarden.name} introduction={introduction} format={format}
