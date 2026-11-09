@@ -1,9 +1,13 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useLanguage } from "./LanguageProvider";
 
 export default function LanguageSwitch() {
+  const pathname = usePathname();
   const { language, setLanguage } = useLanguage();
+
+  if (pathname.startsWith("/g/")) return null;
   return (
     <div
       aria-label="Language"

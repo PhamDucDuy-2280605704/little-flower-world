@@ -162,7 +162,31 @@ async function viewGarden(garden: Record<string, unknown>, pin: string, slug: st
   const denied = await verifyGardenAccess(garden, slug, ip, pin);
   if (denied) return denied;
 
-  const [itemsResult, chaptersResult, albumResult, guestbookResult, coverUrl] = await Promise.all([
+  const experienceSettings = garden.experience_settings && typeof garden.experience_settings === "object"
+    ? garden.experience_settings as Record<string, unknown>
+    : {};
+  const rawInlinePhotos = Array.isArray(experienceSettings.inlinePhotos)
+    ? experienceSettings.inlinePhotos
+    : [];
+  const inlinePhotoAlts = Array.isArray(experienceSettings.inlinePhotoAlts)
+    ? experienceSettings.inlinePhotoAlts
+    : [];
+  const inlinePhotos = rawInlinePhotos
+    .filter((value): value is string =>
+      typeof value === "string"
+      && value.length <= 120_000
+      && /^data:image\/webp;base64,[A-Za-z0-9+/=]+$/.test(value)
+    )
+    .slice(0, 5)
+    .map((url, index) => ({
+      path: "inline/" + index,
+      url,
+      alt: typeof inlinePhotoAlts[index] === "string"
+        ? inlinePhotoAlts[index] as string
+        : "Một kỷ niệm gia đình",
+    }));
+
+  const [itemsResult, chaptersResult, albumResult, guestbookResult, storageCoverUrl] = await Promise.all([
     db.from("garden_items")
       .select("id,kind,color,x,depth,size,chapter_id,label,title,sort_order")
       .eq("garden_id", gardenId)
@@ -192,11 +216,13 @@ async function viewGarden(garden: Record<string, unknown>, pin: string, slug: st
     file.name && file.id && ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"].includes(file.metadata?.mimetype ?? "")
   );
 
-  const photos = (await Promise.all(files.map(async (file) => {
+  const storedPhotos = (await Promise.all(files.map(async (file) => {
     const path = gardenId + "/" + file.name;
     const url = await signedImage(path);
     return url ? { path, url, alt: "Khoảnh khắc trong khu vườn" } : null;
   }))).filter((photo) => photo !== null);
+  const photos = [...inlinePhotos, ...storedPhotos];
+  const coverUrl = storageCoverUrl ?? inlinePhotos[0]?.url ?? null;
 
   return json({
     garden: {
