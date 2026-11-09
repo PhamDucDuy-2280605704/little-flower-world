@@ -235,8 +235,9 @@ export default function BookStudio() {
       limit: isAdmin ? 40 : CREATOR_MAX_PHOTOS, sortBy: { column: "created_at", order: "desc" },
     });
     if (albumError) {
-      console.warn("Load story album failed:", albumError);
+      console.error("Load story album failed:", albumError);
       setPhotos([]);
+      setError(t("Không tải được album ảnh của tác phẩm. Hãy thử tải lại.", "Could not load this story's photo album. Please try again."));
       return;
     }
     const imageFiles = (files ?? []).filter((file) => file.name && file.id && isStoredImage(file.name, file.metadata?.mimetype));
