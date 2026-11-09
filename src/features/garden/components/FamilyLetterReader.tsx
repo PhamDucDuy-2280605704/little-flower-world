@@ -86,9 +86,10 @@ export default function FamilyLetterReader({
   }
 
   const ReaderRoot = embedded ? "div" : "main";
+  const readerClassName = embedded ? styles.page + " " + styles.embeddedPage : styles.page;
 
   return (
-    <ReaderRoot className={styles.page}>
+    <ReaderRoot className={readerClassName}>
       <article className={styles.letter}>
         <header className={styles.letterHeader}>
           <p className={styles.kicker}>MỘT TÂM THƯ GỬI BA MẸ</p>
