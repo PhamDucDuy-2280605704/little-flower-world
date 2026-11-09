@@ -9,14 +9,25 @@ import { useLanguage } from "@/features/i18n/LanguageProvider";
 function extractGardenSlug(value: string): string | null {
   const input = value.trim();
   if (!input) return null;
+
   let pathname = input;
   try {
-    pathname = new URL(input, window.location.origin).pathname;
+    const isAbsoluteUrl = /^[a-z][a-z\\d+.-]*:/i.test(input);
+    const parsed = new URL(input, window.location.origin);
+    const isCurrentSite = parsed.origin === window.location.origin;
+    const isCanonicalSite = parsed.protocol === "https:" && parsed.hostname.toLowerCase() === "little-story-world.vercel.app";
+
+    // Only accept links from this site (or its canonical production domain).
+    // A URL from an unrelated or retired host must not be treated as an invite.
+    if (isAbsoluteUrl && !isCurrentSite && !isCanonicalSite) return null;
+    if (isAbsoluteUrl && parsed.protocol !== "https:" && !isCurrentSite) return null;
+    pathname = parsed.pathname;
   } catch {
-    // Continue with a pasted slug or relative path.
+    return null;
   }
-  const match = pathname.match(/(?:^|\/)g\/([a-z0-9-]+)\/?$/i);
-  const candidate = match?.[1] ?? pathname.replace(/^\/+|\/+$/g, "").replace(/^g\//i, "");
+
+  const match = pathname.match(/(?:^|\\/)g\\/([a-z0-9-]+)\\/?$/i);
+  const candidate = match?.[1] ?? pathname.replace(/^\\/+|\\/+$/g, "").replace(/^g\\//i, "");
   return /^[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(candidate) ? candidate : null;
 }
 
@@ -51,8 +62,10 @@ export default function GuestPortal() {
           <p className={styles.eyebrow}>{t("A PRIVATE STORY INVITATION", "A PRIVATE STORY INVITATION")}</p>
           <h1>{t("Bạn nhận được một lời mời?", "Have you received an invitation?")}</h1>
           <p className={styles.description}>
-            Mở đường link tác phẩm mà người gửi đã chia sẻ. Bạn có thể lật từng trang,
-            xem album và để lại lời nhắn mà không cần tạo tài khoản.
+            {t(
+              "Mở đường link tác phẩm mà người gửi đã chia sẻ. Bạn có thể lật từng trang, xem album và để lại lời nhắn khi người gửi bật lưu bút — không cần tạo tài khoản.",
+              "Open the story link shared with you. Turn through its pages, view the photo album, and leave a note when the sender has enabled the guestbook — no account needed."
+            )}
           </p>
           <form onSubmit={handleSubmit}>
             <label htmlFor="story-invite">{t("Link tác phẩm hoặc mã lời mời", "Story link or invitation code")}</label>
@@ -68,7 +81,7 @@ export default function GuestPortal() {
             {error
               ? <p className={styles.error} id="invite-error" role="alert">{error}</p>
               : <p className={styles.help} id="invite-help">{t("Nếu bạn đã có link mời, chỉ cần mở trực tiếp link đó cũng được.", "Already have an invitation link? You can open it directly.")}</p>}
-            <button type="submit" disabled={!invite.trim()}>Mở tác phẩm <span aria-hidden="true">↗</span></button>
+            <button type="submit" disabled={!invite.trim()}>{t("Mở tác phẩm", "Open story")} <span aria-hidden="true">↗</span></button>
           </form>
           <div className={styles.footerLinks}>
             <Link href="/">{t("Về trang chủ", "Back to home")}</Link>
