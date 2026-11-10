@@ -436,19 +436,18 @@ export default function BookStudio() {
       }
     });
     return () => { active = false; };
-  }, [loadGardens, router]);
+  }, [loadGardens, router, t]);
 
   useEffect(() => {
     if (!selectedGarden) return;
     let active = true;
     // Synchronize the selected draft with the editor fields.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadWork(selectedGarden).catch((loadError) => {
       console.error("Load selected writing failed:", loadError);
       if (active) setError(t("Chưa tải được nội dung tác phẩm.", "Could not load the story content."));
     });
     return () => { active = false; };
-  }, [selectedGarden, loadWork]);
+  }, [selectedGarden, loadWork, t]);
 
   useEffect(() => {
     if (!authReady || isAdmin || !userId) return;
