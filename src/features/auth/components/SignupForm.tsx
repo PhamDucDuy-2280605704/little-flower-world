@@ -188,7 +188,7 @@ export default function SignupForm() {
             autoComplete="off"
             className={styles.input}
             value={recoveryPinConfirm}
-            onChange={(event) => setRecoveryPinConfirm(event.target.value.replace(/\\D/g, "").slice(0, 6))}
+            onChange={(event) => setRecoveryPinConfirm(event.target.value.replace(/\D/g, "").slice(0, 6))}
             minLength={6}
             maxLength={6}
             required
