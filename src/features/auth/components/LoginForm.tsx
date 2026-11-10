@@ -53,6 +53,18 @@ export default function LoginForm() {
         return;
       }
 
+      const { data: recoveryStatus, error: recoveryStatusError } = await supabase.functions.invoke("account-recovery", {
+        body: { action: "status" },
+      });
+      if (recoveryStatusError) {
+        throw new Error(t("Chưa thể kiểm tra trạng thái PIN bảo mật. Hãy thử đăng nhập lại sau ít phút.", "We couldn't verify your recovery PIN status. Please try signing in again shortly."));
+      }
+      if (recoveryStatus?.hasPin !== true) {
+        router.replace("/account/recovery-pin");
+        router.refresh();
+        return;
+      }
+
       const requestedPath = new URLSearchParams(window.location.search).get("next");
       let nextPath = "/account";
 
