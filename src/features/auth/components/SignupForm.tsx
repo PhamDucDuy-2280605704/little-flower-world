@@ -43,13 +43,11 @@ export default function SignupForm() {
 
     setLoading(true);
     try {
-      const redirectTo = new URL("/account", window.location.origin).toString();
       const { data, error: signupError } = await supabase.auth.signUp({
         email: cleanEmail,
         password,
         options: {
           data: { full_name: cleanName, display_name: cleanName },
-          emailRedirectTo: redirectTo,
         },
       });
 
