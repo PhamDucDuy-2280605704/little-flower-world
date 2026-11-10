@@ -114,9 +114,11 @@ export default function HomeAuthActions({
         </button>
       ) : (
         <Link href="/login" className={loginClassName}>
-          {t("Đăng nhập để sáng tác", "Sign in to write")}
+          {t("Đăng nhập", "Sign in")}
         </Link>
       )}
+
+      {!user && authReady && <Link href="/signup" className={giftClassName}>{t("Tạo tài khoản miễn phí", "Create a free account")}</Link>}
 
       {user && <Link href="/account" className={giftClassName}>{t("Viết câu chuyện của tôi", "Write my story")}</Link>}
       <Link href="/gift" className={giftClassName}>

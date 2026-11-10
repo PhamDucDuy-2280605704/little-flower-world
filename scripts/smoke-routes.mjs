@@ -43,6 +43,7 @@ try {
   const routes = [
     "/",
     "/login",
+    "/signup",
     "/guest",
     "/gift",
     "/account",

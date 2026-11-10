@@ -4,6 +4,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import styles from "../styles/LoginForm.module.css";
 import { useLanguage } from "@/features/i18n/LanguageProvider";
@@ -168,7 +169,8 @@ export default function LoginForm() {
       )}
 
       <p className={styles.hint}>
-        {t("Tài khoản đăng nhập được cấp riêng bởi quản trị viên.", "Writer accounts are provided by the administrator.")}
+        {t("Bạn chưa có tài khoản?", "New to Little Story World?")}{" "}
+        <Link href="/signup" className={styles.modeButton}>{t("Tạo tài khoản miễn phí", "Create a free account")}</Link>
       </p>
     </div>
   );
