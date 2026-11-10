@@ -169,6 +169,10 @@ export default function LoginForm() {
       )}
 
       <p className={styles.hint}>
+        <Link href="/forgot-password" className={styles.modeButton}>{t("Quên mật khẩu?", "Forgot password?")}</Link>
+      </p>
+
+      <p className={styles.hint}>
         {t("Bạn chưa có tài khoản?", "New to Little Story World?")}{" "}
         <Link href="/signup" className={styles.modeButton}>{t("Tạo tài khoản miễn phí", "Create a free account")}</Link>
       </p>

@@ -44,6 +44,8 @@ try {
     "/",
     "/login",
     "/signup",
+    "/forgot-password",
+    "/reset-password",
     "/guest",
     "/gift",
     "/account",
