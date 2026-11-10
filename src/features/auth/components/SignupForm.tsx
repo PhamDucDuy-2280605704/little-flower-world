@@ -42,7 +42,7 @@ export default function SignupForm() {
       setError(t("Mật khẩu cần có từ 8 đến 72 ký tự.", "Password must be 8 to 72 characters."));
       return;
     }
-    if (!/^\\d{6}$/.test(recoveryPin) || recoveryPin !== recoveryPinConfirm) {
+    if (!/^\d{6}$/.test(recoveryPin) || recoveryPin !== recoveryPinConfirm) {
       setError(t("Mã PIN khôi phục phải gồm đúng 6 chữ số và hai lần nhập phải trùng nhau.", "Your recovery PIN must be exactly 6 digits and both entries must match."));
       return;
     }
@@ -173,7 +173,7 @@ export default function SignupForm() {
             autoComplete="off"
             className={styles.input}
             value={recoveryPin}
-            onChange={(event) => setRecoveryPin(event.target.value.replace(/\\D/g, "").slice(0, 6))}
+            onChange={(event) => setRecoveryPin(event.target.value.replace(/\D/g, "").slice(0, 6))}
             minLength={6}
             maxLength={6}
             required
