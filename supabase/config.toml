@@ -1,0 +1,1 @@
+[functions.account-recovery]\nverify_jwt = false\n
