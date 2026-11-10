@@ -49,32 +49,39 @@ export default function SignupForm() {
 
     setLoading(true);
     try {
-      const { data, error: signupError } = await supabase.auth.signUp({
-        email: cleanEmail,
-        password,
-        options: {
-          data: { full_name: cleanName, display_name: cleanName, recovery_pin: recoveryPin },
+      const { data: registration, error: registrationError } = await supabase.functions.invoke("account-recovery", {
+        body: {
+          action: "register",
+          email: cleanEmail,
+          password,
+          displayName: cleanName,
+          pin: recoveryPin,
         },
       });
 
-      if (signupError) throw signupError;
+      if (registrationError || registration?.ok !== true) {
+        const status = (registrationError as { context?: { status?: number } } | null)?.context?.status;
+        if (status === 429) {
+          setError(t("Bạn đã tạo quá nhiều tài khoản trong thời gian ngắn. Hãy chờ rồi thử lại.", "Too many signup attempts. Please wait and try again."));
+          return;
+        }
+        throw new Error("signup failed");
+      }
 
-      if (data.user?.id === FAIRYTALE_GARDEN_ADMIN_USER_ID) {
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password,
+      });
+      if (signInError) throw signInError;
+
+      if (signInData.user?.id === FAIRYTALE_GARDEN_ADMIN_USER_ID) {
         await supabase.auth.signOut({ scope: "local" });
         setError(t("Tài khoản quản trị không thể đăng ký qua cổng thành viên.", "The Admin account cannot register through the member portal."));
         return;
       }
 
-      if (data.session && data.user) {
-        router.replace("/account");
-        router.refresh();
-        return;
-      }
-
-      setNotice(t(
-        "Tài khoản đã được tạo. Hãy kiểm tra email để xác nhận, sau đó đăng nhập để mở bàn sáng tác. Nếu email xác nhận đang tắt, bạn có thể đăng nhập ngay.",
-        "Your account has been created. Check your email to confirm it, then sign in to open your writing studio. If email confirmation is disabled, you can sign in right away."
-      ));
+      router.replace("/account");
+      router.refresh();
     } catch (cause: unknown) {
       const message = cause instanceof Error ? cause.message.toLowerCase() : "";
       if (message.includes("already registered") || message.includes("already been registered") || message.includes("user already exists")) {
