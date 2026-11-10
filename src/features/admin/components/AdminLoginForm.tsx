@@ -53,7 +53,7 @@ export default function AdminLoginForm() {
     return () => {
       active = false;
     };
-  }, [router]);
+  }, [router, t]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
