@@ -14,6 +14,8 @@ export default function SignupForm() {
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [recoveryPin, setRecoveryPin] = useState("");
+  const [recoveryPinConfirm, setRecoveryPinConfirm] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -40,6 +42,10 @@ export default function SignupForm() {
       setError(t("Mật khẩu cần có từ 8 đến 72 ký tự.", "Password must be 8 to 72 characters."));
       return;
     }
+    if (!/^\\d{6}$/.test(recoveryPin) || recoveryPin !== recoveryPinConfirm) {
+      setError(t("Mã PIN khôi phục phải gồm đúng 6 chữ số và hai lần nhập phải trùng nhau.", "Your recovery PIN must be exactly 6 digits and both entries must match."));
+      return;
+    }
 
     setLoading(true);
     try {
@@ -47,7 +53,7 @@ export default function SignupForm() {
         email: cleanEmail,
         password,
         options: {
-          data: { full_name: cleanName, display_name: cleanName },
+          data: { full_name: cleanName, display_name: cleanName, recovery_pin: recoveryPin },
         },
       });
 
@@ -149,6 +155,38 @@ export default function SignupForm() {
             </button>
           </div>
           <span className={styles.hint}>{t("Ít nhất 8 ký tự. Tài khoản mới luôn bắt đầu với quyền User.", "At least 8 characters. New accounts always start with User access.")}</span>
+        </div>
+
+        <div className={styles.field}>
+          <label htmlFor="signup-recovery-pin" className={styles.label}>{t("Mã PIN khôi phục (6 chữ số)", "Recovery PIN (6 digits)")}</label>
+          <input
+            id="signup-recovery-pin"
+            type="password"
+            inputMode="numeric"
+            autoComplete="off"
+            className={styles.input}
+            value={recoveryPin}
+            onChange={(event) => setRecoveryPin(event.target.value.replace(/\\D/g, "").slice(0, 6))}
+            minLength={6}
+            maxLength={6}
+            required
+          />
+        </div>
+        <div className={styles.field}>
+          <label htmlFor="signup-recovery-pin-confirm" className={styles.label}>{t("Nhập lại mã PIN", "Confirm recovery PIN")}</label>
+          <input
+            id="signup-recovery-pin-confirm"
+            type="password"
+            inputMode="numeric"
+            autoComplete="off"
+            className={styles.input}
+            value={recoveryPinConfirm}
+            onChange={(event) => setRecoveryPinConfirm(event.target.value.replace(/\\D/g, "").slice(0, 6))}
+            minLength={6}
+            maxLength={6}
+            required
+          />
+          <span className={styles.hint}>{t("PIN chỉ dùng để khôi phục mật khẩu, không phải mã đăng nhập. Hãy giữ bí mật và tránh số dễ đoán.", "This PIN is only for password recovery, not sign-in. Keep it private and avoid predictable numbers.")}</span>
         </div>
 
         <button type="submit" className={styles.submit} disabled={loading}>
