@@ -202,7 +202,7 @@ function PersonalGardenJournal({ user }: { user: User }) {
 
     void loadPersonalGarden();
     return () => { active = false; };
-  }, [user.id]);
+  }, [user.id, t]);
 
   async function recordChapterRead(chapterId: string) {
     if (!chapters.some((chapter) => chapter.id === chapterId)) return;
