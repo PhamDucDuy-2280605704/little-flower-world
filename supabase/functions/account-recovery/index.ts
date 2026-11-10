@@ -68,6 +68,44 @@ Deno.serve(async (request: Request) => {
     const body = await request.json() as Record<string, unknown>;
     const action = readString(body.action, 32);
 
+    if (action === "register") {
+      const email = readString(body.email, 254).toLowerCase();
+      const password = typeof body.password === "string" ? body.password : "";
+      const displayName = readString(body.displayName, 80);
+      const pin = readString(body.pin, 6);
+      if (!/^\\S+@\\S+\\.\\S+$/.test(email) || password.length < 8 || password.length > 72
+        || displayName.length < 2 || !/^\\d{6}$/.test(pin)) {
+        return json({ error: "SIGNUP_FAILED" }, 400);
+      }
+
+      const { data: allowed, error: rateError } = await admin.rpc("allow_account_signup", {
+        p_ip: requestIp(request),
+      });
+      if (rateError || allowed !== true) {
+        if (rateError) console.error("[account-recovery] Signup rate check failed:", rateError.message);
+        return json({ error: "SIGNUP_RATE_LIMITED" }, 429);
+      }
+
+      const { error: createError } = await admin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: {
+          display_name: displayName,
+          full_name: displayName,
+          recovery_pin: pin,
+        },
+      });
+      if (createError) {
+        console.error("[account-recovery] Member creation failed:", {
+          status: createError.status ?? null,
+          code: createError.code ?? "unknown",
+        });
+        return json({ error: "SIGNUP_FAILED" }, 400);
+      }
+      return json({ ok: true });
+    }
+
     if (action === "status" || action === "set-pin") {
       const session = await authenticatedUser(request);
       if (!session) return json({ error: "AUTH_REQUIRED" }, 401);
