@@ -151,12 +151,16 @@ export default function GardenJournal({
     : decorations.effect === "sparkles" ? styles.effectSparkles : decorations.effect === "none" ? styles.effectNone : styles.effectPageTurn;
   const stickerPositions = [styles.stickerTopLeft, styles.stickerTopRight, styles.stickerBottomLeft, styles.stickerBottomRight, styles.stickerMidLeft, styles.stickerMidRight];
 
-  const primaryPhoto = coverUrl
-    ? { url: coverUrl, alt: "Ảnh bìa " + name }
-    : photos[0] ?? null;
-  const secondaryPhotos = coverUrl
-    ? photos.filter((photo) => photo.path !== coverPath && photo.url !== coverUrl)
-    : photos.slice(1);
+  const primaryPhoto = useMemo(() => (
+    coverUrl
+      ? { url: coverUrl, alt: "Ảnh bìa " + name }
+      : photos[0] ?? null
+  ), [coverUrl, name, photos]);
+  const secondaryPhotos = useMemo(() => (
+    coverUrl
+      ? photos.filter((photo) => photo.path !== coverPath && photo.url !== coverUrl)
+      : photos.slice(1)
+  ), [coverUrl, coverPath, photos]);
 
   const lightboxImages = useMemo<LightboxImage[]>(() => [
     ...(primaryPhoto ? [primaryPhoto] : []),

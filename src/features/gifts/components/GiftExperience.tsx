@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 
@@ -202,7 +202,7 @@ function PersonalGardenJournal({ user }: { user: User }) {
 
     void loadPersonalGarden();
     return () => { active = false; };
-  }, [user.id]);
+  }, [user.id, t]);
 
   async function recordChapterRead(chapterId: string) {
     if (!chapters.some((chapter) => chapter.id === chapterId)) return;

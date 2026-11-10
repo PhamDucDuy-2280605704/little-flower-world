@@ -354,7 +354,7 @@ export default function GardenStudio() {
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!selectedGarden || !canvas || typeof ResizeObserver === "undefined") return;
+    if (!selectedGarden?.id || !canvas || typeof ResizeObserver === "undefined") return;
     const observer = new ResizeObserver((entries) => {
       const rectangle = entries[0]?.contentRect;
       if (!rectangle || rectangle.width <= 0 || rectangle.height <= 0) return;

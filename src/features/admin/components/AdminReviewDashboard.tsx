@@ -206,7 +206,6 @@ export default function AdminReviewDashboard() {
       setStoryDraft(null);
       return;
     }
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setStoryDraft({
       name: selected.name,
       introduction: selected.introduction ?? "",
