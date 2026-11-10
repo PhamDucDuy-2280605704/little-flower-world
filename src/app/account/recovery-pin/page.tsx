@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import RecoveryPinSetupForm from "@/features/auth/components/RecoveryPinSetupForm";
-import { useLanguage } from "@/features/i18n/LanguageProvider";
 import styles from "@/app/login/page.module.css";
 
 export const metadata: Metadata = {
