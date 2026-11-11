@@ -1,3 +1,4 @@
+
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Noto_Sans, Noto_Serif, Geist_Mono } from "next/font/google";
@@ -26,18 +27,30 @@ const monoFont = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://little-story-world.vercel.app"),
+
   title: "Little Story World",
   description:
     "Một không gian sáng tác thông điệp, thư và những cuốn sách dành riêng cho người bạn quý mến.",
+
   applicationName: "Little Story World",
+
   icons: {
     icon: [
       { url: "/favicon.svg", type: "image/svg+xml" },
       { url: "/favicon.ico", sizes: "any" },
     ],
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    apple: [
+      {
+        url: "/apple-touch-icon.png",
+        sizes: "180x180",
+        type: "image/png",
+      },
+    ],
   },
+
   manifest: "/site.webmanifest",
+
   openGraph: {
     title: "Little Story World",
     description:
@@ -54,7 +67,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   return (
     <html
       lang="vi"
