@@ -122,7 +122,7 @@ export default function AdminReviewDashboard() {
   const ownerFor = (ownerId: string) => ownerId === FAIRYTALE_GARDEN_ADMIN_USER_ID
     ? { display_name: t("Admin · Chủ hệ thống", "Admin · System owner"), email: null as string | null }
     : ownerDirectory.find((entry) => entry.owner_id === ownerId)
-      ?? { display_name: t("User · Tài khoản người viết", "User · Writer account"), email: null as string | null };
+      ?? { display_name: t("Người dùng · Tài khoản người viết", "Member · Writer account"), email: null as string | null };
 
   const loadRows = useCallback(async (): Promise<ReviewRow[]> => {
     setLoading(true);
