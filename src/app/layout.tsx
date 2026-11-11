@@ -27,7 +27,31 @@ const monoFont = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Little Story World",
-  description: "Một không gian sáng tác thông điệp, thư và những cuốn sách dành riêng cho người bạn quý mến.",
+  description:
+    "Một không gian sáng tác thông điệp, thư và những cuốn sách dành riêng cho người bạn quý mến.",
+  applicationName: "Little Story World",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
+  manifest: "/site.webmanifest",
+  openGraph: {
+    title: "Little Story World",
+    description:
+      "Một không gian sáng tác thông điệp, thư và những cuốn sách dành riêng cho người bạn quý mến.",
+    siteName: "Little Story World",
+    images: [
+      {
+        url: "/little-story-world-icon-512.png",
+        width: 512,
+        height: 512,
+        alt: "Little Story World – stories, books and memories",
+      },
+    ],
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

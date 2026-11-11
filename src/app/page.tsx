@@ -10,8 +10,17 @@ export default function Home() {
   return (
     <main className={styles.page}>
       <header className={styles.header}>
-        <Link href="/" className={styles.brand}>
-          <span className={styles.brandMark}>L</span>
+        <Link href="/" className={styles.brand} aria-label="Little Story World – Trang chủ">
+          <span
+            className={styles.brandMark}
+            aria-hidden="true"
+            style={{
+              backgroundImage: "url(/little-story-world-mark.svg)",
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
+              backgroundSize: "34px 34px",
+            }}
+          />
           <span><strong>Little Story World</strong><small>YOUR PERSONAL STORY STUDIO</small></span>
         </Link>
         <nav aria-label={t("Điều hướng trang chủ", "Main navigation")}>
