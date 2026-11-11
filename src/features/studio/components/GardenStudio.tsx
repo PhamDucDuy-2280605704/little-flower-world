@@ -383,7 +383,7 @@ export default function GardenStudio() {
   async function handleLogout() {
     const { error: logoutError } = await adminSupabase.auth.signOut({ scope: "local" });
     if (logoutError) {
-      setError("Đăng xuất chưa thành công. Anh thử lại nhé.");
+      setError("Đăng xuất chưa thành công. Bạn thử lại nhé.");
       return;
     }
     router.replace("/admin/login");
@@ -430,7 +430,7 @@ export default function GardenStudio() {
     if (!rows.some((garden) => garden.id === data.id)) {
       setError("Khu vườn đã tạo nhưng chưa xuất hiện trong danh sách. Hãy tải lại.");
     } else {
-      setNotice("Đã tạo một khu vườn mới để anh bắt đầu thiết kế.");
+      setNotice("Đã tạo một khu vườn mới để bạn bắt đầu thiết kế.");
     }
     setSaving(false);
   }
@@ -511,7 +511,7 @@ export default function GardenStudio() {
   async function publishGarden(publish: boolean) {
     if (!selectedGarden || saving) return;
     if (publish && (!name.trim() || chapters.length === 0)) {
-      setError("Để xuất bản, anh cần đặt tên vườn và tạo ít nhất một chương truyện.");
+      setError("Để xuất bản, bạn cần đặt tên vườn và tạo ít nhất một chương truyện.");
       return;
     }
     if (pinEnabled && !pinExists && pinDraft.trim().length < 6) {
@@ -599,7 +599,7 @@ export default function GardenStudio() {
     }
 
     await loadGardens(userId);
-    setNotice(publish ? "Khu vườn đã được xuất bản. Anh có thể gửi đường link cho người nhận." : "Khu vườn đã chuyển về bản nháp; link chia sẻ sẽ không còn mở được.");
+    setNotice(publish ? "Khu vườn đã được xuất bản. Bạn có thể gửi đường link cho người nhận." : "Khu vườn đã chuyển về bản nháp; link chia sẻ sẽ không còn mở được.");
     setSaving(false);
   }
 
@@ -645,13 +645,13 @@ export default function GardenStudio() {
       setSelectedChapterId(chapterId);
       setNewChapterTitle("");
       setNewChapterText("");
-      setError("Chương đã được tạo, nhưng hoa mở chương chưa thêm được. Anh có thể thêm hoa sau trong mục bố cục.");
+      setError("Chương đã được tạo, nhưng hoa mở chương chưa thêm được. Bạn có thể thêm hoa sau trong mục bố cục.");
     } else {
       setNewChapterTitle("");
       setNewChapterText("");
       await loadGardenDetails(selectedGarden);
       setSelectedChapterId(chapterId);
-      setNotice("Đã thêm chương " + order + " cùng một bông hoa mở truyện. Anh có thể tiếp tục thêm chương mới.");
+      setNotice("Đã thêm chương " + order + " cùng một bông hoa mở truyện. Bạn có thể tiếp tục thêm chương mới.");
     }
     setSaving(false);
   }
@@ -775,7 +775,7 @@ export default function GardenStudio() {
   function moveSelection(horizontal: number, depthDirection: number, targetIds: string[] = selectedItems.map((item) => item.id)) {
     const ids = targetIds.length > 0 ? targetIds : selectedItemId ? [selectedItemId] : [];
     if (ids.length === 0) {
-      setNotice("Anh chọn một bông hoa trước khi di chuyển nhé.");
+      setNotice("Bạn hãy chọn một bông hoa trước khi di chuyển nhé.");
       return;
     }
 
@@ -925,7 +925,7 @@ export default function GardenStudio() {
     const failed = results.find((result) => result.error);
     if (failed?.error) {
       console.error("Save garden layout failed:", failed.error);
-      setError("Một phần vị trí chưa lưu được. Anh giữ nguyên bản nháp trên màn hình và thử lưu lại nhé.");
+      setError("Một phần vị trí chưa lưu được. Bản nháp vẫn được giữ trên màn hình; bạn hãy thử lưu lại nhé.");
     } else {
       setDirtyLayout(false);
       setNotice("Đã lưu toàn bộ vị trí hoa trong khu vườn.");
@@ -956,7 +956,7 @@ export default function GardenStudio() {
     await loadGardenDetails(selectedGarden);
     setSelectedItemId(createdItem.id);
     setSelectedItemIds([createdItem.id]);
-    setNotice("Đã thêm hoa mới ở giữa khu vườn. Anh có thể kéo đến vị trí mong muốn.");
+    setNotice("Đã thêm hoa mới ở giữa khu vườn. Bạn có thể kéo đến vị trí mong muốn.");
   }
 
   async function saveSelectedItem() {
@@ -1003,7 +1003,7 @@ export default function GardenStudio() {
     });
     if (uploadError) {
       console.error("Upload garden image failed:", uploadError);
-      setError("Chưa tải được ảnh. Anh thử lại nhé.");
+      setError("Chưa tải được ảnh. Bạn thử lại nhé.");
       setUploading(false);
       return;
     }
@@ -1046,7 +1046,7 @@ export default function GardenStudio() {
       await navigator.clipboard.writeText(shareUrl);
       setNotice("Đã sao chép đường link chia sẻ.");
     } catch {
-      setError("Trình duyệt không cho phép sao chép tự động. Anh hãy chọn và sao chép đường link.");
+      setError("Trình duyệt không cho phép sao chép tự động. Bạn hãy chọn và sao chép đường link.");
     }
   }
 
@@ -1062,7 +1062,7 @@ export default function GardenStudio() {
   }
 
   if (!userId) {
-    return <main className={styles.loading}><p>{error || "Anh cần đăng nhập để mở Creator Studio."}</p><Link href="/admin/login">Đăng nhập quản trị</Link><Link href="/">Về trang chủ</Link></main>;
+    return <main className={styles.loading}><p>{error || "Bạn cần đăng nhập để mở Creator Studio."}</p><Link href="/admin/login">Đăng nhập quản trị</Link><Link href="/">Về trang chủ</Link></main>;
   }
 
   return (
@@ -1079,7 +1079,7 @@ export default function GardenStudio() {
 
       <div className={styles.intro}>
         <p className={styles.kicker}>LIVING STORY GARDEN</p>
-        <h1>Tạo một thế giới của riêng anh</h1>
+        <h1>Tạo một thế giới của riêng bạn</h1>
         <p>Thiết kế khu vườn, viết câu chuyện và gửi một lời mời để người khác bước vào khám phá.</p>
       </div>
 
@@ -1088,7 +1088,7 @@ export default function GardenStudio() {
 
       <div className={styles.workspace}>
         <aside className={styles.sidebar}>
-          <div className={styles.sideHeader}><div><span className={styles.eyebrow}>MY GARDENS</span><h2>Khu vườn của anh</h2></div><button type="button" onClick={createGarden} disabled={saving}>＋ Tạo vườn</button></div>
+          <div className={styles.sideHeader}><div><span className={styles.eyebrow}>MY GARDENS</span><h2>Khu vườn của bạn</h2></div><button type="button" onClick={createGarden} disabled={saving}>＋ Tạo vườn</button></div>
           {gardens.length === 0 ? <p className={styles.empty}>Chưa có khu vườn nào. Hãy tạo khu vườn đầu tiên nhé.</p> : gardens.map((garden) => (
             <button key={garden.id} type="button" className={garden.id === selectedId ? styles.gardenActive : styles.gardenButton} onClick={() => setSelectedId(garden.id)}>
               <span className={styles.gardenMark}>✿</span><span><strong>{garden.name}</strong><small>{garden.is_published ? "Đã xuất bản" : "Bản nháp"}</small></span>
@@ -1112,7 +1112,7 @@ export default function GardenStudio() {
 
             <section className={styles.section} id="step-01">
               <div className={styles.sectionTitle}><span>01</span><div><h3>Danh tính khu vườn</h3><p>Tên, lời chào và thông điệp người nhận sẽ nhìn thấy.</p></div></div>
-              <label>Tên khu vườn<input value={name} maxLength={80} onChange={(event) => setName(event.target.value)} placeholder="Ví dụ: Khu vườn dành cho em"/></label>
+              <label>Tên khu vườn<input value={name} maxLength={80} onChange={(event) => setName(event.target.value)} placeholder="Ví dụ: Khu vườn dành cho người nhận"/></label>
               <label>Lời chào<input value={introduction} maxLength={500} onChange={(event) => setIntroduction(event.target.value)} placeholder="Lời chào khi người nhận bước vào"/></label>
               <label>Tiêu đề lá thư cuối<input value={letterTitle} maxLength={100} onChange={(event) => setLetterTitle(event.target.value)}/></label>
               <label>Nội dung lá thư<textarea value={letterText} onChange={(event) => setLetterText(event.target.value)} rows={4} placeholder="Mỗi đoạn cách nhau một dòng trống..."/></label>
@@ -1120,7 +1120,7 @@ export default function GardenStudio() {
             </section>
 
             <section className={styles.section} id="step-02">
-              <div className={styles.sectionTitle}><span>02</span><div><h3>Không khí câu chuyện</h3><p>Chọn ánh sáng, mùa và âm thanh để tạo cảm xúc cho thế giới của anh.</p></div></div>
+              <div className={styles.sectionTitle}><span>02</span><div><h3>Không khí câu chuyện</h3><p>Chọn ánh sáng, mùa và âm thanh để tạo cảm xúc cho thế giới của bạn.</p></div></div>
               <div className={styles.formGrid}>
                 <label>Thời tiết<select value={weather} onChange={(event) => setWeather(event.target.value)}><option value="clear">Nắng nhẹ</option><option value="cloudy">Nhiều mây</option><option value="rain">Mưa dịu</option><option value="snow">Tuyết</option></select></label>
                 <label>Mùa<select value={season} onChange={(event) => setSeason(event.target.value)}><option value="spring">Mùa xuân</option><option value="summer">Mùa hạ</option><option value="autumn">Mùa thu</option><option value="winter">Mùa đông</option></select></label>
@@ -1245,7 +1245,7 @@ export default function GardenStudio() {
             </section>
 
             <section className={styles.section} id="step-04">
-              <div className={styles.sectionTitle}><span>04</span><div><h3>Xây dựng câu chuyện</h3><p>Mỗi chương là một phần của thế giới anh tạo. Biểu tượng trên sân khấu chỉ là cánh cửa để khách mở nội dung, không phải nhiệm vụ chăm sóc hoa.</p></div><span className={styles.chapterCount}>{chapters.length} chương</span></div>
+              <div className={styles.sectionTitle}><span>04</span><div><h3>Xây dựng câu chuyện</h3><p>Mỗi chương là một phần của thế giới bạn tạo. Biểu tượng trên sân khấu chỉ là cánh cửa để khách mở nội dung, không phải nhiệm vụ chăm sóc hoa.</p></div><span className={styles.chapterCount}>{chapters.length} chương</span></div>
               <div className={styles.chapterList}>
                 {chapters.map((chapter) => <div key={chapter.chapter_id} className={styles.chapterEntry}>
                   <button type="button" onClick={() => setSelectedChapterId(chapter.chapter_id)} className={selectedChapterId === chapter.chapter_id ? styles.chapterActive : styles.chapterButton}>
@@ -1261,7 +1261,7 @@ export default function GardenStudio() {
               </div>}
               <div className={styles.addChapter}>
                 <div className={styles.addChapterHeading}><h4>＋ Thêm chương tiếp theo</h4><span>Chương {Math.max(0, ...chapters.map((chapter) => chapter.sort_order)) + 1}</span></div>
-                <p className={styles.chapterHelp}>Tạo từng chương một; sau khi thêm, biểu mẫu sẽ làm trống để anh viết chương kế tiếp. Không giới hạn số chương ở giao diện này.</p>
+                <p className={styles.chapterHelp}>Tạo từng chương một; sau khi thêm, biểu mẫu sẽ làm trống để bạn viết chương kế tiếp. Không giới hạn số chương ở giao diện này.</p>
                 <label>Tên chương<input value={newChapterTitle} onChange={(event) => setNewChapterTitle(event.target.value)} placeholder="Một kỷ niệm nhỏ..."/></label>
                 <label>Nội dung<textarea rows={4} value={newChapterText} onChange={(event) => setNewChapterText(event.target.value)} placeholder="Viết từng đoạn của câu chuyện..."/></label>
                 <label>Biểu tượng mở chương<select value={newChapterFlower} onChange={(event) => setNewChapterFlower(event.target.value as FlowerKind)}>{FLOWERS.map((flower) => <option key={flower.value} value={flower.value}>{flower.label}</option>)}</select></label>
@@ -1270,14 +1270,14 @@ export default function GardenStudio() {
             </section>
 
             <section className={styles.section} id="step-05">
-              <div className={styles.sectionTitle}><span>05</span><div><h3>Hình ảnh do anh tải lên</h3><p>Anh tự tải ảnh bìa và ảnh kỷ niệm. Hệ thống không tự tạo hoặc thay ảnh mẫu.</p></div></div>
+              <div className={styles.sectionTitle}><span>05</span><div><h3>Hình ảnh do bạn tải lên</h3><p>Bạn tự tải ảnh bìa và ảnh kỷ niệm. Hệ thống không tự tạo hoặc thay ảnh mẫu.</p></div></div>
               {coverUrl && <button type="button" className={styles.coverOpen} onClick={() => setCoverLightboxOpen(true)} aria-label="Phóng to ảnh bìa"><Image className={styles.coverPreview} src={coverUrl} alt="Ảnh bìa khu vườn" width={1200} height={675} unoptimized/></button>}
-              <label className={styles.uploadButton}>＋ Tải ảnh của anh lên / đổi ảnh bìa<input type="file" accept="image/jpeg,image/png,image/webp,image/avif" onChange={(event) => void uploadPhoto(event)} disabled={uploading}/></label>
+              <label className={styles.uploadButton}>＋ Tải ảnh của bạn lên / đổi ảnh bìa<input type="file" accept="image/jpeg,image/png,image/webp,image/avif" onChange={(event) => void uploadPhoto(event)} disabled={uploading}/></label>
               {uploading && <p className={styles.muted}>Đang tải ảnh lên...</p>}
             </section>
 
             <section className={styles.section} id="step-06">
-              <div className={styles.sectionTitle}><span>06</span><div><h3>Sổ lưu bút của người ghé thăm</h3><p>Khách gửi lời nhắn; anh duyệt trước khi lời nhắn xuất hiện công khai.</p></div></div>
+              <div className={styles.sectionTitle}><span>06</span><div><h3>Sổ lưu bút của người ghé thăm</h3><p>Khách gửi lời nhắn; bạn duyệt trước khi lời nhắn xuất hiện công khai.</p></div></div>
               <label className={styles.checkbox}><input type="checkbox" checked={guestbookEnabled} onChange={(event) => setGuestbookEnabled(event.target.checked)}/> Cho phép khách để lại lời nhắn</label>
               <div className={styles.stats}><span>{pendingCount} chờ duyệt</span><span>{approvedCount} đã duyệt</span></div>
               {guestbook.map((entry) => <div className={styles.guestEntry} key={entry.id}>
@@ -1339,7 +1339,7 @@ export default function GardenStudio() {
             </section>
           </section>
         ) : (
-          <section className={styles.emptyEditor}><span>✿</span><h2>Khu vườn đầu tiên đang chờ anh</h2><p>Bấm “Tạo vườn” để bắt đầu một món quà mới.</p><button type="button" onClick={createGarden} disabled={saving}>＋ Tạo khu vườn</button></section>
+          <section className={styles.emptyEditor}><span>✿</span><h2>Khu vườn đầu tiên đang chờ bạn</h2><p>Bấm “Tạo vườn” để bắt đầu một món quà mới.</p><button type="button" onClick={createGarden} disabled={saving}>＋ Tạo khu vườn</button></section>
         )}
       </div>
       <dialog
@@ -1354,7 +1354,7 @@ export default function GardenStudio() {
             <div>
               <p className={styles.eyebrow}>KHU VỰC KHÁCH · BẢN XEM TRƯỚC</p>
               <h2 id="garden-preview-title">{name.trim() || selectedGarden.name}</h2>
-              <span className={styles.previewStatus}>Chưa xuất bản · Chỉ anh đang xem được bản này</span>
+              <span className={styles.previewStatus}>Chưa xuất bản · Chỉ bạn đang xem được bản này</span>
             </div>
             <button type="button" onClick={() => setPreviewOpen(false)} aria-label="Đóng bản xem trước">Đóng ✕</button>
           </header>
