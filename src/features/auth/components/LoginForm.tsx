@@ -3,7 +3,6 @@
 
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import styles from "../styles/LoginForm.module.css";
@@ -11,7 +10,6 @@ import { useLanguage } from "@/features/i18n/LanguageProvider";
 import { FAIRYTALE_GARDEN_ADMIN_USER_ID } from "@/features/garden/data/gardenThemes";
 
 export default function LoginForm() {
-  const router = useRouter();
   const { t } = useLanguage();
 
   const [email, setEmail] = useState("");
@@ -59,9 +57,13 @@ export default function LoginForm() {
       if (recoveryStatusError) {
         throw new Error(t("Chưa thể kiểm tra trạng thái PIN bảo mật. Hãy thử đăng nhập lại sau ít phút.", "We couldn't verify your recovery PIN status. Please try signing in again shortly."));
       }
-      if (recoveryStatus?.hasPin !== true) {
-        router.replace("/account/recovery-pin");
-        router.refresh();
+      if (typeof recoveryStatus?.hasPin !== "boolean") {
+        throw new Error(t("Chưa xác minh được trạng thái PIN bảo mật. Vui lòng thử lại.", "We couldn't verify your recovery PIN status. Please try again."));
+      }
+      if (recoveryStatus.hasPin !== true) {
+        // Force a clean document navigation so the new auth session is available
+        // before the protected PIN setup screen checks it again.
+        window.location.replace("/account/recovery-pin");
         return;
       }
 
@@ -92,8 +94,7 @@ export default function LoginForm() {
         }
       }
 
-      router.replace(nextPath);
-      router.refresh();
+      window.location.replace(nextPath);
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error
