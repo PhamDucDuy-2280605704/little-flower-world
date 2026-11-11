@@ -161,7 +161,7 @@ export default function SignupForm() {
               {showPassword ? t("Ẩn", "Hide") : t("Hiện", "Show")}
             </button>
           </div>
-          <span className={styles.hint}>{t("Ít nhất 8 ký tự. Tài khoản mới luôn bắt đầu với quyền User.", "At least 8 characters. New accounts always start with User access.")}</span>
+          <span className={styles.hint}>{t("Ít nhất 8 ký tự. Tài khoản mới luôn bắt đầu với quyền Người dùng.", "At least 8 characters. New accounts always start with User access.")}</span>
         </div>
 
         <div className={styles.field}>
