@@ -73,7 +73,7 @@ export default function SharedGardenExperience({ slug }: { slug: string }) {
       }
       if (data.error === "PIN_REQUIRED" || data.error === "PIN_INVALID") {
         setState("pin");
-        setPinError(data.error === "PIN_INVALID" ? t("Mã PIN chưa chính xác. Anh/chị thử lại nhé.", "The PIN is incorrect. Please try again.") : "");
+        setPinError(data.error === "PIN_INVALID" ? t("Mã PIN chưa chính xác. Bạn thử lại nhé.", "The PIN is incorrect. Please try again.") : "");
         return;
       }
       if (response.status === 429 || data.error === "RATE_LIMITED") {
@@ -131,8 +131,8 @@ export default function SharedGardenExperience({ slug }: { slug: string }) {
       });
       if (!response.ok || data.ok !== true) {
         setGuestNotice(data.error === "RATE_LIMITED"
-          ? t("Anh/chị đã gửi khá nhiều lời nhắn. Vui lòng quay lại sau.", "You have sent many notes. Please try again later.")
-          : t("Chưa gửi được lời nhắn. Anh/chị thử lại nhé.", "Your note could not be sent. Please try again."));
+          ? t("Bạn đã gửi khá nhiều lời nhắn. Vui lòng quay lại sau.", "You have sent many notes. Please try again later.")
+          : t("Chưa gửi được lời nhắn. Bạn thử lại nhé.", "Your note could not be sent. Please try again."));
       } else {
         setGuestName("");
         setGuestMessage("");
