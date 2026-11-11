@@ -616,7 +616,7 @@ export default function BookStudio() {
       return;
     }
     await loadGardens(userId, false);
-    setNotice(t("Đã mở chỉnh sửa. Liên kết cũ đã được tắt; anh có thể sửa nội dung, chương và ảnh rồi gửi Admin duyệt lại.", "Editing is open. The old link is disabled; you can edit the story, chapters, and photos, then resubmit for review."));
+    setNotice(t("Đã mở chỉnh sửa. Liên kết cũ đã được tắt; bạn có thể sửa nội dung, chương và ảnh rồi gửi Admin duyệt lại.", "Editing is open. The old link is disabled; you can edit the story, chapters, and photos, then resubmit for review."));
     setSaving(false);
   }
 
@@ -799,7 +799,7 @@ export default function BookStudio() {
       .list(garden.id, { limit: 1000 });
     if (listError) {
       console.error("List draft photos before deletion failed:", listError);
-      setError(t("Không kiểm tra được ảnh của bản thảo nên chưa xóa gì cả. Anh thử lại nhé.", "Could not inspect the draft photos, so nothing was deleted. Please try again."));
+      setError(t("Không kiểm tra được ảnh của bản thảo nên chưa xóa gì cả. Bạn thử lại nhé.", "Could not inspect the draft photos, so nothing was deleted. Please try again."));
       setSaving(false);
       return;
     }
@@ -824,7 +824,7 @@ export default function BookStudio() {
     const { data: deleted, error: deleteError } = await deleteQuery.select("id").maybeSingle();
     if (deleteError || !deleted) {
       console.error("Delete draft failed:", deleteError);
-      setError(t("Chưa xóa được bản thảo. Nếu ảnh đã được dọn, phần nội dung vẫn được giữ để anh thử lại.", "Could not delete the draft. If its photos were already removed, the story content is still preserved so you can retry."));
+      setError(t("Chưa xóa được bản thảo. Nếu ảnh đã được dọn, phần nội dung vẫn được giữ để bạn thử lại.", "Could not delete the draft. If its photos were already removed, the story content is still preserved so you can retry."));
       setSaving(false);
       return;
     }
@@ -1184,8 +1184,8 @@ export default function BookStudio() {
           <p className={styles.eyebrow}>{isAdmin ? "ADMIN WORKSPACE" : "BÀN SÁNG TÁC RIÊNG"}</p>
           <h1>{isAdmin ? t("Không gian chỉnh sửa đầy đủ của Admin.", "Full Admin editing workspace.") : t("Nơi bạn viết và chăm chút câu chuyện của mình.", "A quiet place to write and shape your stories.")}</h1>
           <p>{isAdmin
-            ? t("Admin là chủ hệ thống: quản lý tác phẩm của mình, xem và chỉnh sửa tác phẩm của từng User, duyệt hoặc từ chối tại Bàn kiểm duyệt. User có thể tự xuất bản sau khi được Admin duyệt.", "Admin is the system owner: manage personal stories, inspect and edit each User's stories, and approve or reject in the Review Desk. Users can publish their own stories after approval.")
-            : t("Đây là bàn sáng tác dành cho User: tạo tác phẩm, thêm ảnh, trang trí, gửi Admin kiểm duyệt và nhận thông báo. Khi được duyệt, User có thể tự xuất bản, đặt PIN và bật lời nhắn cho Khách đọc.", "This writing desk is for Users: create stories, add photos, decorate, submit for Admin review, and receive notices. Once approved, Users can publish, set a PIN, and enable notes from reader Guests.")}</p>
+            ? t("Admin là chủ hệ thống: quản lý tác phẩm của mình, xem và chỉnh sửa tác phẩm của từng người dùng, duyệt hoặc từ chối tại Bàn kiểm duyệt. Người dùng có thể tự xuất bản sau khi được Admin duyệt.", "Admin is the system owner: manage personal stories, inspect and edit each User's stories, and approve or reject in the Review Desk. Users can publish their own stories after approval.")
+            : t("Đây là bàn sáng tác dành cho người dùng: tạo tác phẩm, thêm ảnh, trang trí, gửi Admin kiểm duyệt và nhận thông báo. Khi được duyệt, Người dùng có thể tự xuất bản, đặt PIN và bật lời nhắn cho Khách đọc.", "This writing desk is for Users: create stories, add photos, decorate, submit for Admin review, and receive notices. Once approved, Users can publish, set a PIN, and enable notes from reader Guests.")}</p>
         </div>
         <div className={styles.welcomePhoto} role="img" aria-label={t("Cuốn sách mở dưới ánh sáng tự nhiên", "An open book in natural light")}>
           <span>YOUR WORDS, YOUR PAGES</span>
@@ -1197,7 +1197,7 @@ export default function BookStudio() {
           <div><span>▤</span><strong>{t("Quản lý bản thảo", "Manage drafts")}</strong><small>{t("Tạo, sửa và xóa bản thảo riêng tư hoặc bản bị từ chối.", "Create, edit, and delete private or rejected drafts.")}</small></div>
           <div><span>▧</span><strong>{t("Quản lý hình ảnh", "Manage photos")}</strong><small>{t("Thêm ảnh và xem kho ảnh của từng tác phẩm.", "Add photos and manage each story's album.")}</small></div>
           <div><span>✉</span><strong>{t("Gửi Admin kiểm duyệt", "Submit for review")}</strong><small>{t("Theo dõi trạng thái và đọc nhận xét từ Admin.", "Track review status and read Admin feedback.")}</small></div>
-          <div><span>✉</span><strong>{t("Admin duyệt · User xuất bản", "Admin approves · User publishes")}</strong><small>{t("User chỉ được tạo liên kết công khai sau khi Admin duyệt tác phẩm.", "Users can create a public link only after Admin approval.")}</small></div>
+          <div><span>✉</span><strong>{t("Admin duyệt · Người dùng xuất bản", "Admin approves · User publishes")}</strong><small>{t("Người dùng chỉ được tạo liên kết công khai sau khi Admin duyệt tác phẩm.", "Users can create a public link only after Admin approval.")}</small></div>
         </section>
       )}
 
@@ -1227,7 +1227,7 @@ export default function BookStudio() {
                     {myAdminStories.length > 0 ? myAdminStories.map((garden) => renderGardenItem(garden)) : <p className={styles.collectionEmpty}>{t("Admin chưa có tác phẩm riêng.", "Admin has no personal stories yet.")}</p>}
                   </section>
                   <section className={styles.storyCollection}>
-                    <h3>{t("TÁC PHẨM CỦA USERS · TÀI KHOẢN NGƯỜI VIẾT", "USERS' STORIES · WRITER ACCOUNTS")}</h3>
+                    <h3>{t("TÁC PHẨM CỦA NGƯỜI DÙNG · TÀI KHOẢN NGƯỜI VIẾT", "USERS' STORIES · WRITER ACCOUNTS")}</h3>
                     {guestStoryGroups.length > 0 ? guestStoryGroups.map((group) => (
                       <div className={styles.ownerStoryGroup} key={group.ownerId}>
                         <div className={styles.ownerStoryHeading}>
@@ -1236,7 +1236,7 @@ export default function BookStudio() {
                         </div>
                         {group.stories.map((garden) => renderGardenItem(garden))}
                       </div>
-                    )) : <p className={styles.collectionEmpty}>{t("Chưa có User nào tạo tác phẩm.", "No writer accounts have created stories yet.")}</p>}
+                    )) : <p className={styles.collectionEmpty}>{t("Chưa có người dùng nào tạo tác phẩm.", "No writer accounts have created stories yet.")}</p>}
                   </section>
                 </>
               )}
@@ -1249,7 +1249,7 @@ export default function BookStudio() {
           <section className={styles.editor} id="writing-editor">
             <div className={styles.editorHeading}>
               <div>
-                <p className={styles.eyebrow}>{isAdmin && selectedGarden.owner_id !== FAIRYTALE_GARDEN_ADMIN_USER_ID ? t("ADMIN · ĐANG SỬA TÁC PHẨM CỦA USER", "ADMIN · EDITING A USER STORY") : isAdmin ? t("ADMIN · TÁC PHẨM CHỦ HỆ THỐNG", "ADMIN · SYSTEM OWNER STORY") : t("USER · WRITING DESK", "USER · WRITING DESK")}</p>
+                <p className={styles.eyebrow}>{isAdmin && selectedGarden.owner_id !== FAIRYTALE_GARDEN_ADMIN_USER_ID ? t("ADMIN · ĐANG SỬA TÁC PHẨM CỦA NGƯỜI DÙNG", "ADMIN · EDITING A USER STORY") : isAdmin ? t("ADMIN · TÁC PHẨM CHỦ HỆ THỐNG", "ADMIN · SYSTEM OWNER STORY") : t("NGƯỜI DÙNG · BÀN SÁNG TÁC", "NGƯỜI DÙNG · BÀN SÁNG TÁC")}</p>
                 <h2>{name || selectedGarden.name}</h2>
                 {isAdmin && <small className={styles.selectedOwnerLabel}>{t("Chủ sở hữu: ", "Owner: ")}{selectedOwnerName}</small>}
               </div>
@@ -1436,7 +1436,7 @@ export default function BookStudio() {
                       </button>;
                     })}
                   </div>
-                  <p className={styles.helper}>{t("Admin và mọi tài khoản User đều được dùng toàn bộ bộ sticker, không giới hạn số lượng.", "Admin and all User accounts can use the full sticker collection without a selection limit.")} {t("Sticker chỉ mang tính trang trí, không che nội dung trang.", "Stickers are decorative and will not cover your text.")}</p>
+                  <p className={styles.helper}>{t("Admin và mọi tài khoản người dùng đều được dùng toàn bộ bộ sticker, không giới hạn số lượng.", "Admin and all User accounts can use the full sticker collection without a selection limit.")} {t("Sticker chỉ mang tính trang trí, không che nội dung trang.", "Stickers are decorative and will not cover your text.")}</p>
                 </div>
                 <div className={styles.decorationPreview}><span>{decorations.stickers.map((id) => STORY_STICKERS.find((item) => item.id === id)?.emoji).join(" ") || "✦"}</span><div><strong>{t("Xem nhanh phong cách", "Style preview")}</strong><p>{DECORATION_THEMES.find((item) => item.value === decorations.theme) ? t(DECORATION_THEMES.find((item) => item.value === decorations.theme)!.title, DECORATION_THEMES.find((item) => item.value === decorations.theme)!.titleEn) : ""} · {PAPER_FINISHES.find((item) => item.value === decorations.paper) ? t(PAPER_FINISHES.find((item) => item.value === decorations.paper)!.title, PAPER_FINISHES.find((item) => item.value === decorations.paper)!.titleEn) : ""} · {PAGE_EFFECTS.find((item) => item.value === decorations.effect) ? t(PAGE_EFFECTS.find((item) => item.value === decorations.effect)!.title, PAGE_EFFECTS.find((item) => item.value === decorations.effect)!.titleEn) : ""}</p></div></div>
               </div>
@@ -1503,7 +1503,7 @@ export default function BookStudio() {
                 {selectedGarden.approval_status === "rejected" && !isAdmin && <button type="button" className={styles.primaryButton} onClick={() => void submitForReview()} disabled={saving || !contentReady()}>{saving ? t("Đang gửi...", "Submitting...") : t("Gửi duyệt lại", "Resubmit for review")}</button>}
                 {selectedGarden.approval_status === "draft" && !isAdmin && <button type="button" className={styles.primaryButton} onClick={() => void submitForReview()} disabled={saving || !contentReady()}>{saving ? t("Đang gửi...", "Submitting...") : t("Gửi Admin kiểm duyệt", "Submit for Admin review")}</button>}
                 {selectedGarden.approval_status === "pending" && isAdmin && <p className={styles.helper}>{t("Admin đang theo dõi yêu cầu này trong Bàn kiểm duyệt. Hãy dùng trang đó để duyệt hoặc từ chối.", "Use the Review Desk to approve or reject this pending request.")}</p>}
-                {selectedGarden.approval_status === "rejected" && isAdmin && <p className={styles.helper}>{t("User đã nhận thông báo và lý do từ chối. Mở Bàn kiểm duyệt để xem quyết định.", "The User received the rejection notice and reason. Open the Review Desk to review the decision.")}</p>}
+                {selectedGarden.approval_status === "rejected" && isAdmin && <p className={styles.helper}>{t("Người dùng đã nhận thông báo và lý do từ chối. Mở Bàn kiểm duyệt để xem quyết định.", "The User received the rejection notice and reason. Open the Review Desk to review the decision.")}</p>}
               </div>
               </section>
             </section>
