@@ -35,7 +35,7 @@ export default async function PrivateAdminPortalPage({ params }: PrivatePortalPa
             <span className={styles.brandMark}>L</span>
             <span><strong>Little Story World</strong><small>PRIVATE ADMIN ACCESS</small></span>
           </div>
-          <AdminLoginForm />
+          <AdminLoginForm accessKey={accessKey} />
           <p className={styles.footer}>Cổng riêng · Chỉ người được cấp địa chỉ và tài khoản Admin mới có thể tiếp tục</p>
           <Link className={styles.backLink} href="/">Về trang chủ</Link>
         </div>

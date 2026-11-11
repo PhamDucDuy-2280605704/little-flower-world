@@ -3,13 +3,11 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useLanguage } from "@/features/i18n/LanguageProvider";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { adminSupabase } from "@/lib/adminSupabase";
 import { FAIRYTALE_GARDEN_ADMIN_USER_ID } from "@/features/garden/data/gardenThemes";
 import styles from "../styles/AdminLoginForm.module.css";
 
-export default function AdminLoginForm() {
-  const router = useRouter();
+export default function AdminLoginForm({ accessKey }: { accessKey: string }) {
   const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,8 +30,13 @@ export default function AdminLoginForm() {
 
       const currentUser = data.session?.user;
       if (currentUser?.id === FAIRYTALE_GARDEN_ADMIN_USER_ID) {
-        router.replace("/admin");
-        router.refresh();
+        const { data: pinStatus, error: pinError } = await adminSupabase.functions.invoke("account-recovery", { body: { action: "status" } });
+        if (pinError || typeof pinStatus?.hasPin !== "boolean") {
+          setError(t("Chưa xác minh được PIN quản trị. Hãy thử tải lại.", "Could not verify the Admin recovery PIN. Please reload."));
+          setChecking(false);
+          return;
+        }
+        window.location.replace(pinStatus.hasPin ? "/admin" : `/private-admin/${encodeURIComponent(accessKey)}/recovery-pin`);
         return;
       }
 
@@ -53,7 +56,7 @@ export default function AdminLoginForm() {
     return () => {
       active = false;
     };
-  }, [router, t]);
+  }, [accessKey, t]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -91,8 +94,13 @@ export default function AdminLoginForm() {
         return;
       }
 
-      router.replace("/admin");
-      router.refresh();
+      const { data: pinStatus, error: pinError } = await adminSupabase.functions.invoke("account-recovery", { body: { action: "status" } });
+      if (pinError || typeof pinStatus?.hasPin !== "boolean") {
+        await adminSupabase.auth.signOut({ scope: "local" });
+        setError(t("Chưa xác minh được PIN quản trị. Hãy thử đăng nhập lại.", "Could not verify the Admin recovery PIN. Please sign in again."));
+        return;
+      }
+      window.location.replace(pinStatus.hasPin ? "/admin" : `/private-admin/${encodeURIComponent(accessKey)}/recovery-pin`);
     } catch (cause: unknown) {
       console.error("Admin sign-in failed:", cause);
       setError(t("Có lỗi kết nối. Hãy thử lại sau nhé.", "A connection error occurred. Please try again later."));
