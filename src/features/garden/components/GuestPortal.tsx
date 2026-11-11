@@ -41,7 +41,7 @@ export default function GuestPortal() {
     event.preventDefault();
     const slug = extractGardenSlug(invite);
     if (!slug) {
-      setError(t("Anh/chị dán link lời mời dạng /g/ten-tac-pham hoặc nhập mã lời mời nhé.", "Paste an invitation link such as /g/story-name or enter the invitation code."));
+      setError(t("Bạn hãy dán link lời mời dạng /g/ten-tac-pham hoặc nhập mã lời mời nhé.", "Paste an invitation link such as /g/story-name or enter the invitation code."));
       return;
     }
     setError("");
