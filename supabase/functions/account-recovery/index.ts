@@ -72,7 +72,7 @@ Deno.serve(async (request: Request) => {
       const email = readString(body.email, 254).toLowerCase();
       const password = typeof body.password === "string" ? body.password : "";
       const displayName = readString(body.displayName, 80);
-      const pin = readString(body.pin, 6);
+      const pin = readString(body.pin, 32);
       if (!/^\S+@\S+\.\S+$/.test(email) || password.length < 8 || password.length > 72
         || displayName.length < 2 || !/^\d{6}$/.test(pin)) {
         return json({ error: "SIGNUP_FAILED" }, 400);
@@ -148,7 +148,7 @@ Deno.serve(async (request: Request) => {
         return json({ hasPin: data === true });
       }
 
-      const pin = readString(body.pin, 6);
+      const pin = readString(body.pin, 32);
       if (!/^\d{6}$/.test(pin)) return json({ error: "INVALID_PIN" }, 400);
       const { error } = await session.userClient.rpc("set_own_account_recovery_pin", { p_pin: pin });
       if (error) {
@@ -161,7 +161,7 @@ Deno.serve(async (request: Request) => {
     if (action !== "reset-password") return json({ error: "INVALID_ACTION" }, 400);
 
     const email = readString(body.email, 254).toLowerCase();
-    const pin = readString(body.pin, 6);
+    const pin = readString(body.pin, 32);
     const password = typeof body.password === "string" ? body.password : "";
     const minimumPasswordLength = 8;
 
