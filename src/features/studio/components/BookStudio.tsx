@@ -232,7 +232,7 @@ export default function BookStudio() {
   const selectedOwnerName = selectedGarden?.owner_id === FAIRYTALE_GARDEN_ADMIN_USER_ID
     ? t("Admin · Chủ hệ thống", "Admin · System owner")
     : ownerDirectory.find((entry) => entry.owner_id === selectedGarden?.owner_id)?.display_name
-      || t("User · Tài khoản người viết", "User · Writer account");
+      || t("Người dùng · Tài khoản người viết", "Member · Writer account");
   const isCreatorReviewLocked = !isAdmin && (selectedGarden?.approval_status === "pending" || selectedGarden?.approval_status === "approved");
   const selectedChapter = chapters.find((chapter) => chapter.chapter_id === selectedChapterId) ?? null;
   const journalChapters = useMemo<JournalChapter[]>(() => chapters.map((chapter) => ({
