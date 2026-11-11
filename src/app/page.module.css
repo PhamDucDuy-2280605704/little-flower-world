@@ -21,7 +21,7 @@
 .memberLogin,.memberGift{color:#789071;font-size: 12px;font-weight:750;text-decoration:none}.memberGift{padding-left:11px;border-left:1px solid rgba(90,120,84,.2)}
 .authMessage{flex-basis:100%;margin:3px 0 0;color:#a66f60;font-size: 12px}.heroFootnote{margin:22px 0 0;color:#9aa18c;font-size: 11px;letter-spacing:.06em}
 .heroVisual{position:relative;min-width:0;padding:0 0 34px 22px}
-.photoFrame{position:relative;min-height:420px;aspect-ratio:1.18;overflow:hidden;border-radius:30px 36px 26px 30px;background:#e8e8d9 url("/images/little-story-world-background.webp") 50% 43%/cover no-repeat;box-shadow:0 24px 58px rgba(48,76,49,.16)}
+.photoFrame{position:relative;min-height:420px;aspect-ratio:1.18;overflow:hidden;border-radius:30px 36px 26px 30px;background:#e8e8d9 url("https://images.pexels.com/photos/19561464/pexels-photo-19561464/free-photo-of-open-book-on-desk.jpeg?auto=compress&dpr=1&h=750&w=1260") 50% 43%/cover no-repeat;box-shadow:0 24px 58px rgba(48,76,49,.16)}
 .photoFrame:after{content:"";position:absolute;inset:55% 0 0;background:linear-gradient(180deg,transparent,rgba(31,55,39,.42))}
 .photoLabel{position:absolute;z-index:1;top:17px;left:17px;padding:8px 11px;border:1px solid rgba(255,255,255,.5);border-radius:999px;background:rgba(255,255,246,.78);color:#637c5e;font-size: 10px;font-weight:850;letter-spacing:.15em;backdrop-filter:blur(8px)}
 .photoCaption{position:absolute;right:-8px;bottom:0;display:flex;align-items:center;gap:13px;width:min(320px,82%);padding:13px 17px;border:1px solid rgba(255,255,255,.85);border-radius:14px;background:rgba(255,254,247,.95);box-shadow:0 12px 30px rgba(58,80,51,.1)}
@@ -37,7 +37,7 @@
 .formatCard strong{color:#36583f;font-family:var(--font-display),Georgia,serif;font-size: 22px;font-weight:400}
 .formatCard p{margin:0;color:#7d8977;font-size: 13px;line-height:1.75}.cardAction{align-self:end;margin-top:auto;padding-top:12px;color:#64835c;font-size: 12px;font-weight:850}
 .howItWorks{width:min(1160px,100%);margin:32px auto 60px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;gap:clamp(30px,5vw,68px)}
-.howPhoto{min-height:330px;border-radius:25px;background:#e8e8da url("/images/little-story-world-background.webp") 50% 50%/cover no-repeat;box-shadow:0 18px 42px rgba(55,78,50,.12)}
+.howPhoto{min-height:330px;border-radius:25px;background:#e8e8da url("https://cdn.pixabay.com/photo/2016/03/27/19/32/book-1283865_1280.jpg") 50% 50%/cover no-repeat;box-shadow:0 18px 42px rgba(55,78,50,.12)}
 .howCopy h2{max-width:540px;margin:0;color:#35563d;font-family:var(--font-display),Georgia,serif;font-size:clamp(30px,3.7vw,43px);font-weight:400;line-height:1.17}
 .howCopy ol{display:grid;gap:15px;margin:23px 0;padding:0;list-style:none}
 .howCopy li{display:grid;grid-template-columns:32px minmax(0,1fr);gap:12px}.howCopy li>span{color:#bd9567;font-family:var(--font-display),Georgia,serif;font-size: 17px}
@@ -111,8 +111,3 @@
   .photoCaption { animation: none; }
   .photoFrame,.howPhoto { transition: none; }
 }
-
-
-/* Use the single site background in every large visual surface. */
-.page { background: var(--story-world-image) center / cover fixed no-repeat !important; }
-.photoFrame, .howPhoto { background-image: var(--story-world-image) !important; background-position: center !important; background-size: cover !important; }

@@ -4,7 +4,7 @@
   color:#49382b;font-family:var(--font-body),Arial,Helvetica,sans-serif;
 }
 .shell {display:grid;grid-template-columns:minmax(0,1fr) minmax(390px,.88fr);width:min(100%,1080px);min-height:660px;overflow:hidden;border:1px solid rgba(136,105,68,.22);border-radius:30px 42px 30px 42px;background:rgba(255,251,242,.94);box-shadow:0 32px 90px rgba(77,58,39,.16),inset 0 1px rgba(255,255,255,.8)}
-.illustration{position:relative;display:grid;place-items:center;min-height:100%;overflow:hidden;background:linear-gradient(0deg,rgba(29,52,37,.38),rgba(29,52,37,.06)),url("/images/little-story-world-background.webp") center/cover no-repeat}
+.illustration{position:relative;display:grid;place-items:center;min-height:100%;overflow:hidden;background:linear-gradient(0deg,rgba(29,52,37,.38),rgba(29,52,37,.06)),url("https://images.pexels.com/photos/19561464/pexels-photo-19561464/free-photo-of-open-book-on-desk.jpeg?auto=compress&cs=tinysrgb&w=1400") center/cover no-repeat}
 .artCaption{position:absolute;z-index:3;bottom:38px;width:80%;padding:10px 14px;border:1px solid rgba(255,255,255,.32);border-radius:999px;background:rgba(255,253,246,.78);color:#45664b;font-size:10px;font-weight:850;letter-spacing:.18em;text-align:center}
 .formSide {display:flex;flex-direction:column;justify-content:center;padding:clamp(28px,5vw,60px)}
 .brand {display:flex;align-items:center;gap:12px;margin-bottom:clamp(32px,5vw,58px);color:#49382b;text-decoration:none}
@@ -12,6 +12,3 @@
 .brand strong,.brand small{display:block}.brand strong{font-family:var(--font-display),Georgia,"Times New Roman",serif;font-size:17px;font-weight:600}.brand small{margin-top:4px;color:#8b7b64;font-size:9px;font-weight:800;letter-spacing:.2em}
 .footer {margin:24px 0 0;color:#92846f;font-size:11px;line-height:1.7;text-align:center}
 @media(max-width:760px){.shell{grid-template-columns:1fr;width:min(100%,520px);min-height:0}.illustration{min-height:190px}.artCaption{bottom:16px;font-size:9px}.formSide{padding:30px 24px}.brand{margin-bottom:30px}}
-
-.page { background: var(--story-world-image) center / cover fixed no-repeat !important; }
-.illustration { background-image: linear-gradient(0deg,rgba(29,52,37,.24),rgba(29,52,37,.06)), var(--story-world-image) !important; background-position: center !important; background-size: cover !important; }
