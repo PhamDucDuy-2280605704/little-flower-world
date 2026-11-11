@@ -327,7 +327,7 @@ export default function GardenStudio() {
         await loadGardens(user.id);
       } catch (loadError) {
         console.error("Garden Studio load failed:", loadError);
-        setError("Chưa tải được danh sách khu vườn. Anh thử tải lại nhé.");
+        setError("Chưa tải được danh sách khu vườn. Bạn thử tải lại nhé.");
       } finally {
         if (active) {
           setAuthReady(true);
