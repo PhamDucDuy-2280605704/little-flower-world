@@ -3,13 +3,11 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useLanguage } from "@/features/i18n/LanguageProvider";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { adminSupabase } from "@/lib/adminSupabase";
 import { FAIRYTALE_GARDEN_ADMIN_USER_ID } from "@/features/garden/data/gardenThemes";
 import styles from "../styles/AdminLoginForm.module.css";
 
 export default function AdminLoginForm({ accessKey }: { accessKey: string }) {
-  const router = useRouter();
   const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -58,7 +56,7 @@ export default function AdminLoginForm({ accessKey }: { accessKey: string }) {
     return () => {
       active = false;
     };
-  }, [router, t]);
+  }, [accessKey, t]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
