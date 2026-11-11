@@ -134,7 +134,7 @@ export default function AdminReviewDashboard() {
 
     if (queryError) {
       console.error("Load Admin review queue failed:", queryError);
-      setError(t("Chưa tải được danh sách tác phẩm. Anh thử tải lại nhé.", "Could not load the story queue. Please reload."));
+      setError(t("Chưa tải được danh sách tác phẩm. Bạn thử tải lại nhé.", "Could not load the story queue. Please reload."));
       setRows([]);
       setOwnerDirectory([]);
       setLoading(false);
@@ -365,7 +365,7 @@ export default function AdminReviewDashboard() {
       .eq("id", selected.id);
     if (updateError) {
       console.error("Moderate story failed:", updateError);
-      setError(t("Chưa lưu được quyết định kiểm duyệt. Anh thử lại nhé.", "Could not save the moderation decision. Please try again."));
+      setError(t("Chưa lưu được quyết định kiểm duyệt. Bạn thử lại nhé.", "Could not save the moderation decision. Please try again."));
       setSaving(false);
       return;
     }
@@ -375,8 +375,8 @@ export default function AdminReviewDashboard() {
     setFilter("pending");
     setSelectedId(nextPending?.id ?? "");
     setNotice(status === "approved"
-      ? t("Đã duyệt “" + reviewedTitle + "”. Tác phẩm đã rời hàng chờ; User nhận thông báo và có thể tự xuất bản khi sẵn sàng.", "Approved “" + reviewedTitle + "”. It has left the queue; the User was notified and can publish when ready.")
-      : t("Đã từ chối “" + reviewedTitle + "”. Tác phẩm đã rời hàng chờ; User nhận được lý do để chỉnh sửa.", "Rejected “" + reviewedTitle + "”. It has left the queue; the User received the reason for changes."));
+      ? t("Đã duyệt “" + reviewedTitle + "”. Tác phẩm đã rời hàng chờ; Người dùng nhận thông báo và có thể tự xuất bản khi sẵn sàng.", "Approved “" + reviewedTitle + "”. It has left the queue; the User was notified and can publish when ready.")
+      : t("Đã từ chối “" + reviewedTitle + "”. Tác phẩm đã rời hàng chờ; Người dùng nhận được lý do để chỉnh sửa.", "Rejected “" + reviewedTitle + "”. It has left the queue; the User received the reason for changes."));
     setSaving(false);
   }
 
@@ -474,7 +474,7 @@ export default function AdminReviewDashboard() {
                 </div>
                 <div className={styles.detailActions}>
                   <button type="button" onClick={() => void openPreview(selected)} disabled={previewLoading}>{previewLoading ? t("Đang mở...", "Opening...") : t("◉ Xem trước toàn màn hình", "◉ Full preview")}</button>
-                  <Link href={"/admin/studio?mode=admin&garden=" + encodeURIComponent(selected.id)}>{selected.owner_id === FAIRYTALE_GARDEN_ADMIN_USER_ID ? t("Mở Studio Admin ↗", "Open Admin Studio ↗") : t("✎ Sửa tác phẩm User ↗", "✎ Edit User story ↗")}</Link>
+                  <Link href={"/admin/studio?mode=admin&garden=" + encodeURIComponent(selected.id)}>{selected.owner_id === FAIRYTALE_GARDEN_ADMIN_USER_ID ? t("Mở Studio Admin ↗", "Open Admin Studio ↗") : t("✎ Sửa tác phẩm người dùng ↗", "✎ Edit User story ↗")}</Link>
                   <button type="button" onClick={() => document.getElementById("admin-story-update")?.scrollIntoView({ behavior: "smooth", block: "center" })} className={storyDirty ? styles.updateActionDirty : undefined}>
                     {storyDirty ? "✦ " + t("Có thay đổi", "Changes") : "✎ " + t("Cập nhật", "Update")}
                   </button>
@@ -518,7 +518,7 @@ export default function AdminReviewDashboard() {
               </label>
 
               <div className={styles.decisionBar}>
-                <div><strong>{t("Quyết định kiểm duyệt", "Moderation decision")}</strong><p>{t("Admin quyết định duyệt hoặc từ chối. Khi được duyệt, User sẽ nhận thông báo và tự xuất bản khi sẵn sàng.", "Admin decides approval or rejection. Once approved, the User receives a notice and can publish when ready.")}</p></div>
+                <div><strong>{t("Quyết định kiểm duyệt", "Moderation decision")}</strong><p>{t("Admin quyết định duyệt hoặc từ chối. Khi được duyệt, Người dùng sẽ nhận thông báo và tự xuất bản khi sẵn sàng.", "Admin decides approval or rejection. Once approved, the User receives a notice and can publish when ready.")}</p></div>
                 <div className={styles.decisionButtons}>
                   <button type="button" className={styles.rejectButton} onClick={() => void moderate("rejected")} disabled={saving}>{saving ? t("Đang lưu...", "Saving...") : t("Từ chối & gửi lý do", "Reject with reason")}</button>
                   <button type="button" className={styles.approveButton} onClick={() => void moderate("approved")} disabled={saving}>{saving ? t("Đang lưu...", "Saving...") : t("Duyệt tác phẩm", "Approve story")}</button>
