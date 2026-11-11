@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import { adminSupabase } from "@/lib/adminSupabase";
+import { FAIRYTALE_GARDEN_ADMIN_USER_ID } from "@/features/garden/data/gardenThemes";
 import { useLanguage } from "@/features/i18n/LanguageProvider";
 import styles from "../styles/AdminLoginForm.module.css";
 
@@ -18,7 +19,7 @@ export default function AdminRecoveryPinSetupForm() {
     void (async () => {
       const { data, error: authError } = await adminSupabase.auth.getUser();
       if (!active) return;
-      if (authError || data.user?.id !== "FAIRYTALE_GARDEN_ADMIN_USER_ID") {
+      if (authError || data.user?.id !== FAIRYTALE_GARDEN_ADMIN_USER_ID) {
         await adminSupabase.auth.signOut({ scope: "local" });
         window.location.replace("/");
         return;
