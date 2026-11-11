@@ -17,6 +17,7 @@
     .delay { animation-delay:1.4s }
     .petal { animation:sway 5s ease-in-out infinite; transform-box:fill-box; transform-origin:bottom center }
     .line { fill:none; stroke:#c9a6a1; stroke-width:2; stroke-linecap:round; opacity:.55 }
+    @media(prefers-reduced-motion:reduce){.floaty,.twinkle,.petal{animation:none!important}}
   </style>
 </defs>
 <rect width="1280" height="430" rx="30" fill="url(#paper)"/>
