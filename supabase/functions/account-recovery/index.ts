@@ -73,8 +73,8 @@ Deno.serve(async (request: Request) => {
       const password = typeof body.password === "string" ? body.password : "";
       const displayName = readString(body.displayName, 80);
       const pin = readString(body.pin, 6);
-      if (!/^\\S+@\\S+\\.\\S+$/.test(email) || password.length < 8 || password.length > 72
-        || displayName.length < 2 || !/^\\d{6}$/.test(pin)) {
+      if (!/^\S+@\S+\.\S+$/.test(email) || password.length < 8 || password.length > 72
+        || displayName.length < 2 || !/^\d{6}$/.test(pin)) {
         return json({ error: "SIGNUP_FAILED" }, 400);
       }
 
@@ -86,23 +86,52 @@ Deno.serve(async (request: Request) => {
         return json({ error: "SIGNUP_RATE_LIMITED" }, 429);
       }
 
-      const { error: createError } = await admin.auth.admin.createUser({
+      const { data: created, error: createError } = await admin.auth.admin.createUser({
         email,
         password,
         email_confirm: true,
         user_metadata: {
           display_name: displayName,
           full_name: displayName,
-          recovery_pin: pin,
         },
       });
-      if (createError) {
+      if (createError || !created.user) {
         console.error("[account-recovery] Member creation failed:", {
-          status: createError.status ?? null,
-          code: createError.code ?? "unknown",
+          status: createError?.status ?? null,
+          code: createError?.code ?? "unknown",
         });
         return json({ error: "SIGNUP_FAILED" }, 400);
       }
+
+      // Store only a server-hashed PIN in account_recovery_pins. Never keep
+      // the plaintext PIN in editable auth user metadata.
+      const registrationClient = createClient(supabaseUrl!, publishableKey!, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+      const { data: registrationSession, error: registrationSignInError } =
+        await registrationClient.auth.signInWithPassword({ email, password });
+
+      if (registrationSignInError || !registrationSession.user) {
+        await admin.auth.admin.deleteUser(created.user.id);
+        console.error("[account-recovery] Immediate member sign-in failed:", {
+          code: registrationSignInError?.code ?? "unknown",
+        });
+        return json({ error: "SIGNUP_FAILED" }, 400);
+      }
+
+      const { error: pinSaveError } = await registrationClient.rpc("set_own_account_recovery_pin", {
+        p_pin: pin,
+      });
+      await registrationClient.auth.signOut({ scope: "local" });
+
+      if (pinSaveError) {
+        await admin.auth.admin.deleteUser(created.user.id);
+        console.error("[account-recovery] Initial recovery PIN save failed:", {
+          code: pinSaveError.code ?? "unknown",
+        });
+        return json({ error: "SIGNUP_FAILED" }, 400);
+      }
+
       return json({ ok: true });
     }
 
