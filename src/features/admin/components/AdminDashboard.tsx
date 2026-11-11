@@ -189,7 +189,7 @@ export default function AdminDashboard() {
       );
     } catch (loadError) {
       console.error("Load all gardens failed:", loadError);
-      setError(t("Chưa tải được danh sách tác phẩm. Anh thử tải lại trang nhé.", "Could not load stories. Please reload the page."));
+      setError(t("Chưa tải được danh sách tác phẩm. Bạn thử tải lại trang nhé.", "Could not load stories. Please reload the page."));
     } finally {
       setGardensLoading(false);
     }
@@ -252,7 +252,7 @@ export default function AdminDashboard() {
 
       setPhotos(sorted);
       if (signedResults.some((result) => result.error || !result.photo)) {
-        setError(t("Một số ảnh chưa tạo được liên kết xem. Anh kiểm tra quyền Storage hoặc tải lại album nhé.", "Some photos could not be signed for viewing. Check Storage access or reload the album."));
+        setError(t("Một số ảnh chưa tạo được liên kết xem. Bạn hãy kiểm tra quyền Storage hoặc tải lại album nhé.", "Some photos could not be signed for viewing. Check Storage access or reload the album."));
       }
     } catch (loadError) {
       console.error("Load garden album failed:", loadError);
@@ -347,7 +347,7 @@ export default function AdminDashboard() {
       });
     } catch (previewError) {
       console.error("Load full story preview failed:", previewError);
-      setError(t("Chưa mở được toàn bộ tác phẩm. Anh thử lại nhé.", "Could not open the full story. Please try again."));
+      setError(t("Chưa mở được toàn bộ tác phẩm. Bạn thử lại nhé.", "Could not open the full story. Please try again."));
       setStoryPreview(null);
     } finally {
       setStoryPreviewLoading(false);
@@ -404,7 +404,7 @@ export default function AdminDashboard() {
     setNotice("");
 
     if (photos.length + files.length > MAX_PHOTOS) {
-      setError(t("Mỗi tác phẩm lưu tối đa ", "A story can hold up to ") + MAX_PHOTOS + t(" ảnh nhé anh.", " photos."));
+      setError(t("Mỗi tác phẩm lưu tối đa ", "A story can hold up to ") + MAX_PHOTOS + t(" ảnh nhé.", " photos."));
       return;
     }
 
@@ -508,7 +508,7 @@ export default function AdminDashboard() {
   async function handleLogout() {
     const { error: logoutError } = await adminSupabase.auth.signOut({ scope: "local" });
     if (logoutError) {
-      setError(t("Đăng xuất chưa thành công. Anh thử lại nhé.", "Sign out failed. Please try again."));
+      setError(t("Đăng xuất chưa thành công. Bạn thử lại nhé.", "Sign out failed. Please try again."));
       return;
     }
     router.replace("/");
@@ -619,7 +619,7 @@ export default function AdminDashboard() {
                 <div>
                   <p className={styles.panelEyebrow}>{t("BỘ SƯU TẬP TÁC PHẨM", "STORY COLLECTION")}</p>
                   <h2>{t("Các tác phẩm", "Stories")}</h2>
-                  <p>{t("Chọn tác phẩm anh muốn quản lý.", "Choose a story to manage.")}</p>
+                  <p>{t("Chọn tác phẩm bạn muốn quản lý.", "Choose a story to manage.")}</p>
                 </div>
                 <span className={styles.countPill}>{gardens.length} {t("tác phẩm", "stories")}</span>
               </div>
