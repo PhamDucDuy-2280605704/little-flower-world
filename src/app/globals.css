@@ -125,3 +125,12 @@ body { background: var(--garden-page-bg); }
     transition-duration: .01ms !important;
   }
 }
+
+
+/* One owner-selected background image shared across the whole site. */
+:root {
+  --story-world-image: url("/images/little-story-world-background.webp");
+  --garden-page-bg: var(--story-world-image) center / cover fixed no-repeat;
+}
+html, body { min-height: 100%; }
+body { background: var(--garden-page-bg) !important; background-attachment: fixed !important; }

@@ -318,7 +318,7 @@
   width: min(34%, 360px);
   height: 100%;
   border-radius: 0 22px 22px 0;
-  background: linear-gradient(90deg, rgba(34,49,43,.12), transparent 25%), url("https://images.pexels.com/photos/19561464/pexels-photo-19561464/free-photo-of-open-book-on-desk.jpeg?auto=compress&dpr=1&h=750&w=1260") center 46% / cover no-repeat;
+  background: linear-gradient(90deg, rgba(34,49,43,.12), transparent 25%), url("/images/little-story-world-background.webp") center 46% / cover no-repeat;
   opacity: .92;
 }
 
@@ -1148,3 +1148,6 @@
   overflow: auto;
   overscroll-behavior: contain;
 }
+
+/* The admin workspace uses the same landscape backdrop as the public site. */
+.shell { background-image: linear-gradient(90deg, rgba(34,49,43,.16), rgba(34,49,43,.03)), var(--story-world-image) !important; background-position: center !important; background-size: cover !important; background-attachment: fixed !important; }

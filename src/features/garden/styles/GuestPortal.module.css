@@ -4,7 +4,7 @@
 .brand span{display:grid;place-items:center;width:36px;height:36px;border-radius:12px;background:#e8f1e1;color:#648760;font-family:var(--font-display),Georgia,serif;font-size: 19px}
 .areaLabel{padding:7px 11px;border:1px solid rgba(103,139,96,.24);border-radius:999px;background:rgba(255,255,250,.76);color:#708566;font-size: 11px;font-weight:850;letter-spacing:.13em}
 .card{width:min(100%,960px);display:grid;grid-template-columns:minmax(230px,.95fr) minmax(0,1.05fr);overflow:hidden;border:1px solid rgba(107,139,98,.22);border-radius:27px;background:rgba(255,255,250,.92);box-shadow:0 28px 70px rgba(57,86,56,.1)}
-.illustration{position:relative;min-height:440px;overflow:hidden;background:#e9e8dc url("https://images.pexels.com/photos/19561464/pexels-photo-19561464/free-photo-of-open-book-on-desk.jpeg?auto=compress&dpr=1&h=750&w=1260") 48% 48%/cover no-repeat}
+.illustration{position:relative;min-height:440px;overflow:hidden;background:#e9e8dc url("/images/little-story-world-background.webp") 48% 48%/cover no-repeat}
 .illustration:after{content:"";position:absolute;inset:58% 0 0;background:linear-gradient(180deg,transparent,rgba(31,55,39,.42))}
 .illustrationLabel{position:absolute;z-index:1;left:16px;bottom:15px;padding:7px 11px;border-radius:999px;background:rgba(255,255,246,.88);color:#637e5c;font-size: 10px;font-weight:850;letter-spacing:.14em}
 .content{display:grid;align-content:center;padding:clamp(28px,5vw,58px)}
@@ -38,3 +38,6 @@
 .content form button { box-shadow: 0 10px 23px rgba(62,103,68,.14); transition: transform .2s ease, box-shadow .2s ease, background .2s ease; }
 .content form button:not(:disabled):hover { transform: translateY(-2px); box-shadow: 0 14px 27px rgba(62,103,68,.18); background: #3d6845; }
 @media(prefers-reduced-motion:reduce) { .content form button { transition: none; } }
+
+.page { background: var(--story-world-image) center / cover fixed no-repeat !important; }
+.illustration { background-image: var(--story-world-image) !important; background-position: center !important; background-size: cover !important; }

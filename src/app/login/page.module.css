@@ -20,7 +20,10 @@
 .backLink:focus-visible { outline:3px solid #a77b4d; outline-offset:4px; }
 @media(max-width:760px) { .card{grid-template-columns:1fr;gap:18px}.stage{display:none}.formSide{gap:18px} }
 
-.stage{background:linear-gradient(0deg,rgba(31,55,39,.38),rgba(31,55,39,.05)),url("https://images.pexels.com/photos/19561464/pexels-photo-19561464/free-photo-of-open-book-on-desk.jpeg?auto=compress&cs=tinysrgb&w=1400") center/cover no-repeat;border-radius:24px}
+.stage{background:linear-gradient(0deg,rgba(31,55,39,.38),rgba(31,55,39,.05)),url("/images/little-story-world-background.webp") center/cover no-repeat;border-radius:24px}
 .stage::after{border-color:rgba(255,255,255,.28)}
 .stageCaption{align-self:end;margin:0 0 28px;padding:10px 15px;border:1px solid rgba(255,255,255,.35);border-radius:999px;background:rgba(255,253,246,.78);color:#46694e;font-size:10px;font-weight:850;letter-spacing:.18em}
 .backLink{color:#4b7352}
+
+.page { background: var(--story-world-image) center / cover fixed no-repeat !important; }
+.stage { background-image: linear-gradient(0deg,rgba(31,55,39,.22),rgba(31,55,39,.05)), var(--story-world-image) !important; background-position: center !important; background-size: cover !important; }
