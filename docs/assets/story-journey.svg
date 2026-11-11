@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 330" role="img" aria-labelledby="title desc">
+<title id="title">Little Story World — from a draft to a treasured story</title>
+<desc id="desc">Ba chặng sáng tác, kiểm duyệt và trao gửi câu chuyện, minh họa bằng quyển sách, dấu duyệt và phong thư với hiệu ứng hoa và ánh sáng nhẹ.</desc>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fffaf4"/><stop offset=".55" stop-color="#fff1f2"/><stop offset="1" stop-color="#f4efff"/></linearGradient>
+  <linearGradient id="rose" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d99eae"/><stop offset="1" stop-color="#9c7eaa"/></linearGradient>
+  <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#d59aa8"/><stop offset=".5" stop-color="#c1a6c6"/><stop offset="1" stop-color="#a6a3cf"/></linearGradient>
+  <radialGradient id="glow"><stop offset="0" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#f0c7d6" stop-opacity="0"/></radialGradient>
+  <filter id="shadow" x="-25%" y="-30%" width="150%" height="170%"><feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#9a7180" flood-opacity=".13"/></filter>
+  <style>
+    @keyframes float {0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+    @keyframes shimmer {0%,100%{opacity:.25;transform:scale(.75)}50%{opacity:1;transform:scale(1.18)}}
+    @keyframes flow {to{stroke-dashoffset:-48}}
+    .float{animation:float 5.5s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+    .float.delay{animation-delay:1.2s}
+    .spark{animation:shimmer 2.8s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+    .spark.delay{animation-delay:1.4s}
+    .path{stroke-dasharray:7 9;animation:flow 9s linear infinite}
+    @media(prefers-reduced-motion:reduce){.float,.spark,.path{animation:none!important}}
+  </style>
+</defs>
+<rect width="1280" height="330" rx="24" fill="url(#bg)"/>
+<circle cx="165" cy="42" r="110" fill="url(#glow)"/>
+<circle cx="1080" cy="290" r="160" fill="url(#glow)"/>
+<path d="M0 265C210 225 300 320 500 270S860 235 1280 278" fill="none" stroke="#d9c0cd" stroke-width="1.5" opacity=".5"/>
+<g fill="#c58c9d" class="spark"><path d="M92 56l5 13 13 5-13 5-5 13-5-13-13-5 13-5z"/><circle cx="1195" cy="72" r="4"/></g>
+<g fill="#a99ac3" class="spark delay"><path d="M1150 230l4 10 10 4-10 4-4 10-4-10-10-4 10-4z"/><circle cx="475" cy="56" r="4"/></g>
+
+<!-- connecting path -->
+<path d="M365 160H468M812 160H915" fill="none" stroke="url(#gold)" stroke-width="4" stroke-linecap="round" class="path"/>
+<g fill="#c59aa9"><circle cx="415" cy="160" r="5"/><circle cx="865" cy="160" r="5"/></g>
+
+<!-- Stage 1 -->
+<g filter="url(#shadow)">
+  <rect x="62" y="54" width="310" height="220" rx="20" fill="#fffdfb" stroke="#e7cbd4"/>
+</g>
+<g class="float" transform="translate(164 76)">
+  <path d="M0 16C37 -4 76 1 104 17V94C70 77 34 77 0 96Z" fill="url(#rose)"/>
+  <path d="M104 17C138 1 175 -3 209 16V96C172 77 138 77 104 94Z" fill="#a893b7"/>
+  <path d="M8 12C40 -2 76 3 98 18V84C67 71 37 71 8 85Z" fill="#fffdf9"/>
+  <path d="M110 18C142 3 174 -2 201 12V85C171 71 141 71 110 84Z" fill="#fffaf7"/>
+  <path d="M104 17V94" stroke="#c7a6b3" stroke-width="3"/>
+  <path d="M22 33c22 -9 48 -9 65 0M22 48c22 -9 48 -9 65 0M123 33c22 -9 48 -9 65 0M123 48c22 -9 48 -9 65 0" fill="none" stroke="#d8bdc7" stroke-width="2" stroke-linecap="round"/>
+</g>
+<text x="217" y="218" text-anchor="middle" fill="#9b7383" font-family="Arial,sans-serif" font-size="12" font-weight="700" letter-spacing="2">01 · CREATE</text>
+<text x="217" y="246" text-anchor="middle" fill="#493c4b" font-family="Georgia,serif" font-size="22">Viết câu chuyện</text>
+
+<!-- Stage 2 -->
+<g filter="url(#shadow)">
+  <rect x="485" y="54" width="310" height="220" rx="20" fill="#fffdfb" stroke="#e1d4e7"/>
+</g>
+<g class="float delay" transform="translate(592 75)">
+  <circle cx="98" cy="57" r="49" fill="#f5e8ec" stroke="#c59cad" stroke-width="3"/>
+  <circle cx="98" cy="57" r="39" fill="none" stroke="#d2b4c8" stroke-dasharray="3 5" stroke-width="2"/>
+  <path d="M72 57l17 17 36-39" fill="none" stroke="#9c789d" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M98 0l5 11 12 1-9 8 3 12-11-6-11 6 3-12-9-8 12-1z" fill="#e2bd8b" opacity=".8"/>
+</g>
+<text x="640" y="218" text-anchor="middle" fill="#9b839f" font-family="Arial,sans-serif" font-size="12" font-weight="700" letter-spacing="2">02 · REVIEW</text>
+<text x="640" y="246" text-anchor="middle" fill="#493c4b" font-family="Georgia,serif" font-size="22">Admin kiểm duyệt</text>
+
+<!-- Stage 3 -->
+<g filter="url(#shadow)">
+  <rect x="908" y="54" width="310" height="220" rx="20" fill="#fffdfb" stroke="#d7d0e7"/>
+</g>
+<g class="float" transform="translate(1005 83)">
+  <path d="M4 12Q4 2 16 2H180Q192 2 192 14V83Q192 95 180 95H16Q4 95 4 83Z" fill="#f4edf7" stroke="#bba7c7" stroke-width="3"/>
+  <path d="M8 12l92 66 92-66" fill="none" stroke="#bd9eb8" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M8 91l63-48M192 91l-63-48" fill="none" stroke="#d2b7c9" stroke-width="3"/>
+  <path d="M101 52c-19-14-37 7 0 31 37-24 19-45 0-31Z" fill="#d99eae"/>
+</g>
+<text x="1063" y="218" text-anchor="middle" fill="#9b839f" font-family="Arial,sans-serif" font-size="12" font-weight="700" letter-spacing="2">03 · SHARE</text>
+<text x="1063" y="246" text-anchor="middle" fill="#493c4b" font-family="Georgia,serif" font-size="22">Trao gửi món quà</text>
+<text x="640" y="309" text-anchor="middle" fill="#9c8796" font-family="Arial,sans-serif" font-size="11" letter-spacing="2">WRITE WITH CARE · KEEP THE MOMENT · SHARE THE STORY</text>
+</svg>

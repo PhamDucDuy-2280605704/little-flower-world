@@ -38,6 +38,13 @@ Người viết có thể lưu bản thảo, thêm ảnh kỷ niệm, chọn pho
 
 > Viết một điều muốn nói. Trang trí theo cách của mình. Gửi đi như một món quà.
 
+## 💌 Từ bản nháp đến món quà
+
+<div align="center">
+  <img src="./docs/assets/story-journey.svg" alt="Ba chặng: viết câu chuyện, Admin kiểm duyệt và trao gửi món quà" width="100%" />
+  <sub>CREATE · REVIEW · SHARE — mỗi câu chuyện đi qua một hành trình riêng.</sub>
+</div>
+
 ## ✨ Tính năng nổi bật
 
 ### ✍️ Không gian sáng tác
@@ -96,7 +103,7 @@ Người viết có thể lưu bản thảo, thêm ảnh kỷ niệm, chọn pho
 
 **Lưu ý về Admin:** đường dẫn có access key là thông tin riêng, không đưa URL đầy đủ hoặc giá trị khóa vào README, ảnh chụp công khai hay mã nguồn. Biết địa chỉ không đồng nghĩa có quyền quản trị; các trang Admin vẫn xác thực tài khoản ở phía ứng dụng và cơ sở dữ liệu.
 
-## 🔄 Quy trình một tác phẩm
+## 🔄 Quy trình chi tiết một tác phẩm
 
 ~~~mermaid
 flowchart LR
