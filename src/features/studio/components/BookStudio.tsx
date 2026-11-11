@@ -413,6 +413,26 @@ export default function BookStudio() {
         setLoading(false);
         return;
       }
+
+      // A writer without a recovery PIN must complete setup before the studio
+      // loads private drafts, including when /account is opened directly.
+      if (!adminMode) {
+        const { data: recoveryStatus, error: recoveryStatusError } = await supabase.functions.invoke("account-recovery", {
+          body: { action: "status" },
+        });
+        if (!active) return;
+        if (recoveryStatusError || typeof recoveryStatus?.hasPin !== "boolean") {
+          setError(t("Chưa thể xác minh mã PIN bảo mật. Vui lòng tải lại hoặc đăng nhập lại.", "We couldn't verify your recovery PIN. Please reload or sign in again."));
+          setAuthReady(true);
+          setLoading(false);
+          return;
+        }
+        if (recoveryStatus.hasPin !== true) {
+          window.location.replace("/account/recovery-pin");
+          return;
+        }
+      }
+
       activeClientRef.current = useAdminSession ? adminSupabase : memberUser ? supabase : adminSupabase;
       setIsAdmin(adminMode);
       setUserId(user.id);

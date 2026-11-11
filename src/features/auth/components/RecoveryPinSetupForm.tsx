@@ -2,13 +2,11 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/features/i18n/LanguageProvider";
 import styles from "../styles/LoginForm.module.css";
 
 export default function RecoveryPinSetupForm() {
-  const router = useRouter();
   const { t } = useLanguage();
   const [ready, setReady] = useState(false);
   const [pin, setPin] = useState("");
@@ -19,16 +17,43 @@ export default function RecoveryPinSetupForm() {
 
   useEffect(() => {
     let active = true;
-    void supabase.auth.getUser().then(({ data, error: userError }) => {
+
+    async function verifySetupAccess() {
+      const { data, error: userError } = await supabase.auth.getUser();
       if (!active) return;
+
       if (userError || !data.user) {
-        router.replace("/login?next=%2Faccount%2Frecovery-pin");
+        window.location.replace("/login?next=%2Faccount%2Frecovery-pin");
         return;
       }
+
+      const { data: pinStatus, error: pinStatusError } = await supabase.functions.invoke("account-recovery", {
+        body: { action: "status" },
+      });
+      if (!active) return;
+
+      if (pinStatusError || typeof pinStatus?.hasPin !== "boolean") {
+        setError(t("Chưa thể xác minh trạng thái PIN. Hãy tải lại trang hoặc đăng nhập lại.", "We couldn't verify your PIN status. Reload the page or sign in again."));
+        return;
+      }
+
+      if (pinStatus.hasPin) {
+        window.location.replace("/account");
+        return;
+      }
+
       setReady(true);
+    }
+
+    void verifySetupAccess().catch((cause: unknown) => {
+      console.error("Recovery PIN setup access check failed:", cause);
+      if (active) {
+        setError(t("Chưa thể kiểm tra tài khoản lúc này. Hãy thử tải lại trang.", "We couldn't check this account right now. Please reload the page."));
+      }
     });
+
     return () => { active = false; };
-  }, [router]);
+  }, [t]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -51,8 +76,7 @@ export default function RecoveryPinSetupForm() {
       setNotice(t("Mã PIN bảo mật đã được lưu. Admin không thể xem mã này.", "Your recovery PIN has been saved. Admin cannot view it."));
       setPin("");
       setConfirmPin("");
-      router.replace("/account");
-      router.refresh();
+      window.location.replace("/account");
     } catch {
       setError(t("Chưa thể lưu mã PIN lúc này. Hãy thử lại.", "We couldn't save your PIN right now. Please try again."));
     } finally {
