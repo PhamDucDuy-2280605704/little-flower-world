@@ -1185,7 +1185,7 @@ export default function BookStudio() {
           <h1>{isAdmin ? t("Không gian chỉnh sửa đầy đủ của Admin.", "Full Admin editing workspace.") : t("Nơi bạn viết và chăm chút câu chuyện của mình.", "A quiet place to write and shape your stories.")}</h1>
           <p>{isAdmin
             ? t("Admin là chủ hệ thống: quản lý tác phẩm của mình, xem và chỉnh sửa tác phẩm của từng người dùng, duyệt hoặc từ chối tại Bàn kiểm duyệt. Người dùng có thể tự xuất bản sau khi được Admin duyệt.", "Admin is the system owner: manage personal stories, inspect and edit each User's stories, and approve or reject in the Review Desk. Users can publish their own stories after approval.")
-            : t("Đây là bàn sáng tác dành cho người dùng: tạo tác phẩm, thêm ảnh, trang trí, gửi Admin kiểm duyệt và nhận thông báo. Khi được duyệt, Người dùng có thể tự xuất bản, đặt PIN và bật lời nhắn cho Khách đọc.", "This writing desk is for Users: create stories, add photos, decorate, submit for Admin review, and receive notices. Once approved, Users can publish, set a PIN, and enable notes from reader Guests.")}</p>
+            : t("Đây là không gian sáng tác dành cho bạn: tạo tác phẩm, thêm ảnh, trang trí, gửi Admin kiểm duyệt và nhận thông báo. Khi tác phẩm được duyệt, bạn có thể tự xuất bản, đặt mã PIN và bật lời nhắn cho khách đọc.", "This writing desk is for Users: create stories, add photos, decorate, submit for Admin review, and receive notices. Once approved, Users can publish, set a PIN, and enable notes from reader Guests.")}</p>
         </div>
         <div className={styles.welcomePhoto} role="img" aria-label={t("Cuốn sách mở dưới ánh sáng tự nhiên", "An open book in natural light")}>
           <span>YOUR WORDS, YOUR PAGES</span>
@@ -1197,7 +1197,7 @@ export default function BookStudio() {
           <div><span>▤</span><strong>{t("Quản lý bản thảo", "Manage drafts")}</strong><small>{t("Tạo, sửa và xóa bản thảo riêng tư hoặc bản bị từ chối.", "Create, edit, and delete private or rejected drafts.")}</small></div>
           <div><span>▧</span><strong>{t("Quản lý hình ảnh", "Manage photos")}</strong><small>{t("Thêm ảnh và xem kho ảnh của từng tác phẩm.", "Add photos and manage each story's album.")}</small></div>
           <div><span>✉</span><strong>{t("Gửi Admin kiểm duyệt", "Submit for review")}</strong><small>{t("Theo dõi trạng thái và đọc nhận xét từ Admin.", "Track review status and read Admin feedback.")}</small></div>
-          <div><span>✉</span><strong>{t("Admin duyệt · Người dùng xuất bản", "Admin approves · User publishes")}</strong><small>{t("Người dùng chỉ được tạo liên kết công khai sau khi Admin duyệt tác phẩm.", "Users can create a public link only after Admin approval.")}</small></div>
+          <div><span>✉</span><strong>{t("Admin duyệt · Bạn xuất bản", "Admin approves · User publishes")}</strong><small>{t("Bạn chỉ có thể tạo liên kết công khai sau khi Admin duyệt tác phẩm.", "Users can create a public link only after Admin approval.")}</small></div>
         </section>
       )}
 
@@ -1436,7 +1436,7 @@ export default function BookStudio() {
                       </button>;
                     })}
                   </div>
-                  <p className={styles.helper}>{t("Admin và mọi tài khoản người dùng đều được dùng toàn bộ bộ sticker, không giới hạn số lượng.", "Admin and all User accounts can use the full sticker collection without a selection limit.")} {t("Sticker chỉ mang tính trang trí, không che nội dung trang.", "Stickers are decorative and will not cover your text.")}</p>
+                  <p className={styles.helper}>{t("Bạn có thể sử dụng toàn bộ bộ sticker, không giới hạn số lượng.", "Admin and all User accounts can use the full sticker collection without a selection limit.")} {t("Sticker chỉ mang tính trang trí, không che nội dung trang.", "Stickers are decorative and will not cover your text.")}</p>
                 </div>
                 <div className={styles.decorationPreview}><span>{decorations.stickers.map((id) => STORY_STICKERS.find((item) => item.id === id)?.emoji).join(" ") || "✦"}</span><div><strong>{t("Xem nhanh phong cách", "Style preview")}</strong><p>{DECORATION_THEMES.find((item) => item.value === decorations.theme) ? t(DECORATION_THEMES.find((item) => item.value === decorations.theme)!.title, DECORATION_THEMES.find((item) => item.value === decorations.theme)!.titleEn) : ""} · {PAPER_FINISHES.find((item) => item.value === decorations.paper) ? t(PAPER_FINISHES.find((item) => item.value === decorations.paper)!.title, PAPER_FINISHES.find((item) => item.value === decorations.paper)!.titleEn) : ""} · {PAGE_EFFECTS.find((item) => item.value === decorations.effect) ? t(PAGE_EFFECTS.find((item) => item.value === decorations.effect)!.title, PAGE_EFFECTS.find((item) => item.value === decorations.effect)!.titleEn) : ""}</p></div></div>
               </div>
